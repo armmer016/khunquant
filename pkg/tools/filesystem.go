@@ -20,11 +20,6 @@ import (
 
 const MaxReadFileSize = 64 * 1024 // 64KB limit to avoid context overflow
 
-// validatePath ensures the given path is within the workspace if restrict is true.
-func validatePath(path, workspace string, restrict bool) (string, error) {
-	return validatePathWithAllowPaths(path, workspace, restrict, nil)
-}
-
 func validatePathWithAllowPaths(path, workspace string, restrict bool, patterns []*regexp.Regexp) (string, error) {
 	if workspace == "" {
 		return path, fmt.Errorf("workspace is not defined")
