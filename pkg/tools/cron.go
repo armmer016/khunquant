@@ -96,7 +96,7 @@ func (t *CronTool) Parameters() map[string]any {
 			},
 			"deliver": map[string]any{
 				"type":        "boolean",
-				"description": "true (default): send message text directly to the user as-is — use for static reminders. false: pass message to the agent as a task prompt — **required for dynamic data** (live prices, portfolio, system stats) so fresh tool calls happen on every trigger.",
+				"description": "If true, send message directly to channel. If false, let agent process message (for complex tasks). Default: false",
 			},
 		},
 		"required": []string{"action"},
@@ -174,8 +174,8 @@ func (t *CronTool) addJob(ctx context.Context, args map[string]any) *ToolResult 
 		return ErrorResult("one of at_seconds, every_seconds, or cron_expr is required")
 	}
 
-	// Read deliver parameter, default to true
-	deliver := true
+	// Read deliver parameter, default to false so scheduled tasks execute through the agent
+	deliver := false
 	if d, ok := args["deliver"].(bool); ok {
 		deliver = d
 	}
