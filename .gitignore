@@ -57,3 +57,5 @@ dist/
 !web/backend/dist/
 web/backend/dist/*
 !web/backend/dist/.gitkeep
+
+.claude/

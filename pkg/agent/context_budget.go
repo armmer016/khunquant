@@ -9,7 +9,7 @@ import (
 	"encoding/json"
 	"unicode/utf8"
 
-	"github.com/sipeed/picoclaw/pkg/providers"
+	"github.com/khunquant/khunquant/pkg/providers"
 )
 
 // parseTurnBoundaries returns the starting index of each Turn in the history.
