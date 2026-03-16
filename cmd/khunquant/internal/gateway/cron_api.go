@@ -10,9 +10,11 @@ import (
 )
 
 type cronUpdateRequest struct {
-	Name    *string `json:"name,omitempty"`
-	Message *string `json:"message,omitempty"`
-	Enabled *bool   `json:"enabled,omitempty"`
+	Name     *string           `json:"name,omitempty"`
+	Message  *string           `json:"message,omitempty"`
+	Enabled  *bool             `json:"enabled,omitempty"`
+	Deliver  *bool             `json:"deliver,omitempty"`
+	Schedule *cron.CronSchedule `json:"schedule,omitempty"`
 }
 
 // registerCronAPI registers live cron management routes on the gateway HTTP mux.
@@ -61,6 +63,12 @@ func registerCronAPI(mux interface {
 		if req.Message != nil {
 			target.Payload.Message = *req.Message
 		}
+		if req.Deliver != nil {
+			target.Payload.Deliver = *req.Deliver
+		}
+		if req.Schedule != nil {
+			target.Schedule = *req.Schedule
+		}
 		if req.Enabled != nil {
 			if *req.Enabled != target.Enabled {
 				cs.EnableJob(id, *req.Enabled)
@@ -85,6 +93,20 @@ func registerCronAPI(mux interface {
 			return
 		}
 
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
+	}))
+
+	mux.Handle("POST /api/cron/jobs/{id}/run", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		id := r.PathValue("id")
+		if id == "" {
+			http.Error(w, "id is required", http.StatusBadRequest)
+			return
+		}
+		if !cs.RunJobNow(id) {
+			http.Error(w, fmt.Sprintf("job %q not found", id), http.StatusNotFound)
+			return
+		}
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
 	}))

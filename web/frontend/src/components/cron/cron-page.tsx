@@ -4,6 +4,7 @@ import {
   IconPencil,
   IconPlayerPlay,
   IconPlayerStop,
+  IconPlayerTrackNext,
   IconTrash,
 } from "@tabler/icons-react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
@@ -16,6 +17,7 @@ import {
   type CronUpdateRequest,
   deleteCronJob,
   getCronJobs,
+  runCronJobNow,
   updateCronJob,
 } from "@/api/cron"
 import { PageHeader } from "@/components/page-header"
@@ -49,6 +51,7 @@ import {
 } from "@/components/ui/sheet"
 import { Textarea } from "@/components/ui/textarea"
 import { cn } from "@/lib/utils"
+import type { CronSchedule } from "@/api/cron"
 
 function formatSchedule(job: CronJob, t: (k: string) => string): string {
   const { schedule } = job
@@ -98,17 +101,68 @@ interface EditSheetProps {
   saving: boolean
 }
 
+// Parse ms into value+unit for "every" schedules
+function msToEvery(ms: number): { value: number; unit: "s" | "m" | "h" } {
+  if (ms >= 3_600_000 && ms % 3_600_000 === 0)
+    return { value: ms / 3_600_000, unit: "h" }
+  if (ms >= 60_000 && ms % 60_000 === 0)
+    return { value: ms / 60_000, unit: "m" }
+  return { value: Math.round(ms / 1000), unit: "s" }
+}
+
+function everyToMs(value: number, unit: "s" | "m" | "h"): number {
+  if (unit === "h") return value * 3_600_000
+  if (unit === "m") return value * 60_000
+  return value * 1000
+}
+
 function EditSheet({ job, onClose, onSave, saving }: EditSheetProps) {
   const { t } = useTranslation()
   const [name, setName] = React.useState("")
   const [message, setMessage] = React.useState("")
+  const [deliver, setDeliver] = React.useState(false)
+  const [schedKind, setSchedKind] = React.useState<"every" | "cron">("every")
+  const [everyValue, setEveryValue] = React.useState(10)
+  const [everyUnit, setEveryUnit] = React.useState<"s" | "m" | "h">("m")
+  const [cronExpr, setCronExpr] = React.useState("")
 
   React.useEffect(() => {
     if (job) {
       setName(job.name)
       setMessage(job.payload.message)
+      setDeliver(job.payload.deliver)
+      const kind = job.schedule.kind === "cron" ? "cron" : "every"
+      setSchedKind(kind)
+      if (kind === "every" && job.schedule.everyMs) {
+        const parsed = msToEvery(job.schedule.everyMs)
+        setEveryValue(parsed.value)
+        setEveryUnit(parsed.unit)
+      } else if (kind === "cron") {
+        setCronExpr(job.schedule.expr ?? "")
+      }
     }
   }, [job])
+
+  function buildSchedule(): CronSchedule {
+    if (schedKind === "cron") return { kind: "cron", expr: cronExpr }
+    return { kind: "every", everyMs: everyToMs(everyValue, everyUnit) }
+  }
+
+  function handleSave() {
+    if (!job) return
+    const origSched = job.schedule
+    const newSched = buildSchedule()
+    const schedChanged =
+      origSched.kind !== newSched.kind ||
+      origSched.everyMs !== newSched.everyMs ||
+      origSched.expr !== newSched.expr
+    onSave(job.id, {
+      name: name.trim() || job.name,
+      message,
+      deliver,
+      ...(schedChanged ? { schedule: newSched } : {}),
+    })
+  }
 
   return (
     <Sheet open={!!job} onOpenChange={(open) => { if (!open) onClose() }}>
@@ -118,6 +172,7 @@ function EditSheet({ job, onClose, onSave, saving }: EditSheetProps) {
         </SheetHeader>
 
         <div className="flex-1 space-y-5 overflow-y-auto px-4 py-2">
+          {/* Name */}
           <div className="space-y-1.5">
             <Label htmlFor="cron-edit-name">
               {t("pages.agent.cron.field_name")}
@@ -129,9 +184,47 @@ function EditSheet({ job, onClose, onSave, saving }: EditSheetProps) {
             />
           </div>
 
+          {/* Deliver mode */}
+          <div className="space-y-1.5">
+            <Label>{t("pages.agent.cron.field_mode")}</Label>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setDeliver(false)}
+                className={cn(
+                  "flex-1 rounded border px-3 py-2 text-left text-sm transition-colors",
+                  !deliver
+                    ? "border-primary bg-primary/10 text-primary font-medium"
+                    : "border-border text-muted-foreground hover:border-primary/50",
+                )}
+              >
+                <div className="font-semibold">{t("pages.agent.cron.mode_dynamic")}</div>
+                <div className="mt-0.5 text-xs opacity-70">
+                  {t("pages.agent.cron.mode_dynamic_desc")}
+                </div>
+              </button>
+              <button
+                type="button"
+                onClick={() => setDeliver(true)}
+                className={cn(
+                  "flex-1 rounded border px-3 py-2 text-left text-sm transition-colors",
+                  deliver
+                    ? "border-primary bg-primary/10 text-primary font-medium"
+                    : "border-border text-muted-foreground hover:border-primary/50",
+                )}
+              >
+                <div className="font-semibold">{t("pages.agent.cron.mode_static")}</div>
+                <div className="mt-0.5 text-xs opacity-70">
+                  {t("pages.agent.cron.mode_static_desc")}
+                </div>
+              </button>
+            </div>
+          </div>
+
+          {/* Message / instruction */}
           <div className="space-y-1.5">
             <Label htmlFor="cron-edit-message">
-              {job?.payload.deliver
+              {deliver
                 ? t("pages.agent.cron.field_message_static")
                 : t("pages.agent.cron.field_message_dynamic")}
             </Label>
@@ -143,10 +236,74 @@ function EditSheet({ job, onClose, onSave, saving }: EditSheetProps) {
               className="resize-none"
             />
             <p className="text-muted-foreground text-xs">
-              {job?.payload.deliver
+              {deliver
                 ? t("pages.agent.cron.field_message_static_hint")
                 : t("pages.agent.cron.field_message_dynamic_hint")}
             </p>
+          </div>
+
+          {/* Schedule */}
+          <div className="space-y-1.5">
+            <Label>{t("pages.agent.cron.field_schedule")}</Label>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setSchedKind("every")}
+                className={cn(
+                  "rounded border px-3 py-1.5 text-sm transition-colors",
+                  schedKind === "every"
+                    ? "border-primary bg-primary/10 text-primary font-medium"
+                    : "border-border text-muted-foreground hover:border-primary/50",
+                )}
+              >
+                {t("pages.agent.cron.schedule_kind_every")}
+              </button>
+              <button
+                type="button"
+                onClick={() => setSchedKind("cron")}
+                className={cn(
+                  "rounded border px-3 py-1.5 text-sm transition-colors",
+                  schedKind === "cron"
+                    ? "border-primary bg-primary/10 text-primary font-medium"
+                    : "border-border text-muted-foreground hover:border-primary/50",
+                )}
+              >
+                {t("pages.agent.cron.schedule_kind_cron")}
+              </button>
+            </div>
+
+            {schedKind === "every" ? (
+              <div className="flex items-center gap-2">
+                <Input
+                  type="number"
+                  min={1}
+                  value={everyValue}
+                  onChange={(e) => setEveryValue(Math.max(1, Number(e.target.value)))}
+                  className="w-24"
+                />
+                <select
+                  value={everyUnit}
+                  onChange={(e) => setEveryUnit(e.target.value as "s" | "m" | "h")}
+                  className="border-input bg-background rounded border px-2 py-1.5 text-sm"
+                >
+                  <option value="s">{t("pages.agent.cron.unit_seconds")}</option>
+                  <option value="m">{t("pages.agent.cron.unit_minutes")}</option>
+                  <option value="h">{t("pages.agent.cron.unit_hours")}</option>
+                </select>
+              </div>
+            ) : (
+              <div className="space-y-1">
+                <Input
+                  value={cronExpr}
+                  onChange={(e) => setCronExpr(e.target.value)}
+                  placeholder="0 9 * * *"
+                  className="font-mono"
+                />
+                <p className="text-muted-foreground text-xs">
+                  {t("pages.agent.cron.schedule_cron_hint")}
+                </p>
+              </div>
+            )}
           </div>
         </div>
 
@@ -154,13 +311,7 @@ function EditSheet({ job, onClose, onSave, saving }: EditSheetProps) {
           <Button variant="outline" onClick={onClose} disabled={saving}>
             {t("common.cancel")}
           </Button>
-          <Button
-            onClick={() =>
-              job &&
-              onSave(job.id, { name: name.trim() || job.name, message })
-            }
-            disabled={saving || !job}
-          >
+          <Button onClick={handleSave} disabled={saving || !job}>
             {saving && <IconLoader2 className="mr-1 size-4 animate-spin" />}
             {t("common.save")}
           </Button>
@@ -264,6 +415,19 @@ export function CronPage() {
     },
   })
 
+  const runNowMutation = useMutation({
+    mutationFn: (id: string) => runCronJobNow(id),
+    onSuccess: () => {
+      toast.success(t("pages.agent.cron.run_now_success"))
+      void queryClient.invalidateQueries({ queryKey: ["cron-jobs"] })
+    },
+    onError: (err) => {
+      toast.error(
+        err instanceof Error ? err.message : t("pages.agent.cron.run_now_error"),
+      )
+    },
+  })
+
   const deleteMutation = useMutation({
     mutationFn: (id: string) => deleteCronJob(id),
     onSuccess: () => {
@@ -323,9 +487,14 @@ export function CronPage() {
                     onToggle={(enabled) =>
                       toggleMutation.mutate({ id: job.id, enabled })
                     }
+                    onRunNow={() => runNowMutation.mutate(job.id)}
                     toggling={
                       toggleMutation.isPending &&
                       toggleMutation.variables?.id === job.id
+                    }
+                    running={
+                      runNowMutation.isPending &&
+                      runNowMutation.variables === job.id
                     }
                   />
                 ))}
@@ -359,7 +528,9 @@ interface CronJobCardProps {
   onEdit: () => void
   onDelete: () => void
   onToggle: (enabled: boolean) => void
+  onRunNow: () => void
   toggling: boolean
+  running: boolean
 }
 
 function CronJobCard({
@@ -368,7 +539,9 @@ function CronJobCard({
   onEdit,
   onDelete,
   onToggle,
+  onRunNow,
   toggling,
+  running,
 }: CronJobCardProps) {
   const scheduleLabel = formatSchedule(job, t)
   const nextRun = formatNextRun(job.state.nextRunAtMs, t)
@@ -400,6 +573,20 @@ function CronJobCard({
           </div>
 
           <div className="flex shrink-0 items-center gap-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 p-0"
+              onClick={onRunNow}
+              disabled={running}
+              title={t("pages.agent.cron.run_now")}
+            >
+              {running ? (
+                <IconLoader2 className="size-3.5 animate-spin" />
+              ) : (
+                <IconPlayerTrackNext className="size-3.5" />
+              )}
+            </Button>
             <Button
               variant="ghost"
               size="sm"
@@ -483,7 +670,7 @@ function StatusBadge({
       className={cn(
         "rounded px-1.5 py-0.5 text-[10px] font-semibold",
         enabled
-          ? "bg-emerald-100 text-emerald-700"
+          ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400"
           : "bg-muted text-muted-foreground",
       )}
     >
@@ -506,7 +693,9 @@ function LastStatusBadge({
     <span
       className={cn(
         "rounded px-1.5 py-0.5 text-[10px] font-semibold",
-        isError ? "bg-red-100 text-red-700" : "bg-emerald-100 text-emerald-700",
+        isError
+          ? "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400"
+          : "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400",
       )}
     >
       {isError

@@ -46,6 +46,8 @@ export interface CronUpdateRequest {
   name?: string
   message?: string
   enabled?: boolean
+  deliver?: boolean
+  schedule?: CronSchedule
 }
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
@@ -88,5 +90,12 @@ export async function deleteCronJob(id: string): Promise<CronActionResponse> {
   return request<CronActionResponse>(
     `/api/cron/jobs/${encodeURIComponent(id)}`,
     { method: "DELETE" },
+  )
+}
+
+export async function runCronJobNow(id: string): Promise<CronActionResponse> {
+  return request<CronActionResponse>(
+    `/api/cron/jobs/${encodeURIComponent(id)}/run`,
+    { method: "POST" },
   )
 }

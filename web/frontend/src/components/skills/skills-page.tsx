@@ -167,7 +167,7 @@ export function SkillsPage() {
                   {data.skills.map((skill) => (
                     <Card
                       key={`${skill.source}:${skill.name}`}
-                      className="border-border/60 gap-4 bg-white/80"
+                      className="border-border/60 gap-4 bg-white/80 dark:bg-card"
                       size="sm"
                     >
                       <CardHeader>
