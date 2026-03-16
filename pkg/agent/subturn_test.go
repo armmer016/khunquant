@@ -8,6 +8,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/khunquant/khunquant/pkg/bus"
+	"github.com/khunquant/khunquant/pkg/config"
 	"github.com/khunquant/khunquant/pkg/providers"
 	"github.com/khunquant/khunquant/pkg/tools"
 )
@@ -158,12 +160,9 @@ func TestSpawnSubTurn(t *testing.T) {
 				t.Error("child Turn not added to parent.childTurnIDs")
 			}
 
-			// Verify result delivery (pendingResults or history)
-			if len(parent.pendingResults) > 0 || len(parent.session.GetHistory("")) > 0 {
-				// Result delivered via at least one path
-			} else {
-				t.Error("child result not delivered")
-			}
+			// For synchronous calls (Async=false, the default), result is returned directly
+			// and should NOT be in pendingResults. The result was already verified above.
+			// Only async calls (Async=true) would place results in pendingResults.
 		})
 	}
 }
@@ -196,7 +195,7 @@ func TestSpawnSubTurn_EphemeralSessionIsolation(t *testing.T) {
 	}
 }
 
-// ====================== Extra Independent Test: Result Delivery Path ======================
+// ====================== Extra Independent Test: Result Delivery Path (Async) ======================
 func TestSpawnSubTurn_ResultDelivery(t *testing.T) {
 	al, _, _, _, cleanup := newTestAgentLoop(t)
 	defer cleanup()
@@ -209,18 +208,54 @@ func TestSpawnSubTurn_ResultDelivery(t *testing.T) {
 		session:        &ephemeralSessionStore{},
 	}
 
-	cfg := SubTurnConfig{Model: "gpt-4o-mini", Tools: []tools.Tool{}}
+	// Set Async=true to test async result delivery via pendingResults channel
+	cfg := SubTurnConfig{Model: "gpt-4o-mini", Tools: []tools.Tool{}, Async: true}
 
 	_, _ = spawnSubTurn(context.Background(), al, parent, cfg)
 
-	// Check if pendingResults received the result
+	// Check if pendingResults received the result (only for async calls)
 	select {
 	case res := <-parent.pendingResults:
 		if res == nil {
 			t.Error("received nil result in pendingResults")
 		}
 	default:
-		t.Error("result did not enter pendingResults")
+		t.Error("result did not enter pendingResults for async call")
+	}
+}
+
+// ====================== Extra Independent Test: Result Delivery Path (Sync) ======================
+func TestSpawnSubTurn_ResultDeliverySync(t *testing.T) {
+	al, _, _, _, cleanup := newTestAgentLoop(t)
+	defer cleanup()
+
+	parent := &turnState{
+		ctx:            context.Background(),
+		turnID:         "parent-sync-1",
+		depth:          0,
+		pendingResults: make(chan *tools.ToolResult, 1),
+		session:        &ephemeralSessionStore{},
+	}
+
+	// Sync call (Async=false, the default) - result should be returned directly
+	cfg := SubTurnConfig{Model: "gpt-4o-mini", Tools: []tools.Tool{}, Async: false}
+
+	result, err := spawnSubTurn(context.Background(), al, parent, cfg)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	// Result should be returned directly
+	if result == nil {
+		t.Error("expected non-nil result from sync call")
+	}
+
+	// pendingResults should NOT contain the result (no double delivery)
+	select {
+	case <-parent.pendingResults:
+		t.Error("sync call should not place result in pendingResults (double delivery)")
+	default:
+		// Expected - channel should be empty
 	}
 }
 
@@ -751,4 +786,80 @@ func TestFinalPollCapturesLateResults(t *testing.T) {
 	if len(results) != 0 {
 		t.Errorf("expected 0 results on second poll, got %d", len(results))
 	}
+}
+
+// TestSpawnSubTurn_PanicRecovery verifies that even if runTurn panics,
+// the result is still delivered for async calls and SubTurnEndEvent is emitted.
+func TestSpawnSubTurn_PanicRecovery(t *testing.T) {
+	// Create a panic provider
+	panicProvider := &panicMockProvider{}
+	cfg := &config.Config{
+		Agents: config.AgentsConfig{
+			Defaults: config.AgentDefaults{
+				Workspace:         t.TempDir(),
+				Model:             "test-model",
+				MaxTokens:         4096,
+				MaxToolIterations: 10,
+			},
+		},
+	}
+	al := NewAgentLoop(cfg, bus.NewMessageBus(), panicProvider)
+
+	parent := &turnState{
+		ctx:            context.Background(),
+		turnID:         "parent-panic",
+		depth:          0,
+		pendingResults: make(chan *tools.ToolResult, 1),
+		session:        &ephemeralSessionStore{},
+	}
+
+	collector := &eventCollector{}
+	originalEmit := MockEventBus.Emit
+	MockEventBus.Emit = collector.collect
+	defer func() { MockEventBus.Emit = originalEmit }()
+
+	// Test async call - result should still be delivered via channel
+	asyncCfg := SubTurnConfig{Model: "gpt-4o-mini", Tools: []tools.Tool{}, Async: true}
+	result, err := spawnSubTurn(context.Background(), al, parent, asyncCfg)
+
+	// Should return error from panic recovery
+	if err == nil {
+		t.Error("expected error from panic recovery")
+	}
+
+	// Result should be nil because panic occurred before runTurn could return
+	if result != nil {
+		t.Error("expected nil result after panic")
+	}
+
+	// SubTurnEndEvent should still be emitted
+	if !collector.hasEventOfType(SubTurnEndEvent{}) {
+		t.Error("SubTurnEndEvent not emitted after panic")
+	}
+
+	// For async call, result should still be delivered to channel (even if nil)
+	select {
+	case res := <-parent.pendingResults:
+		// Result was delivered (nil due to panic)
+		_ = res
+	default:
+		t.Error("async result should be delivered to channel even after panic")
+	}
+}
+
+// panicMockProvider is a mock provider that always panics
+type panicMockProvider struct{}
+
+func (m *panicMockProvider) Chat(
+	ctx context.Context,
+	messages []providers.Message,
+	tools []providers.ToolDefinition,
+	model string,
+	opts map[string]any,
+) (*providers.LLMResponse, error) {
+	panic("intentional panic for testing")
+}
+
+func (m *panicMockProvider) GetDefaultModel() string {
+	return "panic-model"
 }

@@ -29,6 +29,10 @@ type SubTurnConfig struct {
 	Tools        []tools.Tool
 	SystemPrompt string
 	MaxTokens    int
+	// Async indicates whether this is an async SubTurn call.
+	// If true, the result will be delivered via pendingResults channel.
+	// If false (synchronous), the result is only returned directly to avoid double delivery.
+	Async        bool
 	// Can be extended with temperature, topP, etc.
 }
 
@@ -234,6 +238,9 @@ func spawnSubTurn(ctx context.Context, al *AgentLoop, parentTS *turnState, cfg S
 	childID := al.generateSubTurnID()
 	childTS := newTurnState(childCtx, childID, parentTS)
 
+	// IMPORTANT: Put childTS into childCtx so that code inside runTurn can retrieve it
+	childCtx = withTurnState(childCtx, childTS)
+
 	// 4. Establish parent-child relationship (thread-safe)
 	parentTS.mu.Lock()
 	parentTS.childTurnIDs = append(parentTS.childTurnIDs, childID)
@@ -246,10 +253,20 @@ func spawnSubTurn(ctx context.Context, al *AgentLoop, parentTS *turnState, cfg S
 		Config:   cfg,
 	})
 
-	// 6. Defer emitting End event, and recover from panics to ensure it's always fired
+	// 6. Defer cleanup: deliver result (for async), emit End event, and recover from panics
+	// IMPORTANT: deliverSubTurnResult must be in defer to ensure it runs even if runTurn panics.
 	defer func() {
 		if r := recover(); r != nil {
 			err = fmt.Errorf("subturn panicked: %v", r)
+		}
+
+		// 8. Deliver result back to parent Turn (only for async calls)
+		// For synchronous calls (Async=false), the result is returned directly to avoid double delivery.
+		// For async calls (Async=true), the result is delivered via pendingResults channel
+		// so the parent turn can process it in a later iteration.
+		// This must be in defer to ensure delivery even if runTurn panics.
+		if cfg.Async {
+			deliverSubTurnResult(parentTS, childID, result)
 		}
 
 		MockEventBus.Emit(SubTurnEndEvent{
@@ -262,9 +279,6 @@ func spawnSubTurn(ctx context.Context, al *AgentLoop, parentTS *turnState, cfg S
 	// 7. Execute sub-turn via the real agent loop.
 	// Build a child AgentInstance from SubTurnConfig, inheriting defaults from the parent agent.
 	result, err = runTurn(childCtx, al, childTS, cfg)
-
-	// 8. Deliver result back to parent Turn
-	deliverSubTurnResult(parentTS, childID, result)
 
 	return result, err
 }
@@ -346,7 +360,7 @@ func runTurn(ctx context.Context, al *AgentLoop, ts *turnState, cfg SubTurnConfi
 		MaxTokens:                 cfg.MaxTokens,
 		Temperature:               parentAgent.Temperature,
 		ThinkingLevel:             parentAgent.ThinkingLevel,
-		ContextWindow:             cfg.MaxTokens,
+		ContextWindow:             parentAgent.ContextWindow, // Inherit from parent agent
 		SummarizeMessageThreshold: parentAgent.SummarizeMessageThreshold,
 		SummarizeTokenPercent:     parentAgent.SummarizeTokenPercent,
 		Provider:                  parentAgent.Provider,
@@ -357,7 +371,6 @@ func runTurn(ctx context.Context, al *AgentLoop, ts *turnState, cfg SubTurnConfi
 	}
 	if childAgent.MaxTokens == 0 {
 		childAgent.MaxTokens = parentAgent.MaxTokens
-		childAgent.ContextWindow = parentAgent.ContextWindow
 	}
 
 	finalContent, err := al.runAgentLoop(ctx, childAgent, processOptions{
