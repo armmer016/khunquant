@@ -48,10 +48,24 @@ const EMPTY_BINANCE_FORM: BinanceForm = {
   testnet: false,
 }
 
+interface OKXForm {
+  enabled: boolean
+  apiKey: string
+  apiKeyEdit: string
+  secret: string
+  secretEdit: string
+  passphrase: string
+  passphraseEdit: string
+  testnet: boolean
+}
+
+
 function getExchangeDisplayName(name: string): string {
   switch (name) {
     case "binance":
       return "Binance"
+    case "okx":
+      return "OKX"
     default:
       return name.charAt(0).toUpperCase() + name.slice(1)
   }
@@ -132,6 +146,98 @@ function BinanceConfigForm({
   )
 }
 
+function OKXConfigForm({
+  form,
+  onChange,
+}: {
+  form: OKXForm
+  onChange: (patch: Partial<OKXForm>) => void
+}) {
+  const { t } = useTranslation()
+
+  return (
+    <div className="divide-border/70 divide-y">
+      <div className="flex items-center justify-between px-4 py-3">
+        <div>
+          <p className="text-sm font-medium">{t("portfolios.okx.api_key")}</p>
+          <p className="text-muted-foreground mt-0.5 text-xs">
+            {t("portfolios.okx.api_key_hint")}
+          </p>
+        </div>
+        <div className="w-64">
+          <Input
+            type="password"
+            value={form.apiKeyEdit}
+            placeholder={
+              form.apiKey
+                ? t("portfolios.okx.credential_set")
+                : t("portfolios.okx.api_key_placeholder")
+            }
+            onChange={(e) => onChange({ apiKeyEdit: e.target.value })}
+          />
+        </div>
+      </div>
+
+      <div className="flex items-center justify-between px-4 py-3">
+        <div>
+          <p className="text-sm font-medium">{t("portfolios.okx.secret")}</p>
+          <p className="text-muted-foreground mt-0.5 text-xs">
+            {t("portfolios.okx.secret_hint")}
+          </p>
+        </div>
+        <div className="w-64">
+          <Input
+            type="password"
+            value={form.secretEdit}
+            placeholder={
+              form.secret
+                ? t("portfolios.okx.credential_set")
+                : t("portfolios.okx.secret_placeholder")
+            }
+            onChange={(e) => onChange({ secretEdit: e.target.value })}
+          />
+        </div>
+      </div>
+
+      <div className="flex items-center justify-between px-4 py-3">
+        <div>
+          <p className="text-sm font-medium">
+            {t("portfolios.okx.passphrase")}
+          </p>
+          <p className="text-muted-foreground mt-0.5 text-xs">
+            {t("portfolios.okx.passphrase_hint")}
+          </p>
+        </div>
+        <div className="w-64">
+          <Input
+            type="password"
+            value={form.passphraseEdit}
+            placeholder={
+              form.passphrase
+                ? t("portfolios.okx.credential_set")
+                : t("portfolios.okx.passphrase_placeholder")
+            }
+            onChange={(e) => onChange({ passphraseEdit: e.target.value })}
+          />
+        </div>
+      </div>
+
+      <div className="flex items-center justify-between px-4 py-3">
+        <div>
+          <p className="text-sm font-medium">{t("portfolios.okx.testnet")}</p>
+          <p className="text-muted-foreground mt-0.5 text-xs">
+            {t("portfolios.okx.testnet_hint")}
+          </p>
+        </div>
+        <Switch
+          checked={form.testnet}
+          onCheckedChange={(checked) => onChange({ testnet: checked })}
+        />
+      </div>
+    </div>
+  )
+}
+
 export function PortfolioConfigPage({ exchangeName }: PortfolioConfigPageProps) {
   const { t } = useTranslation()
   const gateway = useAtomValue(gatewayAtom)
@@ -141,11 +247,13 @@ export function PortfolioConfigPage({ exchangeName }: PortfolioConfigPageProps) 
   const [fetchError, setFetchError] = useState("")
   const [serverError, setServerError] = useState("")
 
-  const [baseForm, setBaseForm] = useState<BinanceForm>(EMPTY_BINANCE_FORM)
-  const [form, setForm] = useState<BinanceForm>(EMPTY_BINANCE_FORM)
+  const [baseForm, setBaseForm] = useState<BinanceForm | OKXForm>(
+    EMPTY_BINANCE_FORM,
+  )
+  const [form, setForm] = useState<BinanceForm | OKXForm>(EMPTY_BINANCE_FORM)
 
   const loadData = useCallback(async () => {
-    if (exchangeName !== "binance") {
+    if (exchangeName !== "binance" && exchangeName !== "okx") {
       setFetchError(t("portfolios.notFound", { name: exchangeName }))
       setLoading(false)
       return
@@ -154,16 +262,31 @@ export function PortfolioConfigPage({ exchangeName }: PortfolioConfigPageProps) 
     setLoading(true)
     try {
       const appConfig = await getAppConfig()
-      const exchanges = asRecord(asRecord(appConfig).exchanges)
-      const binance = asRecord(exchanges.binance)
+      const exchangesData = asRecord(asRecord(appConfig).exchanges)
 
-      const loaded: BinanceForm = {
-        enabled: asBool(binance.enabled),
-        apiKey: asString(binance.api_key),
-        apiKeyEdit: "",
-        secret: asString(binance.secret),
-        secretEdit: "",
-        testnet: asBool(binance.testnet),
+      let loaded: BinanceForm | OKXForm
+      if (exchangeName === "binance") {
+        const binance = asRecord(exchangesData.binance)
+        loaded = {
+          enabled: asBool(binance.enabled),
+          apiKey: asString(binance.api_key),
+          apiKeyEdit: "",
+          secret: asString(binance.secret),
+          secretEdit: "",
+          testnet: asBool(binance.testnet),
+        } satisfies BinanceForm
+      } else {
+        const okx = asRecord(exchangesData.okx)
+        loaded = {
+          enabled: asBool(okx.enabled),
+          apiKey: asString(okx.api_key),
+          apiKeyEdit: "",
+          secret: asString(okx.secret),
+          secretEdit: "",
+          passphrase: asString(okx.passphrase),
+          passphraseEdit: "",
+          testnet: asBool(okx.testnet),
+        } satisfies OKXForm
       }
 
       setBaseForm(loaded)
@@ -190,7 +313,7 @@ export function PortfolioConfigPage({ exchangeName }: PortfolioConfigPageProps) 
     previousGatewayStatusRef.current = gateway.status
   }, [gateway.status, loadData])
 
-  const handleChange = (patch: Partial<BinanceForm>) => {
+  const handleChange = (patch: Partial<BinanceForm | OKXForm>) => {
     setForm((prev) => ({ ...prev, ...patch }))
   }
 
@@ -203,21 +326,38 @@ export function PortfolioConfigPage({ exchangeName }: PortfolioConfigPageProps) 
     setSaving(true)
     setServerError("")
     try {
-      const apiKey =
-        form.apiKeyEdit.trim() !== "" ? form.apiKeyEdit : form.apiKey
-      const secret =
-        form.secretEdit.trim() !== "" ? form.secretEdit : form.secret
-
-      await patchAppConfig({
-        exchanges: {
-          binance: {
-            enabled: form.enabled,
-            api_key: apiKey,
-            secret: secret,
-            testnet: form.testnet,
+      if (exchangeName === "binance") {
+        const f = form as BinanceForm
+        const apiKey = f.apiKeyEdit.trim() !== "" ? f.apiKeyEdit : f.apiKey
+        const secret = f.secretEdit.trim() !== "" ? f.secretEdit : f.secret
+        await patchAppConfig({
+          exchanges: {
+            binance: {
+              enabled: f.enabled,
+              api_key: apiKey,
+              secret: secret,
+              testnet: f.testnet,
+            },
           },
-        },
-      })
+        })
+      } else if (exchangeName === "okx") {
+        const f = form as OKXForm
+        const apiKey = f.apiKeyEdit.trim() !== "" ? f.apiKeyEdit : f.apiKey
+        const secret = f.secretEdit.trim() !== "" ? f.secretEdit : f.secret
+        const passphrase =
+          f.passphraseEdit.trim() !== "" ? f.passphraseEdit : f.passphrase
+        await patchAppConfig({
+          exchanges: {
+            okx: {
+              enabled: f.enabled,
+              api_key: apiKey,
+              secret: secret,
+              passphrase: passphrase,
+              testnet: f.testnet,
+            },
+          },
+        })
+      }
       toast.success(t("portfolios.saveSuccess"))
       await loadData()
     } catch (e) {
@@ -231,7 +371,8 @@ export function PortfolioConfigPage({ exchangeName }: PortfolioConfigPageProps) 
   }
 
   const displayName = getExchangeDisplayName(exchangeName)
-  const isConfigured = form.apiKey !== "" && form.secret !== ""
+  const isConfigured =
+    (form as BinanceForm).apiKey !== "" && (form as BinanceForm).secret !== ""
 
   return (
     <div className="flex h-full flex-col">
@@ -281,7 +422,16 @@ export function PortfolioConfigPage({ exchangeName }: PortfolioConfigPageProps) 
               </div>
 
               {exchangeName === "binance" && (
-                <BinanceConfigForm form={form} onChange={handleChange} />
+                <BinanceConfigForm
+                  form={form as BinanceForm}
+                  onChange={handleChange}
+                />
+              )}
+              {exchangeName === "okx" && (
+                <OKXConfigForm
+                  form={form as OKXForm}
+                  onChange={handleChange}
+                />
               )}
             </div>
 

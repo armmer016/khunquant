@@ -17,6 +17,7 @@ import (
 	"github.com/khunquant/khunquant/pkg/tools"
 
 	_ "github.com/khunquant/khunquant/pkg/exchanges/binance"
+	_ "github.com/khunquant/khunquant/pkg/exchanges/okx"
 )
 
 // AgentInstance represents a fully configured agent with its own workspace,

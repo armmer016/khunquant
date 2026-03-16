@@ -94,6 +94,7 @@ type Config struct {
 // ExchangesConfig holds configuration for all supported exchanges.
 type ExchangesConfig struct {
 	Binance BinanceExchangeConfig `json:"binance"`
+	OKX     OKXExchangeConfig     `json:"okx"`
 }
 
 // BinanceExchangeConfig holds the Binance exchange credentials and settings.
@@ -102,6 +103,15 @@ type BinanceExchangeConfig struct {
 	APIKey  string `json:"api_key"  env:"KHUNQUANT_EXCHANGES_BINANCE_API_KEY"`
 	Secret  string `json:"secret"   env:"KHUNQUANT_EXCHANGES_BINANCE_SECRET"`
 	Testnet bool   `json:"testnet"  env:"KHUNQUANT_EXCHANGES_BINANCE_TESTNET"`
+}
+
+// OKXExchangeConfig holds the OKX exchange credentials and settings.
+type OKXExchangeConfig struct {
+	Enabled    bool   `json:"enabled"     env:"KHUNQUANT_EXCHANGES_OKX_ENABLED"`
+	APIKey     string `json:"api_key"     env:"KHUNQUANT_EXCHANGES_OKX_API_KEY"`
+	Secret     string `json:"secret"      env:"KHUNQUANT_EXCHANGES_OKX_SECRET"`
+	Passphrase string `json:"passphrase"  env:"KHUNQUANT_EXCHANGES_OKX_PASSPHRASE"`
+	Testnet    bool   `json:"testnet"     env:"KHUNQUANT_EXCHANGES_OKX_TESTNET"`
 }
 
 // BuildInfo contains build-time version information

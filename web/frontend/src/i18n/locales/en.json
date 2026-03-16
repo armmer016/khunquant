@@ -13,6 +13,7 @@
     "show_less_channels": "Less",
     "portfolios_group": "Portfolios",
     "portfolios_binance": "Binance",
+    "portfolios_okx": "OKX",
     "config": "Config",
     "logs": "Logs"
   },
@@ -480,6 +481,20 @@
       "credential_set": "Already set — enter new value to update",
       "testnet": "Use Testnet",
       "testnet_hint": "Connect to Binance testnet instead of mainnet."
+    },
+    "okx": {
+      "api_key": "API Key",
+      "api_key_hint": "Your OKX API key with read permissions.",
+      "api_key_placeholder": "Enter API key",
+      "secret": "API Secret",
+      "secret_hint": "Your OKX API secret. Stored locally in config.",
+      "secret_placeholder": "Enter API secret",
+      "passphrase": "Passphrase",
+      "passphrase_hint": "The passphrase you set when creating the OKX API key.",
+      "passphrase_placeholder": "Enter passphrase",
+      "credential_set": "Already set — enter new value to update",
+      "testnet": "Use Demo Trading",
+      "testnet_hint": "Connect to OKX demo trading environment instead of live."
     }
   }
 }

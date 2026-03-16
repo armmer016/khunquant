@@ -30,6 +30,7 @@ import (
 	_ "github.com/khunquant/khunquant/pkg/channels/whatsapp"
 	_ "github.com/khunquant/khunquant/pkg/channels/whatsapp_native"
 	_ "github.com/khunquant/khunquant/pkg/exchanges/binance"
+	_ "github.com/khunquant/khunquant/pkg/exchanges/okx"
 	"github.com/khunquant/khunquant/pkg/config"
 	"github.com/khunquant/khunquant/pkg/cron"
 	"github.com/khunquant/khunquant/pkg/devices"
