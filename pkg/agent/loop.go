@@ -959,6 +959,20 @@ func (al *AgentLoop) runAgentLoop(
 		return "", err
 	}
 
+	// IMPORTANT: Before finishing the turn, do a final poll for any pending SubTurn results.
+	// This ensures we don't lose results that arrived after the last iteration poll.
+	if isRootTurn {
+		finalResults := al.dequeuePendingSubTurnResults(opts.SessionKey)
+		if len(finalResults) > 0 {
+			// Inject late-arriving results into the final response
+			for _, result := range finalResults {
+				if result != nil && result.ForLLM != "" {
+					finalContent += fmt.Sprintf("\n\n[SubTurn Result] %s", result.ForLLM)
+				}
+			}
+		}
+	}
+
 	// Signal completion to rootTS so it knows it is finished, terminating any active sub-turns.
 	// Only call Finish() if this is a root turn (not a SubTurn recursively calling runAgentLoop).
 	if isRootTurn {

@@ -721,3 +721,34 @@ func TestFinishClosesChannel(t *testing.T) {
 	// This should not panic - it should recover and emit OrphanResultEvent
 	deliverSubTurnResult(ts, "child-1", result)
 }
+
+// TestFinalPollCapturesLateResults verifies that the final poll before Finish()
+// captures results that arrive after the last iteration poll.
+func TestFinalPollCapturesLateResults(t *testing.T) {
+	al, _, _, _, cleanup := newTestAgentLoop(t)
+	defer cleanup()
+
+	sessionKey := "test-session-final-poll"
+	ch := make(chan *tools.ToolResult, 4)
+
+	// Register the channel
+	al.registerSubTurnResultChannel(sessionKey, ch)
+	defer al.unregisterSubTurnResultChannel(sessionKey)
+
+	// Simulate results arriving after last iteration poll
+	ch <- &tools.ToolResult{ForLLM: "result 1"}
+	ch <- &tools.ToolResult{ForLLM: "result 2"}
+
+	// Dequeue should capture both results
+	results := al.dequeuePendingSubTurnResults(sessionKey)
+
+	if len(results) != 2 {
+		t.Errorf("expected 2 results, got %d", len(results))
+	}
+
+	// Verify channel is now empty
+	results = al.dequeuePendingSubTurnResults(sessionKey)
+	if len(results) != 0 {
+		t.Errorf("expected 0 results on second poll, got %d", len(results))
+	}
+}

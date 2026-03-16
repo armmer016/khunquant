@@ -239,18 +239,14 @@ func spawnSubTurn(ctx context.Context, al *AgentLoop, parentTS *turnState, cfg S
 	parentTS.childTurnIDs = append(parentTS.childTurnIDs, childID)
 	parentTS.mu.Unlock()
 
-	// 5. Register the parent's pendingResults channel so the parent loop can poll it
-	al.registerSubTurnResultChannel(parentTS.turnID, parentTS.pendingResults)
-	defer al.unregisterSubTurnResultChannel(parentTS.turnID)
-
-	// 6. Emit Spawn event (currently using Mock, will be replaced by real EventBus)
+	// 5. Emit Spawn event (currently using Mock, will be replaced by real EventBus)
 	MockEventBus.Emit(SubTurnSpawnEvent{
 		ParentID: parentTS.turnID,
 		ChildID:  childID,
 		Config:   cfg,
 	})
 
-	// 7. Defer emitting End event, and recover from panics to ensure it's always fired
+	// 6. Defer emitting End event, and recover from panics to ensure it's always fired
 	defer func() {
 		if r := recover(); r != nil {
 			err = fmt.Errorf("subturn panicked: %v", r)
@@ -263,11 +259,11 @@ func spawnSubTurn(ctx context.Context, al *AgentLoop, parentTS *turnState, cfg S
 		})
 	}()
 
-	// 8. Execute sub-turn via the real agent loop.
+	// 7. Execute sub-turn via the real agent loop.
 	// Build a child AgentInstance from SubTurnConfig, inheriting defaults from the parent agent.
 	result, err = runTurn(childCtx, al, childTS, cfg)
 
-	// 9. Deliver result back to parent Turn
+	// 8. Deliver result back to parent Turn
 	deliverSubTurnResult(parentTS, childID, result)
 
 	return result, err
