@@ -14,8 +14,12 @@
     "portfolios_group": "Portfolios",
     "portfolios_binance": "Binance",
     "portfolios_okx": "OKX",
+    "portfolios_bitkub": "Bitkub",
+    "portfolios_binanceth": "Binance TH",
     "config": "Config",
-    "logs": "Logs"
+    "logs": "Logs",
+    "cron": "Cron Jobs",
+    "pairing": "Pairing Requests"
   },
   "chat": {
     "welcome": "How can I help you today?",
@@ -68,7 +72,7 @@
         "starting": "Starting Gateway...",
         "restarting": "Restarting Gateway..."
       },
-      "restartRequired": "Model changes require a gateway restart to take effect."
+      "restartRequired": "Changes require a gateway restart to take effect."
     }
   },
   "common": {
@@ -259,6 +263,7 @@
       "typingEnabled": "Typing Indicator",
       "placeholderEnabled": "Placeholder Message",
       "placeholderText": "Placeholder Text",
+      "pairingEnabled": "Pairing",
       "groupTriggerMentionOnly": "Group Mention Only",
       "groupTriggerPrefixes": "Group Trigger Prefixes",
       "allowFrom": "Allow From",
@@ -290,6 +295,7 @@
         "mentionOnly": "Only respond when the bot is explicitly mentioned in group chats.",
         "typingEnabled": "Display typing status while the assistant is generating a response.",
         "placeholderEnabled": "Enable temporary placeholder messages before the final reply is sent.",
+        "pairingEnabled": "Require unknown users to request access via a pairing code before they can chat. Pending requests appear below.",
         "groupTriggerMentionOnly": "In group chats, respond only when the bot is mentioned.",
         "groupTriggerPrefixes": "Custom group-chat trigger prefixes, separated by commas.",
         "allowFrom": "Allowed user or group IDs, separated by commas.",
@@ -357,6 +363,65 @@
         "path": "Skill Path",
         "no_description": "No description provided."
       },
+      "cron": {
+        "description": "{{count}} scheduled job(s) registered.",
+        "empty": "No scheduled jobs",
+        "empty_hint": "Ask the agent to schedule a task — it will appear here.",
+        "load_error": "Failed to load cron jobs.",
+        "edit": "Edit",
+        "edit_title": "Edit Cron Job",
+        "edit_success": "Cron job updated.",
+        "edit_error": "Failed to update cron job.",
+        "delete": "Delete",
+        "delete_title": "Delete Cron Job?",
+        "delete_description": "\"{{name}}\" will be permanently removed.",
+        "delete_confirm": "Delete",
+        "delete_success": "Cron job deleted.",
+        "delete_error": "Failed to delete cron job.",
+        "enable": "Enable",
+        "enable_success": "Cron job enabled.",
+        "disable": "Disable",
+        "disable_success": "Cron job disabled.",
+        "toggle_error": "Failed to update cron job.",
+        "status_enabled": "Enabled",
+        "status_disabled": "Disabled",
+        "last_status_ok": "OK",
+        "last_status_error": "Error",
+        "mode_static": "Static",
+        "mode_dynamic": "Dynamic",
+        "col_schedule": "Schedule",
+        "col_next_run": "Next run",
+        "col_last_run": "Last run",
+        "col_channel": "Channel",
+        "schedule_every_seconds": "Every {{n}}s",
+        "schedule_every_minutes": "Every {{n}}m",
+        "schedule_every_hours": "Every {{n}}h",
+        "schedule_unknown": "Unknown",
+        "no_next_run": "—",
+        "overdue": "Overdue",
+        "field_name": "Name",
+        "field_message_static": "Reminder text",
+        "field_message_static_hint": "This text is sent directly to you when the job fires.",
+        "field_message_dynamic": "Agent instruction",
+        "field_message_dynamic_hint": "This instruction is given to the agent on each trigger — write it so it fetches fresh data every time."
+      },
+      "pairing": {
+        "section_title": "Pending Access Requests",
+        "description": "{{count}} pending pairing request(s).",
+        "empty": "No pending requests",
+        "empty_hint": "When an unknown Telegram user sends a message, their pairing code will appear here.",
+        "loading": "Loading pairing requests...",
+        "load_error": "Failed to load pairing requests.",
+        "platform": "Platform",
+        "id": "ID",
+        "expires": "Expires in",
+        "approve": "Approve",
+        "approve_success": "User approved. Restart gateway to apply.",
+        "approve_error": "Failed to approve user.",
+        "reject": "Reject",
+        "reject_success": "Request rejected.",
+        "reject_error": "Failed to reject request."
+      },
       "tools": {
         "description": "This view reflects whether each agent tool is enabled, disabled, or blocked by a missing prerequisite.",
         "empty": "No tools are available.",
@@ -378,6 +443,7 @@
           "communication": "Communication",
           "skills": "Skills",
           "agents": "Agents",
+          "portfolios": "Portfolios",
           "hardware": "Hardware",
           "discovery": "Discovery"
         },
@@ -481,6 +547,24 @@
       "credential_set": "Already set — enter new value to update",
       "testnet": "Use Testnet",
       "testnet_hint": "Connect to Binance testnet instead of mainnet."
+    },
+    "binanceth": {
+      "api_key": "API Key",
+      "api_key_hint": "Your Binance TH API key with read permissions.",
+      "api_key_placeholder": "Enter API key",
+      "secret": "API Secret",
+      "secret_hint": "Your Binance TH API secret. Stored locally in config.",
+      "secret_placeholder": "Enter API secret",
+      "credential_set": "Already set — enter new value to update"
+    },
+    "bitkub": {
+      "api_key": "API Key",
+      "api_key_hint": "Your Bitkub API key with read permissions.",
+      "api_key_placeholder": "Enter API key",
+      "secret": "API Secret",
+      "secret_hint": "Your Bitkub API secret. Stored locally in config.",
+      "secret_placeholder": "Enter API secret",
+      "credential_set": "Already set — enter new value to update"
     },
     "okx": {
       "api_key": "API Key",

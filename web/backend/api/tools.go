@@ -125,6 +125,12 @@ var toolCatalog = []toolCatalogEntry{
 		ConfigKey:   "exchange_balance",
 	},
 	{
+		Name:        "exchange_total_value",
+		Description: "Estimate the total portfolio value in a quote currency by fetching all wallet balances and looking up live prices.",
+		Category:    "portfolios",
+		ConfigKey:   "exchange_total_value",
+	},
+	{
 		Name:        "i2c",
 		Description: "Interact with I2C hardware devices exposed on the host.",
 		Category:    "hardware",
@@ -308,6 +314,8 @@ func applyToolState(cfg *config.Config, toolName string, enabled bool) error {
 		}
 	case "exchange_balance":
 		cfg.Tools.ExchangeBalance.Enabled = enabled
+	case "exchange_total_value":
+		cfg.Tools.ExchangeTotalValue.Enabled = enabled
 	case "i2c":
 		cfg.Tools.I2C.Enabled = enabled
 	case "spi":

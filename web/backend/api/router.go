@@ -64,6 +64,12 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 	h.registerSkillRoutes(mux)
 	h.registerToolRoutes(mux)
 
+	// Cron job management
+	h.registerCronRoutes(mux)
+
+	// Telegram pairing requests
+	h.registerPairingRoutes(mux)
+
 	// OS startup / launch-at-login
 	h.registerStartupRoutes(mux)
 

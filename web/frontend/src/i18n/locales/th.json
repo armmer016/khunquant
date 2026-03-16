@@ -1,0 +1,584 @@
+{
+  "navigation": {
+    "chat": "แชท",
+    "model_group": "โมเดล",
+    "models": "โมเดล",
+    "credentials": "ตั้งค่าการเชื่อมต่อ",
+    "agent_group": "เอเจนต์",
+    "skills": "ทักษะ",
+    "tools": "เครื่องมือ",
+    "services": "บริการ",
+    "channels_group": "ช่องทาง",
+    "show_more_channels": "เพิ่มเติม",
+    "show_less_channels": "ย่อลง",
+    "portfolios_group": "พอร์ตโฟลิโอ",
+    "portfolios_binance": "Binance",
+    "portfolios_okx": "OKX",
+    "portfolios_bitkub": "Bitkub",
+    "portfolios_binanceth": "Binance TH",
+    "config": "การตั้งค่า",
+    "logs": "บันทึก",
+    "cron": "งานตามตาราง",
+    "pairing": "คำขอจับคู่"
+  },
+  "chat": {
+    "welcome": "วันนี้ให้ฉันช่วยอะไรได้บ้าง?",
+    "welcomeDesc": "ถามฉันเกี่ยวกับสภาพอากาศ การตั้งค่า หรืองานอื่น ๆ ฉันพร้อมช่วยเสมอ",
+    "placeholder": "เริ่มข้อความใหม่...",
+    "newChat": "แชทใหม่",
+    "notConnected": "เกตเวย์ยังไม่ทำงาน กรุณาเริ่มต้นเพื่อแชท",
+    "thinking": {
+      "step1": "กำลังคิด...",
+      "step2": "กำลังวิเคราะห์คำขอ...",
+      "step3": "กำลังเตรียมคำตอบ...",
+      "step4": "เกือบเสร็จแล้ว..."
+    },
+    "history": "ประวัติ",
+    "noHistory": "ยังไม่มีประวัติการแชท",
+    "historyLoadFailed": "โหลดประวัติการแชทล้มเหลว",
+    "historyOpenFailed": "ไม่สามารถเปิดประวัติการแชทนี้ได้",
+    "loadingMore": "กำลังโหลดเพิ่มเติม...",
+    "deleteSession": "ลบเซสชัน",
+    "messagesCount": "{{count}} ข้อความ",
+    "noModel": "เลือกโมเดล",
+    "empty": {
+      "noConfiguredModel": "ยังไม่มีโมเดลที่กำหนดค่า",
+      "noConfiguredModelDescription": "คุณต้องกำหนดค่าโมเดล AI อย่างน้อยหนึ่งตัวพร้อม API Key ก่อนเริ่มแชท",
+      "goToModels": "ไปที่โมเดล",
+      "noSelectedModel": "ยังไม่ได้เลือกโมเดล",
+      "noSelectedModelDescription": "คุณมีโมเดลที่กำหนดค่าแล้ว แต่ยังไม่มีโมเดลเริ่มต้น กรุณาเลือกโมเดลก่อนเริ่มแชท",
+      "notRunning": "เกตเวย์ยังไม่ทำงาน",
+      "notRunningDescription": "เริ่มบริการเกตเวย์เพื่อเริ่มแชท ใช้ปุ่ม Start Gateway ที่แถบด้านบน"
+    },
+    "modelGroup": {
+      "apikey": "API Key",
+      "oauth": "OAuth",
+      "local": "ในเครื่อง"
+    }
+  },
+  "header": {
+    "gateway": {
+      "stopDialog": {
+        "title": "หยุดบริการเกตเวย์?",
+        "description": "คุณแน่ใจหรือไม่ว่าต้องการหยุดเกตเวย์? การดำเนินการนี้จะตัดการเชื่อมต่อเซสชันแชทที่กำลังใช้งานและหยุดการประมวลผล",
+        "confirm": "หยุดเกตเวย์"
+      },
+      "action": {
+        "start": "เริ่มเกตเวย์",
+        "stop": "หยุดเกตเวย์",
+        "restart": "รีสตาร์ทเกตเวย์"
+      },
+      "status": {
+        "starting": "กำลังเริ่มเกตเวย์...",
+        "restarting": "กำลังรีสตาร์ทเกตเวย์..."
+      },
+      "restartRequired": "การเปลี่ยนแปลงต้องรีสตาร์ทเกตเวย์เพื่อให้มีผล"
+    }
+  },
+  "common": {
+    "cancel": "ยกเลิก",
+    "save": "บันทึก",
+    "saving": "กำลังบันทึก...",
+    "reset": "รีเซ็ต",
+    "confirm": "ยืนยัน"
+  },
+  "labels": {
+    "loading": "กำลังโหลด..."
+  },
+  "credentials": {
+    "description": "จัดการข้อมูลรับรอง OAuth และแบบ Token สำหรับผู้ให้บริการที่รองรับ",
+    "loading": "กำลังโหลดข้อมูลรับรอง...",
+    "providers": {
+      "openai": {
+        "description": "รองรับ Browser OAuth, Device Code และการเข้าสู่ระบบด้วย Token"
+      },
+      "anthropic": {
+        "description": "ใช้การเข้าสู่ระบบด้วย Token สำหรับการเข้าถึง Claude"
+      },
+      "antigravity": {
+        "description": "ใช้ Browser OAuth สำหรับ Google Cloud Code Assist"
+      }
+    },
+    "status": {
+      "connected": "เชื่อมต่อแล้ว",
+      "needsRefresh": "ต้องรีเฟรช",
+      "expired": "หมดอายุ",
+      "notLoggedIn": "ยังไม่ได้เข้าสู่ระบบ"
+    },
+    "actions": {
+      "browser": "Browser OAuth",
+      "deviceCode": "Device Code",
+      "stopLoading": "หยุดโหลด",
+      "saveToken": "บันทึก",
+      "logout": "ออกจากระบบ"
+    },
+    "logoutDialog": {
+      "title": "ออกจากระบบผู้ให้บริการ?",
+      "description": "การดำเนินการนี้จะลบข้อมูลรับรองที่บันทึกไว้สำหรับ {{provider}}"
+    },
+    "fields": {
+      "openaiToken": "OpenAI Token",
+      "anthropicToken": "Anthropic Token"
+    },
+    "labels": {
+      "account": "บัญชี",
+      "email": "อีเมล",
+      "project": "โปรเจกต์"
+    },
+    "errors": {
+      "loadFailed": "โหลดข้อมูลรับรองล้มเหลว",
+      "flowFailed": "ตรวจสอบขั้นตอนการยืนยันตัวตนล้มเหลว",
+      "loginFailed": "เข้าสู่ระบบล้มเหลว",
+      "logoutFailed": "ออกจากระบบล้มเหลว",
+      "invalidBrowserResponse": "การตอบสนองจาก Browser Login ไม่ถูกต้อง",
+      "invalidDeviceResponse": "การตอบสนองจาก Device Code ไม่ถูกต้อง",
+      "popupBlocked": "ไม่สามารถเปิดแท็บใหม่ได้ กรุณาอนุญาต Popup แล้วลองอีกครั้ง"
+    },
+    "flow": {
+      "current": "สถานะการยืนยันตัวตนปัจจุบัน",
+      "pending": "กำลังรอการอนุญาต...",
+      "success": "ยืนยันตัวตนสำเร็จ",
+      "error": "การยืนยันตัวตนล้มเหลว",
+      "expired": "เซสชันการยืนยันตัวตนหมดอายุ"
+    },
+    "device": {
+      "title": "OpenAI Device Login",
+      "description": "เปิดหน้าการยืนยันและกรอกรหัสด้านล่าง หน้านี้จะรีเฟรชอัตโนมัติ",
+      "code": "รหัสผู้ใช้",
+      "url": "URL สำหรับยืนยัน",
+      "polling": "กำลังตรวจสอบสถานะการเข้าสู่ระบบ...",
+      "open": "เปิดหน้ายืนยัน"
+    }
+  },
+  "models": {
+    "description": "กำหนดค่า API Key สำหรับผู้ให้บริการ AI เฉพาะโมเดลที่กำหนดค่าแล้วเท่านั้นที่พร้อมใช้งานในการแชท",
+    "loadError": "โหลดโมเดลล้มเหลว",
+    "noDefaultHintPrefix": "ยังไม่มีโมเดลเริ่มต้น คลิก",
+    "noDefaultHintSuffix": "เพื่อตั้งค่า",
+    "status": {
+      "configured": "กำหนดค่าแล้ว",
+      "unconfigured": "ยังไม่ได้กำหนดค่า"
+    },
+    "badge": {
+      "default": "ค่าเริ่มต้น"
+    },
+    "action": {
+      "edit": "แก้ไข API Key",
+      "setDefault": "ตั้งเป็นค่าเริ่มต้น",
+      "delete": "ลบโมเดล"
+    },
+    "defaultOnSave": {
+      "label": "โมเดลเริ่มต้น",
+      "description": "ตั้งโมเดลนี้เป็นค่าเริ่มต้นโดยอัตโนมัติหลังบันทึก"
+    },
+    "add": {
+      "button": "เพิ่มโมเดล",
+      "title": "เพิ่มโมเดลกำหนดเอง",
+      "description": "เพิ่ม Endpoint โมเดลแบบ OpenAI-compatible หรือ Native",
+      "modelName": "ชื่อแทนโมเดล",
+      "modelNamePlaceholder": "เช่น my-gpt4",
+      "modelNameHint": "ชื่อสั้น ๆ ที่ใช้ระบุโมเดลนี้ในการสนทนา",
+      "modelId": "ตัวระบุโมเดล",
+      "modelIdPlaceholder": "เช่น openai/gpt-4o",
+      "modelIdHint": "รูปแบบ: protocol/model-id รองรับ: openai, anthropic, gemini, groq, …",
+      "errorRequired": "ฟิลด์นี้จำเป็นต้องกรอก",
+      "errorDuplicateModelName": "ชื่อแทนโมเดลนี้มีอยู่แล้ว กรุณาใช้ชื่ออื่น",
+      "saveError": "เพิ่มโมเดลล้มเหลว",
+      "confirm": "เพิ่มโมเดล"
+    },
+    "delete": {
+      "title": "ลบโมเดล?",
+      "description": "\"{{name}}\" จะถูกลบออกจากรายการโมเดลอย่างถาวร การดำเนินการนี้ไม่สามารถเลิกทำได้",
+      "confirm": "ลบ"
+    },
+    "advanced": {
+      "toggle": "ตัวเลือกขั้นสูง"
+    },
+    "field": {
+      "apiBase": "API Base URL",
+      "apiKey": "API Key",
+      "apiKeyPlaceholder": "กรอก API Key ของคุณ",
+      "apiKeyPlaceholderSet": "เว้นว่างไว้เพื่อใช้ Key เดิม",
+      "proxy": "HTTP Proxy",
+      "proxyHint": "ไม่บังคับ เช่น http://127.0.0.1:7890",
+      "authMethod": "วิธีการยืนยันตัวตน",
+      "authMethodHint": "วิธีการยืนยันตัวตน: oauth, token หากเว้นว่างจะใช้ API Key",
+      "connectMode": "โหมดการเชื่อมต่อ",
+      "connectModeHint": "โหมดการเชื่อมต่อสำหรับผู้ให้บริการแบบ CLI: stdio หรือ grpc",
+      "workspace": "เส้นทาง Workspace",
+      "workspaceHint": "ไดเรกทอรีทำงานสำหรับผู้ให้บริการแบบ CLI (เช่น GitHub Copilot)",
+      "requestTimeout": "หมดเวลาคำขอ (วินาที)",
+      "requestTimeoutHint": "จำนวนวินาทีสูงสุดที่รอการตอบสนอง 0 = ใช้ค่าเริ่มต้น",
+      "rpm": "Rate Limit (RPM)",
+      "rpmHint": "คำขอสูงสุดต่อนาที 0 = ไม่จำกัด",
+      "thinkingLevel": "ระดับการคิด",
+      "thinkingLevelHint": "งบประมาณการคิดขั้นสูง: off, low, medium, high, xhigh, adaptive",
+      "maxTokensField": "ฟิลด์ Max Tokens",
+      "maxTokensFieldHint": "แทนที่ชื่อฟิลด์สำหรับ Max Tokens ในคำขอ เช่น max_completion_tokens"
+    },
+    "edit": {
+      "title": "กำหนดค่า {{name}}",
+      "apiKeyHint": "มี Key ที่ตั้งค่าไว้แล้ว เว้นว่างไว้เพื่อไม่เปลี่ยนแปลง",
+      "oauthNote": "ผู้ให้บริการนี้ใช้ OAuth — ไม่จำเป็นต้องใช้ API Key",
+      "saveError": "บันทึกล้มเหลว"
+    }
+  },
+  "channels": {
+    "loadError": "โหลดช่องทางล้มเหลว",
+    "edit": "กำหนดค่า {{name}}",
+    "status": {
+      "configured": "กำหนดค่าแล้ว"
+    },
+    "name": {
+      "telegram": "Telegram",
+      "discord": "Discord",
+      "slack": "Slack",
+      "feishu": "Feishu",
+      "dingtalk": "DingTalk",
+      "line": "LINE",
+      "qq": "QQ",
+      "onebot": "OneBot",
+      "wecom": "WeCom",
+      "wecom_app": "WeCom App",
+      "wecom_aibot": "WeCom AI Bot",
+      "whatsapp": "WhatsApp",
+      "whatsapp_native": "WhatsApp Native",
+      "pico": "เว็บ",
+      "maixcam": "MaixCam",
+      "matrix": "Matrix",
+      "irc": "IRC"
+    },
+    "field": {
+      "token": "Bot Token",
+      "tokenPlaceholder": "กรอก Bot Token",
+      "botToken": "Bot Token",
+      "appToken": "App Token",
+      "appId": "App ID",
+      "appSecret": "App Secret",
+      "verificationToken": "Verification Token",
+      "encryptKey": "Encrypt Key",
+      "baseUrl": "API Base URL",
+      "proxy": "HTTP Proxy",
+      "mentionOnly": "เฉพาะเมื่อถูกกล่าวถึง",
+      "typingEnabled": "แสดงสถานะกำลังพิมพ์",
+      "placeholderEnabled": "ข้อความ Placeholder",
+      "placeholderText": "ข้อความ Placeholder",
+      "pairingEnabled": "การจับคู่",
+      "groupTriggerMentionOnly": "กลุ่ม: เฉพาะเมื่อถูกกล่าวถึง",
+      "groupTriggerPrefixes": "คำนำหน้าสำหรับกระตุ้นในกลุ่ม",
+      "allowFrom": "อนุญาตจาก",
+      "allowFromPlaceholder": "เช่น 123456, 789012",
+      "allowOrigins": "Allow Origins",
+      "allowOriginsPlaceholder": "เช่น https://example.com, http://localhost:5173",
+      "secretPlaceholder": "กรอก Secret",
+      "secretHintSet": "มีค่าที่ตั้งไว้แล้ว เว้นว่างไว้เพื่อไม่เปลี่ยนแปลง"
+    },
+    "page": {
+      "notFound": "ไม่รองรับช่องทาง \"{{name}}\"",
+      "saveSuccess": "บันทึกการกำหนดค่าช่องทางสำเร็จ",
+      "saveError": "บันทึกการกำหนดค่าช่องทางล้มเหลว",
+      "enabled": "เปิดใช้งานแล้ว",
+      "docLink": "เอกสาร",
+      "enableLabel": "เปิดใช้งานช่องทาง"
+    },
+    "form": {
+      "desc": {
+        "token": "Access Token ของบอทสำหรับเชื่อมต่อกับ Platform API",
+        "botToken": "Bot Token สำหรับส่งและรับข้อความ",
+        "appToken": "App Token สำหรับการเชื่อมต่อแบบ Socket Mode",
+        "appId": "App ID เฉพาะสำหรับการยืนยันตัวตน",
+        "appSecret": "App Secret สำหรับการลงนามและยืนยันตัวตน",
+        "verificationToken": "Verification Token สำหรับ Event Callbacks",
+        "encryptKey": "Encryption Key สำหรับถอดรหัส Callback Payload",
+        "baseUrl": "URL พื้นฐานของ Platform API ค่าเริ่มต้นจะใช้ Endpoint ทางการ",
+        "proxy": "ที่อยู่ HTTP Proxy สำหรับการเข้าถึงเครือข่ายขาออก",
+        "mentionOnly": "ตอบสนองเฉพาะเมื่อบอทถูกกล่าวถึงในกลุ่มแชทเท่านั้น",
+        "typingEnabled": "แสดงสถานะกำลังพิมพ์ขณะที่ผู้ช่วยกำลังสร้างคำตอบ",
+        "placeholderEnabled": "เปิดใช้งานข้อความ Placeholder ชั่วคราวก่อนส่งคำตอบสุดท้าย",
+        "pairingEnabled": "กำหนดให้ผู้ใช้ที่ไม่รู้จักต้องขอสิทธิ์เข้าถึงผ่านรหัสจับคู่ก่อนแชท คำขอที่รอดำเนินการจะปรากฏด้านล่าง",
+        "groupTriggerMentionOnly": "ในกลุ่มแชท ตอบสนองเฉพาะเมื่อบอทถูกกล่าวถึงเท่านั้น",
+        "groupTriggerPrefixes": "คำนำหน้าสำหรับกระตุ้นในกลุ่มแชท คั่นด้วยเครื่องหมายจุลภาค",
+        "allowFrom": "ID ผู้ใช้หรือกลุ่มที่อนุญาต คั่นด้วยเครื่องหมายจุลภาค",
+        "allowOrigins": "โดเมน Origin ที่อนุญาต คั่นด้วยเครื่องหมายจุลภาค",
+        "wsUrl": "URL บริการ WebSocket",
+        "reconnectInterval": "ช่วงเวลาเชื่อมต่อใหม่หลังตัดการเชื่อมต่อ (วินาที)",
+        "bridgeUrl": "URL บริการ Bridge",
+        "sessionStorePath": "เส้นทางในเครื่องสำหรับเก็บ Session",
+        "useNative": "ใช้โหมด Native Client หรือไม่",
+        "host": "ที่อยู่โฮสต์บริการ",
+        "port": "พอร์ตบริการ",
+        "homeserver": "URL Homeserver ของ Matrix",
+        "userId": "User ID ของบัญชี",
+        "deviceId": "Device ID",
+        "joinOnInvite": "เข้าร่วมห้องโดยอัตโนมัติเมื่อได้รับการเชิญ",
+        "clientId": "Client ID สำหรับการยืนยันตัวตนบน Platform",
+        "corpId": "Corp ID ขององค์กร",
+        "agentId": "Agent ID ของแอปพลิเคชันองค์กร",
+        "webhookUrl": "URL Webhook แบบเต็ม",
+        "webhookHost": "โฮสต์สำหรับรับ Webhook",
+        "webhookPort": "พอร์ตสำหรับรับ Webhook",
+        "webhookPath": "เส้นทาง Route ของ Webhook",
+        "replyTimeout": "หมดเวลาการตอบกลับ (วินาที)",
+        "maxSteps": "จำนวนขั้นตอนการประมวลผลสูงสุด",
+        "welcomeMessage": "เนื้อหาข้อความต้อนรับสำหรับเซสชันใหม่",
+        "allowTokenQuery": "อนุญาต Token ใน URL Query Parameters",
+        "pingInterval": "ช่วงเวลา Heartbeat การเชื่อมต่อ (วินาที)",
+        "readTimeout": "หมดเวลาการอ่าน (วินาที)",
+        "writeTimeout": "หมดเวลาการเขียน (วินาที)",
+        "maxConnections": "จำนวนการเชื่อมต่อพร้อมกันสูงสุด",
+        "server": "ที่อยู่เซิร์ฟเวอร์ IRC",
+        "tls": "เปิดใช้งาน TLS หรือไม่",
+        "nick": "ชื่อเล่นของบอท",
+        "user": "ชื่อผู้ใช้ IRC",
+        "realName": "ชื่อจริงที่แสดง",
+        "channels": "ช่อง IRC ที่จะเข้าร่วม",
+        "requestCaps": "รายการ Capability IRC ที่ขอเมื่อเชื่อมต่อ",
+        "genericField": "ใช้สำหรับกำหนดค่า {{field}}"
+      }
+    },
+    "validation": {
+      "requiredField": "ฟิลด์นี้จำเป็นต้องกรอก"
+    }
+  },
+  "pages": {
+    "agent": {
+      "load_error": "โหลดข้อมูลการรองรับเอเจนต์ล้มเหลว",
+      "skills": {
+        "description": "ทักษะถูกโหลดจาก Workspace, KhunQuant Home ทั่วไป และไดเรกทอรีในตัว",
+        "empty": "ขณะนี้ยังไม่มีทักษะพร้อมใช้งาน",
+        "import": "นำเข้าทักษะ",
+        "import_success": "นำเข้าทักษะสำเร็จ",
+        "import_error": "นำเข้าทักษะล้มเหลว",
+        "view": "ดู",
+        "delete": "ลบ",
+        "delete_title": "ลบทักษะ?",
+        "delete_description": "\"{{name}}\" จะถูกลบออกจากทักษะใน Workspace",
+        "delete_confirm": "ลบ",
+        "delete_success": "ลบทักษะสำเร็จ",
+        "delete_error": "ลบทักษะล้มเหลว",
+        "viewer_title": "เนื้อหาทักษะ",
+        "viewer_description": "อ่านเนื้อหา SKILL.md ที่ใช้งานอยู่ในปัจจุบันที่นี่",
+        "loading_detail": "กำลังโหลดเนื้อหาทักษะ...",
+        "load_detail_error": "โหลดเนื้อหาทักษะล้มเหลว",
+        "path": "เส้นทางทักษะ",
+        "no_description": "ไม่มีคำอธิบาย"
+      },
+      "cron": {
+        "description": "{{count}} งานที่กำหนดตาราง",
+        "empty": "ไม่มีงานที่กำหนดตาราง",
+        "empty_hint": "สั่งให้เอเจนต์กำหนดตารางงาน — จะปรากฏที่นี่",
+        "load_error": "โหลดงาน Cron ล้มเหลว",
+        "edit": "แก้ไข",
+        "edit_title": "แก้ไขงาน Cron",
+        "edit_success": "อัปเดตงาน Cron สำเร็จ",
+        "edit_error": "อัปเดตงาน Cron ล้มเหลว",
+        "delete": "ลบ",
+        "delete_title": "ลบงาน Cron?",
+        "delete_description": "\"{{name}}\" จะถูกลบอย่างถาวร",
+        "delete_confirm": "ลบ",
+        "delete_success": "ลบงาน Cron สำเร็จ",
+        "delete_error": "ลบงาน Cron ล้มเหลว",
+        "enable": "เปิดใช้งาน",
+        "enable_success": "เปิดใช้งานงาน Cron สำเร็จ",
+        "disable": "ปิดใช้งาน",
+        "disable_success": "ปิดใช้งานงาน Cron สำเร็จ",
+        "toggle_error": "อัปเดตงาน Cron ล้มเหลว",
+        "status_enabled": "เปิดใช้งาน",
+        "status_disabled": "ปิดใช้งาน",
+        "last_status_ok": "สำเร็จ",
+        "last_status_error": "ผิดพลาด",
+        "mode_static": "คงที่",
+        "mode_dynamic": "ไดนามิก",
+        "col_schedule": "ตาราง",
+        "col_next_run": "รันครั้งถัดไป",
+        "col_last_run": "รันครั้งล่าสุด",
+        "col_channel": "ช่องทาง",
+        "schedule_every_seconds": "ทุก {{n}} วินาที",
+        "schedule_every_minutes": "ทุก {{n}} นาที",
+        "schedule_every_hours": "ทุก {{n}} ชั่วโมง",
+        "schedule_unknown": "ไม่ทราบ",
+        "no_next_run": "—",
+        "overdue": "เลยกำหนด",
+        "field_name": "ชื่อ",
+        "field_message_static": "ข้อความแจ้งเตือน",
+        "field_message_static_hint": "ข้อความนี้จะถูกส่งตรงถึงคุณเมื่องานทำงาน",
+        "field_message_dynamic": "คำสั่งเอเจนต์",
+        "field_message_dynamic_hint": "คำสั่งนี้จะถูกส่งให้เอเจนต์ทุกครั้งที่ถูกกระตุ้น — เขียนให้ดึงข้อมูลใหม่ทุกครั้ง"
+      },
+      "pairing": {
+        "section_title": "คำขอเข้าถึงที่รอดำเนินการ",
+        "description": "{{count}} คำขอจับคู่ที่รอดำเนินการ",
+        "empty": "ไม่มีคำขอที่รอดำเนินการ",
+        "empty_hint": "เมื่อผู้ใช้ Telegram ที่ไม่รู้จักส่งข้อความ รหัสจับคู่ของพวกเขาจะปรากฏที่นี่",
+        "loading": "กำลังโหลดคำขอจับคู่...",
+        "load_error": "โหลดคำขอจับคู่ล้มเหลว",
+        "platform": "Platform",
+        "id": "ID",
+        "expires": "หมดอายุใน",
+        "approve": "อนุมัติ",
+        "approve_success": "อนุมัติผู้ใช้แล้ว กรุณารีสตาร์ทเกตเวย์เพื่อให้มีผล",
+        "approve_error": "อนุมัติผู้ใช้ล้มเหลว",
+        "reject": "ปฏิเสธ",
+        "reject_success": "ปฏิเสธคำขอแล้ว",
+        "reject_error": "ปฏิเสธคำขอล้มเหลว"
+      },
+      "tools": {
+        "description": "มุมมองนี้แสดงสถานะของแต่ละเครื่องมือว่าเปิดใช้งาน ปิดใช้งาน หรือถูกบล็อกเนื่องจากขาดข้อกำหนดเบื้องต้น",
+        "empty": "ไม่มีเครื่องมือพร้อมใช้งาน",
+        "enable": "เปิดใช้งาน",
+        "disable": "ปิดใช้งาน",
+        "enable_success": "เปิดใช้งานเครื่องมือสำเร็จ",
+        "disable_success": "ปิดใช้งานเครื่องมือสำเร็จ",
+        "toggle_error": "อัปเดตสถานะเครื่องมือล้มเหลว",
+        "config_key": "ควบคุมโดย tools.{{key}}",
+        "status": {
+          "enabled": "เปิดใช้งาน",
+          "disabled": "ปิดใช้งาน",
+          "blocked": "ถูกบล็อก"
+        },
+        "categories": {
+          "automation": "อัตโนมัติ",
+          "filesystem": "ระบบไฟล์",
+          "web": "เว็บ",
+          "communication": "การสื่อสาร",
+          "skills": "ทักษะ",
+          "agents": "เอเจนต์",
+          "portfolios": "พอร์ตโฟลิโอ",
+          "hardware": "ฮาร์ดแวร์",
+          "discovery": "ค้นพบ"
+        },
+        "reasons": {
+          "requires_linux": "เครื่องมือนี้ทำงานได้เฉพาะบนโฮสต์ Linux ที่เปิดเผยไฟล์อุปกรณ์ที่จำเป็นเท่านั้น",
+          "requires_skills": "เปิดใช้งาน `tools.skills` ก่อนที่จะใช้เครื่องมือ Skill-registry นี้ได้",
+          "requires_subagent": "เปิดใช้งาน `tools.subagent` ก่อนที่เครื่องมือ Spawn จะสามารถมอบหมายงานได้",
+          "requires_mcp_discovery": "เปิดใช้งาน `tools.mcp.discovery` ก่อนที่เครื่องมือค้นพบ MCP จะพร้อมใช้งาน"
+        }
+      }
+    },
+    "config": {
+      "load_error": "โหลดการกำหนดค่าล้มเหลว กรุณารีเฟรชแล้วลองอีกครั้ง",
+      "workspace": "ไดเรกทอรี Workspace",
+      "workspace_hint": "ไดเรกทอรีหลักสำหรับการดำเนินการไฟล์ของเอเจนต์",
+      "restrict_workspace": "จำกัดไว้ที่ Workspace",
+      "restrict_workspace_hint": "อนุญาตเฉพาะการดำเนินการไฟล์ภายใน Workspace เท่านั้น",
+      "allow_remote": "อนุญาตการรันคำสั่ง Shell จากระยะไกล",
+      "allow_remote_hint": "เมื่อเปิดใช้งาน คำสั่ง Shell สามารถรันสำหรับเซสชันระยะไกลหรือบริบทที่ไม่ใช่ Local ได้ เมื่อปิดใช้งาน การรัน Shell จะจำกัดไว้ในบริบท Local ที่ปลอดภัยเท่านั้น",
+      "max_tokens": "Max Tokens",
+      "max_tokens_hint": "จำนวน Token สูงสุดต่อการตอบสนองของโมเดล",
+      "max_tool_iterations": "จำนวน Tool Iterations สูงสุด",
+      "max_tool_iterations_hint": "จำนวนลูป Tool-call สูงสุดในงานเดียว",
+      "summarize_threshold": "เกณฑ์สรุปข้อความ",
+      "summarize_threshold_hint": "เริ่มสรุปหลังจากมีข้อความถึงจำนวนนี้",
+      "summarize_token_percent": "เปอร์เซ็นต์ Token สำหรับสรุป",
+      "summarize_token_percent_hint": "ใช้เมื่อเริ่มการสรุปการสนทนา",
+      "session_scope": "ขอบเขตเซสชัน",
+      "session_scope_hint": "วิธีแยก Context ของแชทระหว่าง Peer/ช่องทาง",
+      "session_scope_per_channel_peer": "ต่อช่องทาง + Peer",
+      "session_scope_per_channel_peer_desc": "Context แยกสำหรับผู้ใช้แต่ละคนในแต่ละช่องทาง",
+      "session_scope_per_channel": "ต่อช่องทาง",
+      "session_scope_per_channel_desc": "Context ร่วมกันหนึ่งอันต่อช่องทาง",
+      "session_scope_per_peer": "ต่อ Peer",
+      "session_scope_per_peer_desc": "Context หนึ่งอันต่อผู้ใช้ข้ามช่องทาง",
+      "session_scope_global": "ทั่วไป",
+      "session_scope_global_desc": "ข้อความทั้งหมดใช้ Context ทั่วไปร่วมกัน",
+      "heartbeat_enabled": "Heartbeat",
+      "heartbeat_enabled_hint": "ส่งข้อความ Heartbeat เป็นระยะ",
+      "heartbeat_interval": "ช่วงเวลา Heartbeat (นาที)",
+      "heartbeat_interval_hint": "ช่วงเวลาระหว่างสัญญาณ Heartbeat เป็นนาที",
+      "devices_enabled": "เปิดใช้งานอุปกรณ์",
+      "devices_enabled_hint": "เปิดใช้งานการผสานรวมกับอุปกรณ์ฮาร์ดแวร์",
+      "monitor_usb": "ตรวจสอบ USB",
+      "monitor_usb_hint": "ติดตามเหตุการณ์เสียบ/ถอด USB เมื่อเปิดใช้งานอุปกรณ์",
+      "autostart_label": "เริ่มเมื่อเข้าสู่ระบบ",
+      "autostart_hint": "เริ่ม KhunQuant Web โดยอัตโนมัติเมื่อคุณเข้าสู่ระบบ",
+      "autostart_unsupported": "ไม่รองรับการเริ่มต้นเมื่อเข้าสู่ระบบบน Platform นี้",
+      "autostart_load_error": "โหลดสถานะการเริ่มต้นเมื่อเข้าสู่ระบบล้มเหลว",
+      "server_port": "พอร์ตบริการ",
+      "server_port_hint": "พอร์ต HTTP ที่ใช้โดย KhunQuant Web",
+      "lan_access": "เปิดใช้งานการเข้าถึง LAN",
+      "lan_access_hint": "อนุญาตการเข้าถึงจากอุปกรณ์อื่นในเครือข่าย Local ของคุณ",
+      "allowed_cidrs": "CIDR เครือข่ายที่อนุญาต",
+      "allowed_cidrs_hint": "เฉพาะ Client จาก CIDR เหล่านี้เท่านั้นที่สามารถเข้าถึงบริการได้ หนึ่งต่อบรรทัดหรือคั่นด้วยเครื่องหมายจุลภาค เว้นว่างเพื่ออนุญาตทั้งหมด",
+      "allowed_cidrs_placeholder": "192.168.1.0/24\n10.0.0.0/8",
+      "sections": {
+        "agent": "เอเจนต์",
+        "runtime": "Runtime",
+        "launcher": "บริการ",
+        "devices": "อุปกรณ์"
+      },
+      "open_raw": "การกำหนดค่า Raw",
+      "back_to_visual": "การกำหนดค่าแบบ Visual",
+      "raw_json_title": "การกำหนดค่า JSON แบบ Raw",
+      "json_placeholder": "กรอกการกำหนดค่า JSON ที่ถูกต้อง...",
+      "save_success": "บันทึกการกำหนดค่าสำเร็จ",
+      "save_error": "บันทึกการกำหนดค่าล้มเหลว",
+      "reset_confirm_title": "รีเซ็ตการเปลี่ยนแปลง",
+      "reset_confirm_desc": "คุณแน่ใจหรือไม่ว่าต้องการรีเซ็ตการเปลี่ยนแปลงที่ยังไม่ได้บันทึกกลับไปยังสถานะที่บันทึกล่าสุด?",
+      "reset_success": "รีเซ็ตการเปลี่ยนแปลงกลับไปยังสถานะที่บันทึกล่าสุดแล้ว",
+      "invalid_json": "รูปแบบ JSON ไม่ถูกต้อง",
+      "format_success": "จัดรูปแบบ JSON สำเร็จ",
+      "format_error": "รูปแบบ JSON ไม่ถูกต้อง",
+      "format": "จัดรูปแบบ",
+      "unsaved_changes": "คุณมีการเปลี่ยนแปลงที่ยังไม่ได้บันทึก"
+    },
+    "logs": {
+      "clear": "ล้างบันทึก",
+      "empty": "กำลังรอบันทึก..."
+    }
+  },
+  "portfolios": {
+    "edit": "กำหนดค่า {{name}}",
+    "enableLabel": "เปิดใช้งาน",
+    "saveSuccess": "บันทึกการตั้งค่าพอร์ตโฟลิโอสำเร็จ",
+    "saveError": "บันทึกการตั้งค่าพอร์ตโฟลิโอล้มเหลว",
+    "loadError": "โหลดการตั้งค่าพอร์ตโฟลิโอล้มเหลว",
+    "notFound": "ไม่พบ Exchange \"{{name}}\"",
+    "status": {
+      "enabled": "เปิดใช้งาน",
+      "configured": "กำหนดค่าแล้ว"
+    },
+    "binance": {
+      "api_key": "API Key",
+      "api_key_hint": "Binance API Key ของคุณที่มีสิทธิ์อ่าน",
+      "api_key_placeholder": "กรอก API Key",
+      "secret": "API Secret",
+      "secret_hint": "Binance API Secret ของคุณ เก็บไว้ใน Config ในเครื่อง",
+      "secret_placeholder": "กรอก API Secret",
+      "credential_set": "มีค่าที่ตั้งไว้แล้ว — กรอกค่าใหม่เพื่ออัปเดต",
+      "testnet": "ใช้ Testnet",
+      "testnet_hint": "เชื่อมต่อกับ Binance Testnet แทน Mainnet"
+    },
+    "binanceth": {
+      "api_key": "API Key",
+      "api_key_hint": "Binance TH API Key ของคุณที่มีสิทธิ์อ่าน",
+      "api_key_placeholder": "กรอก API Key",
+      "secret": "API Secret",
+      "secret_hint": "Binance TH API Secret ของคุณ เก็บไว้ใน Config ในเครื่อง",
+      "secret_placeholder": "กรอก API Secret",
+      "credential_set": "มีค่าที่ตั้งไว้แล้ว — กรอกค่าใหม่เพื่ออัปเดต"
+    },
+    "bitkub": {
+      "api_key": "API Key",
+      "api_key_hint": "Bitkub API Key ของคุณที่มีสิทธิ์อ่าน",
+      "api_key_placeholder": "กรอก API Key",
+      "secret": "API Secret",
+      "secret_hint": "Bitkub API Secret ของคุณ เก็บไว้ใน Config ในเครื่อง",
+      "secret_placeholder": "กรอก API Secret",
+      "credential_set": "มีค่าที่ตั้งไว้แล้ว — กรอกค่าใหม่เพื่ออัปเดต"
+    },
+    "okx": {
+      "api_key": "API Key",
+      "api_key_hint": "OKX API Key ของคุณที่มีสิทธิ์อ่าน",
+      "api_key_placeholder": "กรอก API Key",
+      "secret": "API Secret",
+      "secret_hint": "OKX API Secret ของคุณ เก็บไว้ใน Config ในเครื่อง",
+      "secret_placeholder": "กรอก API Secret",
+      "passphrase": "Passphrase",
+      "passphrase_hint": "Passphrase ที่คุณตั้งไว้เมื่อสร้าง OKX API Key",
+      "passphrase_placeholder": "กรอก Passphrase",
+      "credential_set": "มีค่าที่ตั้งไว้แล้ว — กรอกค่าใหม่เพื่ออัปเดต",
+      "testnet": "ใช้ Demo Trading",
+      "testnet_hint": "เชื่อมต่อกับสภาพแวดล้อม Demo Trading ของ OKX แทน Live"
+    }
+  }
+}

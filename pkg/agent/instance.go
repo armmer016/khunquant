@@ -17,6 +17,8 @@ import (
 	"github.com/khunquant/khunquant/pkg/tools"
 
 	_ "github.com/khunquant/khunquant/pkg/exchanges/binance"
+	_ "github.com/khunquant/khunquant/pkg/exchanges/binanceth"
+	_ "github.com/khunquant/khunquant/pkg/exchanges/bitkub"
 	_ "github.com/khunquant/khunquant/pkg/exchanges/okx"
 )
 

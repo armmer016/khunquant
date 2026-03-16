@@ -24,6 +24,7 @@ import {
   getAppConfig,
   getChannelsCatalog,
 } from "@/api/channels"
+import { getPairingRequests } from "@/api/pairing"
 import { getChannelDisplayName } from "@/components/channels/channel-display-name"
 import { gatewayAtom } from "@/store/gateway"
 
@@ -131,6 +132,7 @@ export interface SidebarChannelNavItem {
   title: string
   url: string
   icon: React.ComponentType<{ className?: string }>
+  badge?: "pairing"
 }
 
 interface UseSidebarChannelsOptions {
@@ -144,6 +146,20 @@ export function useSidebarChannels({ t }: UseSidebarChannelsOptions) {
     {},
   )
   const [showAllChannels, setShowAllChannels] = React.useState(false)
+  const [hasPendingPairing, setHasPendingPairing] = React.useState(false)
+
+  // Poll pairing requests to show the red dot badge on the Telegram channel.
+  React.useEffect(() => {
+    let active = true
+    const check = () => {
+      getPairingRequests()
+        .then((reqs) => { if (active) setHasPendingPairing(reqs.length > 0) })
+        .catch(() => { if (active) setHasPendingPairing(false) })
+    }
+    check()
+    const id = setInterval(check, 10_000)
+    return () => { active = false; clearInterval(id) }
+  }, [])
 
   const reloadChannels = React.useCallback((shouldApply?: () => boolean) => {
     Promise.all([
@@ -219,8 +235,9 @@ export function useSidebarChannels({ t }: UseSidebarChannelsOptions) {
         title: getChannelDisplayName(channel, t),
         url: `/channels/${channel.name}`,
         icon: CHANNEL_ICON_MAP[channel.name] ?? IconPlug,
+        badge: channel.name === "telegram" && hasPendingPairing ? "pairing" : undefined,
       })),
-    [t, visibleChannels],
+    [t, visibleChannels, hasPendingPairing],
   )
 
   const toggleShowAllChannels = React.useCallback(() => {

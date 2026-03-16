@@ -30,6 +30,8 @@ import (
 	_ "github.com/khunquant/khunquant/pkg/channels/whatsapp"
 	_ "github.com/khunquant/khunquant/pkg/channels/whatsapp_native"
 	_ "github.com/khunquant/khunquant/pkg/exchanges/binance"
+	_ "github.com/khunquant/khunquant/pkg/exchanges/binanceth"
+	_ "github.com/khunquant/khunquant/pkg/exchanges/bitkub"
 	_ "github.com/khunquant/khunquant/pkg/exchanges/okx"
 	"github.com/khunquant/khunquant/pkg/config"
 	"github.com/khunquant/khunquant/pkg/cron"
@@ -242,6 +244,7 @@ func setupAndStartServices(
 	addr := fmt.Sprintf("%s:%d", cfg.Gateway.Host, cfg.Gateway.Port)
 	services.HealthServer = health.NewServer(cfg.Gateway.Host, cfg.Gateway.Port)
 	services.ChannelManager.SetupHTTPServer(addr, services.HealthServer)
+	registerCronAPI(services.ChannelManager, services.CronService)
 
 	if err := services.ChannelManager.StartAll(context.Background()); err != nil {
 		return nil, fmt.Errorf("error starting channels: %w", err)
@@ -482,6 +485,7 @@ func restartServices(
 	addr := fmt.Sprintf("%s:%d", cfg.Gateway.Host, cfg.Gateway.Port)
 	services.HealthServer = health.NewServer(cfg.Gateway.Host, cfg.Gateway.Port)
 	services.ChannelManager.SetupHTTPServer(addr, services.HealthServer)
+	registerCronAPI(services.ChannelManager, services.CronService)
 
 	// Use context.Background() so channel goroutines (e.g. pico WebSocket readLoops)
 	// are not cancelled when this function returns. Channels are stopped explicitly
@@ -643,8 +647,7 @@ func setupCronTool(
 	// Set onJob handler
 	if cronTool != nil {
 		cronService.SetOnJob(func(job *cron.CronJob) (string, error) {
-			result := cronTool.ExecuteJob(context.Background(), job)
-			return result, nil
+			return cronTool.ExecuteJob(context.Background(), job)
 		})
 	}
 

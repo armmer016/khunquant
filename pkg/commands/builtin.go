@@ -7,6 +7,7 @@ package commands
 func BuiltinDefinitions() []Definition {
 	return []Definition{
 		startCommand(),
+		pairCommand(),
 		helpCommand(),
 		showCommand(),
 		listCommand(),

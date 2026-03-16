@@ -93,8 +93,10 @@ type Config struct {
 
 // ExchangesConfig holds configuration for all supported exchanges.
 type ExchangesConfig struct {
-	Binance BinanceExchangeConfig `json:"binance"`
-	OKX     OKXExchangeConfig     `json:"okx"`
+	Binance   BinanceExchangeConfig   `json:"binance"`
+	OKX       OKXExchangeConfig       `json:"okx"`
+	Bitkub    BitkubExchangeConfig    `json:"bitkub"`
+	BinanceTH BinanceTHExchangeConfig `json:"binanceth"`
 }
 
 // BinanceExchangeConfig holds the Binance exchange credentials and settings.
@@ -103,6 +105,20 @@ type BinanceExchangeConfig struct {
 	APIKey  string `json:"api_key"  env:"KHUNQUANT_EXCHANGES_BINANCE_API_KEY"`
 	Secret  string `json:"secret"   env:"KHUNQUANT_EXCHANGES_BINANCE_SECRET"`
 	Testnet bool   `json:"testnet"  env:"KHUNQUANT_EXCHANGES_BINANCE_TESTNET"`
+}
+
+// BinanceTHExchangeConfig holds the Binance Thailand exchange credentials and settings.
+type BinanceTHExchangeConfig struct {
+	Enabled bool   `json:"enabled"  env:"KHUNQUANT_EXCHANGES_BINANCETH_ENABLED"`
+	APIKey  string `json:"api_key"  env:"KHUNQUANT_EXCHANGES_BINANCETH_API_KEY"`
+	Secret  string `json:"secret"   env:"KHUNQUANT_EXCHANGES_BINANCETH_SECRET"`
+}
+
+// BitkubExchangeConfig holds the Bitkub exchange credentials and settings.
+type BitkubExchangeConfig struct {
+	Enabled bool   `json:"enabled"  env:"KHUNQUANT_EXCHANGES_BITKUB_ENABLED"`
+	APIKey  string `json:"api_key"  env:"KHUNQUANT_EXCHANGES_BITKUB_API_KEY"`
+	Secret  string `json:"secret"   env:"KHUNQUANT_EXCHANGES_BITKUB_SECRET"`
 }
 
 // OKXExchangeConfig holds the OKX exchange credentials and settings.
@@ -329,6 +345,7 @@ type TelegramConfig struct {
 	BaseURL            string              `json:"base_url"                env:"KHUNQUANT_CHANNELS_TELEGRAM_BASE_URL"`
 	Proxy              string              `json:"proxy"                   env:"KHUNQUANT_CHANNELS_TELEGRAM_PROXY"`
 	AllowFrom          FlexibleStringSlice `json:"allow_from"              env:"KHUNQUANT_CHANNELS_TELEGRAM_ALLOW_FROM"`
+	PairingEnabled     bool                `json:"pairing_enabled"         env:"KHUNQUANT_CHANNELS_TELEGRAM_PAIRING_ENABLED"`
 	GroupTrigger       GroupTriggerConfig  `json:"group_trigger,omitempty"`
 	Typing             TypingConfig        `json:"typing,omitempty"`
 	Placeholder        PlaceholderConfig   `json:"placeholder,omitempty"`

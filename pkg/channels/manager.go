@@ -317,6 +317,14 @@ func (m *Manager) initChannels() error {
 // SetupHTTPServer creates a shared HTTP server with the given listen address.
 // It registers health endpoints from the health server and discovers channels
 // that implement WebhookHandler and/or HealthChecker to register their handlers.
+// Handle registers an additional HTTP handler on the channel manager's shared
+// mux. Must be called after SetupHTTPServer and before StartAll.
+func (m *Manager) Handle(pattern string, handler http.Handler) {
+	if m.mux != nil {
+		m.mux.Handle(pattern, handler)
+	}
+}
+
 func (m *Manager) SetupHTTPServer(addr string, healthServer *health.Server) {
 	m.mux = http.NewServeMux()
 

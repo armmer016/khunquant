@@ -143,6 +143,14 @@ func (b *BinanceExchange) FetchPrice(_ context.Context, asset, quote string) (fl
 
 // getAllBalances aggregates balances across all wallet types.
 // Individual wallet errors are silently skipped (e.g. futures not enabled).
+//
+// LD-prefixed earn tokens (e.g. LDBTC, LDBNB) are stripped from every wallet
+// type in this aggregated view. Binance includes Simple Earn Flexible positions
+// in the spot balance as both the base asset (BTC) and the LD-wrapped token
+// (LDBTC), where the base asset total already embeds the staked amount. Counting
+// LDBTC separately would therefore double-count the staked portion.
+//
+// Requesting earn_flexible or spot directly still returns the raw LD token list.
 func (b *BinanceExchange) getAllBalances(ctx context.Context) ([]exchanges.WalletBalance, error) {
 	walletTypes := []string{"spot", "funding", "futures_usdt", "futures_coin", "margin", "earn_flexible", "earn_locked"}
 	var all []exchanges.WalletBalance
@@ -151,9 +159,24 @@ func (b *BinanceExchange) getAllBalances(ctx context.Context) ([]exchanges.Walle
 		if err != nil {
 			continue // wallet not enabled or no access — skip
 		}
-		all = append(all, wb...)
+		all = append(all, filterOutLDTokens(wb)...)
 	}
 	return all, nil
+}
+
+// filterOutLDTokens removes LD-prefixed Simple Earn tokens (e.g. LDBTC) from
+// a balance slice. The underlying base asset balance already includes the staked
+// amount, so LD tokens must be excluded to avoid double-counting.
+func filterOutLDTokens(balances []exchanges.WalletBalance) []exchanges.WalletBalance {
+	out := make([]exchanges.WalletBalance, 0, len(balances))
+	for _, b := range balances {
+		upper := strings.ToUpper(b.Asset)
+		if strings.HasPrefix(upper, "LD") && len(upper) > 2 {
+			continue
+		}
+		out = append(out, b)
+	}
+	return out
 }
 
 // getSpotBalances fetches spot wallet balances via CCXT FetchBalance(type=spot).

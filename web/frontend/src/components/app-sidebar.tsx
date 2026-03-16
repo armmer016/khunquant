@@ -1,9 +1,11 @@
 import { IconChevronRight } from "@tabler/icons-react"
+import { AlertDot } from "@/components/ui/alert-dot"
 import {
   IconAtom,
   IconBuildingBank,
   IconChevronsDown,
   IconChevronsUp,
+  IconClock,
   IconKey,
   IconListDetails,
   IconMessageCircle,
@@ -38,6 +40,7 @@ interface NavItem {
   url: string
   icon: React.ComponentType<{ className?: string }>
   translateTitle?: boolean
+  badge?: string
 }
 
 interface NavGroup {
@@ -115,6 +118,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           url: item.url,
           icon: item.icon,
           translateTitle: false,
+          badge: item.badge,
         })),
         isChannelsGroup: true,
       },
@@ -134,6 +138,18 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             icon: IconBuildingBank,
             translateTitle: true,
           },
+          {
+            title: "navigation.portfolios_bitkub",
+            url: "/portfolios/bitkub",
+            icon: IconBuildingBank,
+            translateTitle: true,
+          },
+          {
+            title: "navigation.portfolios_binanceth",
+            url: "/portfolios/binanceth",
+            icon: IconBuildingBank,
+            translateTitle: true,
+          },
         ],
       },
       {
@@ -149,6 +165,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             title: "navigation.tools",
             url: "/agent/tools",
             icon: IconTools,
+            translateTitle: true,
+          },
+          {
+            title: "navigation.cron",
+            url: "/agent/cron",
+            icon: IconClock,
             translateTitle: true,
           },
         ],
@@ -220,6 +242,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                                   ? item.title
                                   : t(item.title)}
                               </span>
+                              {item.badge && (
+                                <AlertDot className="ml-auto" />
+                              )}
                             </Link>
                           </SidebarMenuButton>
                         </SidebarMenuItem>
