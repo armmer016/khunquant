@@ -6,6 +6,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/http/httputil"
+	"net/url"
 	"time"
 
 	"github.com/khunquant/khunquant/pkg/config"
@@ -16,6 +18,39 @@ func (h *Handler) registerPicoRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/pico/token", h.handleGetPicoToken)
 	mux.HandleFunc("POST /api/pico/token", h.handleRegenPicoToken)
 	mux.HandleFunc("POST /api/pico/setup", h.handlePicoSetup)
+
+	// WebSocket proxy: forward /pico/ws to gateway
+	// This allows the frontend to connect via the same port as the web UI,
+	// avoiding the need to expose extra ports for WebSocket communication.
+	wsProxy := h.createWsProxy()
+	mux.HandleFunc("GET /pico/ws", h.handleWebSocketProxy(wsProxy))
+}
+
+// createWsProxy creates a reverse proxy to the gateway WebSocket endpoint.
+// The gateway port is read from the configuration.
+func (h *Handler) createWsProxy() *httputil.ReverseProxy {
+	cfg, err := config.LoadConfig(h.configPath)
+	gatewayPort := 18790 // default
+	if err == nil && cfg.Gateway.Port != 0 {
+		gatewayPort = cfg.Gateway.Port
+	}
+	gatewayURL, _ := url.Parse(fmt.Sprintf("http://127.0.0.1:%d", gatewayPort))
+	wsProxy := httputil.NewSingleHostReverseProxy(gatewayURL)
+	wsProxy.ErrorHandler = func(w http.ResponseWriter, r *http.Request, err error) {
+		http.Error(w, "Gateway unavailable: "+err.Error(), http.StatusBadGateway)
+	}
+	return wsProxy
+}
+
+// handleWebSocketProxy wraps a reverse proxy to handle WebSocket connections.
+// It ensures the Connection and Upgrade headers are properly forwarded.
+func (h *Handler) handleWebSocketProxy(proxy *httputil.ReverseProxy) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// Set headers for WebSocket upgrade
+		r.Header.Set("Connection", "upgrade")
+		r.Header.Set("Upgrade", "websocket")
+		proxy.ServeHTTP(w, r)
+	}
 }
 
 // handleGetPicoToken returns the current WS token and URL for the frontend.
