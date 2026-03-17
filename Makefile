@@ -86,6 +86,7 @@ ifeq ($(UNAME_S),Linux)
 	endif
 else ifeq ($(UNAME_S),Darwin)
 	PLATFORM=darwin
+	WEB_GO=CGO_ENABLED=1 go
 	ifeq ($(UNAME_M),x86_64)
 		ARCH=amd64
 	else ifeq ($(UNAME_M),arm64)
@@ -270,7 +271,9 @@ clean:
 
 ## vet: Run go vet for static analysis
 vet: generate
-	@$(GO) vet ./...
+	@packages="$$(go list ./...)" && \
+		$(GO) vet $$(printf '%s\n' "$$packages" | grep -v '^github.com/sipeed/picoclaw/web/')
+	@cd web/backend && $(WEB_GO) vet ./...
 
 ## test: Test Go code
 test: generate
