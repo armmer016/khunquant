@@ -91,6 +91,19 @@ type Config struct {
 	BuildInfo BuildInfo `json:"build_info,omitempty"`
 }
 
+// ExchangeAccount holds credentials for a single named exchange sub-account.
+type ExchangeAccount struct {
+	Name   string `json:"name,omitempty"`
+	APIKey string `json:"api_key"`
+	Secret string `json:"secret"`
+}
+
+// OKXExchangeAccount extends ExchangeAccount with the OKX-specific passphrase.
+type OKXExchangeAccount struct {
+	ExchangeAccount
+	Passphrase string `json:"passphrase"`
+}
+
 // ExchangesConfig holds configuration for all supported exchanges.
 type ExchangesConfig struct {
 	Binance   BinanceExchangeConfig   `json:"binance"`
@@ -101,33 +114,78 @@ type ExchangesConfig struct {
 
 // BinanceExchangeConfig holds the Binance exchange credentials and settings.
 type BinanceExchangeConfig struct {
-	Enabled bool   `json:"enabled"  env:"KHUNQUANT_EXCHANGES_BINANCE_ENABLED"`
-	APIKey  string `json:"api_key"  env:"KHUNQUANT_EXCHANGES_BINANCE_API_KEY"`
-	Secret  string `json:"secret"   env:"KHUNQUANT_EXCHANGES_BINANCE_SECRET"`
-	Testnet bool   `json:"testnet"  env:"KHUNQUANT_EXCHANGES_BINANCE_TESTNET"`
+	Enabled  bool              `json:"enabled"  env:"KHUNQUANT_EXCHANGES_BINANCE_ENABLED"`
+	Testnet  bool              `json:"testnet"  env:"KHUNQUANT_EXCHANGES_BINANCE_TESTNET"`
+	Accounts []ExchangeAccount `json:"accounts,omitempty"`
+}
+
+// ResolveAccount returns the account matching name, or the first account when name is "".
+// Accounts with no name are assigned positional names "1", "2", etc.
+func (c *BinanceExchangeConfig) ResolveAccount(name string) (ExchangeAccount, bool) {
+	return resolveAccount(c.Accounts, name)
 }
 
 // BinanceTHExchangeConfig holds the Binance Thailand exchange credentials and settings.
 type BinanceTHExchangeConfig struct {
-	Enabled bool   `json:"enabled"  env:"KHUNQUANT_EXCHANGES_BINANCETH_ENABLED"`
-	APIKey  string `json:"api_key"  env:"KHUNQUANT_EXCHANGES_BINANCETH_API_KEY"`
-	Secret  string `json:"secret"   env:"KHUNQUANT_EXCHANGES_BINANCETH_SECRET"`
+	Enabled  bool              `json:"enabled"  env:"KHUNQUANT_EXCHANGES_BINANCETH_ENABLED"`
+	Accounts []ExchangeAccount `json:"accounts,omitempty"`
+}
+
+// ResolveAccount returns the account matching name, or the first account when name is "".
+func (c *BinanceTHExchangeConfig) ResolveAccount(name string) (ExchangeAccount, bool) {
+	return resolveAccount(c.Accounts, name)
 }
 
 // BitkubExchangeConfig holds the Bitkub exchange credentials and settings.
 type BitkubExchangeConfig struct {
-	Enabled bool   `json:"enabled"  env:"KHUNQUANT_EXCHANGES_BITKUB_ENABLED"`
-	APIKey  string `json:"api_key"  env:"KHUNQUANT_EXCHANGES_BITKUB_API_KEY"`
-	Secret  string `json:"secret"   env:"KHUNQUANT_EXCHANGES_BITKUB_SECRET"`
+	Enabled  bool              `json:"enabled"  env:"KHUNQUANT_EXCHANGES_BITKUB_ENABLED"`
+	Accounts []ExchangeAccount `json:"accounts,omitempty"`
+}
+
+// ResolveAccount returns the account matching name, or the first account when name is "".
+func (c *BitkubExchangeConfig) ResolveAccount(name string) (ExchangeAccount, bool) {
+	return resolveAccount(c.Accounts, name)
 }
 
 // OKXExchangeConfig holds the OKX exchange credentials and settings.
 type OKXExchangeConfig struct {
-	Enabled    bool   `json:"enabled"     env:"KHUNQUANT_EXCHANGES_OKX_ENABLED"`
-	APIKey     string `json:"api_key"     env:"KHUNQUANT_EXCHANGES_OKX_API_KEY"`
-	Secret     string `json:"secret"      env:"KHUNQUANT_EXCHANGES_OKX_SECRET"`
-	Passphrase string `json:"passphrase"  env:"KHUNQUANT_EXCHANGES_OKX_PASSPHRASE"`
-	Testnet    bool   `json:"testnet"     env:"KHUNQUANT_EXCHANGES_OKX_TESTNET"`
+	Enabled  bool                 `json:"enabled"  env:"KHUNQUANT_EXCHANGES_OKX_ENABLED"`
+	Testnet  bool                 `json:"testnet"  env:"KHUNQUANT_EXCHANGES_OKX_TESTNET"`
+	Accounts []OKXExchangeAccount `json:"accounts,omitempty"`
+}
+
+// ResolveAccount returns the OKX account matching name, or the first account when name is "".
+func (c *OKXExchangeConfig) ResolveAccount(name string) (OKXExchangeAccount, bool) {
+	for i, acc := range c.Accounts {
+		effectiveName := acc.Name
+		if effectiveName == "" {
+			effectiveName = fmt.Sprintf("%d", i+1)
+		}
+		if name == "" || strings.EqualFold(effectiveName, name) {
+			if acc.Name == "" {
+				acc.Name = effectiveName
+			}
+			return acc, true
+		}
+	}
+	return OKXExchangeAccount{}, false
+}
+
+// resolveAccount is a generic helper for []ExchangeAccount resolution.
+func resolveAccount(accounts []ExchangeAccount, name string) (ExchangeAccount, bool) {
+	for i, acc := range accounts {
+		effectiveName := acc.Name
+		if effectiveName == "" {
+			effectiveName = fmt.Sprintf("%d", i+1)
+		}
+		if name == "" || strings.EqualFold(effectiveName, name) {
+			if acc.Name == "" {
+				acc.Name = effectiveName
+			}
+			return acc, true
+		}
+	}
+	return ExchangeAccount{}, false
 }
 
 // BuildInfo contains build-time version information
@@ -899,6 +957,7 @@ func LoadConfig(path string) (*Config, error) {
 
 	return cfg, nil
 }
+
 
 func (c *Config) migrateChannelConfigs() {
 	// Discord: mention_only -> group_trigger.mention_only

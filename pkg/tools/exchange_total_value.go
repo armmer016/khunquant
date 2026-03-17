@@ -3,8 +3,8 @@ package tools
 import (
 	"context"
 	"fmt"
-	"sort"
 	"strings"
+	"time"
 
 	"github.com/khunquant/khunquant/pkg/config"
 	"github.com/khunquant/khunquant/pkg/exchanges"
@@ -35,6 +35,10 @@ func (t *ExchangeTotalValueTool) Parameters() map[string]any {
 				"description": "Exchange to query (default: \"binance\")",
 				"enum":        []string{"binance"},
 			},
+			"account": map[string]any{
+				"type":        "string",
+				"description": "Account name to query (e.g. \"HighRiskPort\"). Omit for default account.",
+			},
 			"wallet_type": map[string]any{
 				"type":        "string",
 				"description": "Wallet scope. Same options as exchange_balance: all, spot, funding, futures_usdt, futures_coin, margin, earn_flexible, earn_locked, earn. Default: \"all\".",
@@ -54,6 +58,10 @@ func (t *ExchangeTotalValueTool) Execute(ctx context.Context, args map[string]an
 	if v, ok := args["exchange"].(string); ok && v != "" {
 		exchangeName = v
 	}
+	accountName := ""
+	if v, ok := args["account"].(string); ok {
+		accountName = strings.TrimSpace(v)
+	}
 	walletType := "all"
 	if v, ok := args["wallet_type"].(string); ok && v != "" {
 		walletType = v
@@ -63,7 +71,7 @@ func (t *ExchangeTotalValueTool) Execute(ctx context.Context, args map[string]an
 		quote = strings.ToUpper(strings.TrimSpace(v))
 	}
 
-	ex, err := exchanges.CreateExchange(exchangeName, t.cfg)
+	ex, err := exchanges.CreateExchangeForAccount(exchangeName, accountName, t.cfg)
 	if err != nil {
 		return ErrorResult(fmt.Sprintf("exchange_total_value: %v", err))
 	}
@@ -73,35 +81,35 @@ func (t *ExchangeTotalValueTool) Execute(ctx context.Context, args map[string]an
 		return ErrorResult(fmt.Sprintf("exchange_total_value: exchange %q does not support price lookup", exchangeName))
 	}
 
+	// Probe that the quote currency is supported (skip for BTC since BTC/BTC is a self-pair returning 0).
+	if quote != "BTC" {
+		if _, err := pe.FetchPrice(ctx, "BTC", quote); err != nil {
+			return ErrorResult(fmt.Sprintf("Quote %q is not supported on %s", quote, exchangeName))
+		}
+	}
+
 	// Fetch all balances for the requested wallet scope.
 	balances, err := pe.GetWalletBalances(ctx, walletType)
 	if err != nil {
 		return ErrorResult(fmt.Sprintf("exchange_total_value: fetch balances: %v", err))
 	}
 
+	exchangeHeader := exchangeName
+	if accountName != "" {
+		exchangeHeader += " (" + accountName + ")"
+	}
+
 	if len(balances) == 0 {
-		return UserResult(fmt.Sprintf("No non-zero balances found on %s (%s wallet).", exchangeName, walletType))
+		return UserResult(fmt.Sprintf("No non-zero balances found on %s (%s wallet).", exchangeHeader, walletType))
 	}
 
 	// Aggregate total quantity per asset across all wallets.
-	type assetTotal struct {
-		asset  string
-		amount float64
-	}
 	totals := make(map[string]float64)
 	for _, b := range balances {
 		totals[b.Asset] += b.Free + b.Locked
 	}
 
-	// Price each asset and build the breakdown.
-	type line struct {
-		asset      string
-		amount     float64
-		price      float64
-		valueQuote float64
-		unpriced   bool
-	}
-	var lines []line
+	// Price each asset and accumulate total value.
 	var totalValue float64
 	var unpriced []string
 
@@ -111,58 +119,28 @@ func (t *ExchangeTotalValueTool) Execute(ctx context.Context, args map[string]an
 		}
 		price, err := pe.FetchPrice(ctx, asset, quote)
 		if err != nil {
-			// Can't price — record but don't fail
-			unpriced = append(unpriced, fmt.Sprintf("%s (%.8f)", asset, amount))
-			lines = append(lines, line{asset: asset, amount: amount, unpriced: true})
+			unpriced = append(unpriced, asset)
 			continue
 		}
-		var valueQuote float64
 		if price == 0 {
 			// asset IS the quote currency (stablecoin 1:1)
-			valueQuote = amount
+			totalValue += amount
 		} else {
-			valueQuote = amount * price
+			totalValue += amount * price
 		}
-		totalValue += valueQuote
-		lines = append(lines, line{asset: asset, amount: amount, price: price, valueQuote: valueQuote})
 	}
 
-	// Sort by value descending, unpriced at the bottom.
-	sort.Slice(lines, func(i, j int) bool {
-		if lines[i].unpriced != lines[j].unpriced {
-			return !lines[i].unpriced // priced first
-		}
-		return lines[i].valueQuote > lines[j].valueQuote
-	})
-
-	var sb strings.Builder
-	sb.WriteString(fmt.Sprintf("Estimated total portfolio value on %s", exchangeName))
-	if walletType != "all" {
-		sb.WriteString(fmt.Sprintf(" (%s)", walletType))
+	// Build compact single-line output.
+	var result string
+	ts := time.Now().UTC().Format(time.RFC3339)
+	if accountName != "" {
+		result = fmt.Sprintf("Time: %s, Account: %s, Total value: %.2f %s", ts, accountName, totalValue, quote)
+	} else {
+		result = fmt.Sprintf("Time: %s, Exchange: %s, Total value: %.2f %s", ts, exchangeName, totalValue, quote)
 	}
-	sb.WriteString(fmt.Sprintf(": **%.2f %s**\n\n", totalValue, quote))
-
-	sb.WriteString(fmt.Sprintf("%-12s %18s %16s %16s\n", "Asset", "Amount", "Price ("+quote+")", "Value ("+quote+")"))
-	sb.WriteString(strings.Repeat("-", 64) + "\n")
-
-	for _, l := range lines {
-		if l.unpriced {
-			sb.WriteString(fmt.Sprintf("%-12s %18.8f %16s %16s\n", l.asset, l.amount, "n/a", "n/a"))
-			continue
-		}
-		priceStr := "1 (stable)"
-		if l.price > 0 {
-			priceStr = fmt.Sprintf("%.6f", l.price)
-		}
-		sb.WriteString(fmt.Sprintf("%-12s %18.8f %16s %16.2f\n", l.asset, l.amount, priceStr, l.valueQuote))
-	}
-
-	sb.WriteString(strings.Repeat("-", 64) + "\n")
-	sb.WriteString(fmt.Sprintf("%-12s %18s %16s %16.2f\n", "TOTAL", "", "", totalValue))
-
 	if len(unpriced) > 0 {
-		sb.WriteString(fmt.Sprintf("\nNote: could not price %d asset(s): %s\n", len(unpriced), strings.Join(unpriced, ", ")))
+		result += fmt.Sprintf(" (Note: could not price: %s)", strings.Join(unpriced, ", "))
 	}
 
-	return UserResult(sb.String())
+	return UserResult(result)
 }

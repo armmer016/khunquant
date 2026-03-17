@@ -17,30 +17,27 @@ type OKXExchange struct {
 	isTestnet bool
 }
 
-// NewOKXExchange creates a new OKXExchange from config using CCXT.
-func NewOKXExchange(cfg *config.Config) (*OKXExchange, error) {
-	apiKey := cfg.Exchanges.OKX.APIKey
-	apiSecret := cfg.Exchanges.OKX.Secret
-	passphrase := cfg.Exchanges.OKX.Passphrase
-	if apiKey == "" || apiSecret == "" || passphrase == "" {
+// NewOKXExchange creates a new OKXExchange using resolved credentials.
+func NewOKXExchange(creds config.OKXExchangeAccount, testnet bool) (*OKXExchange, error) {
+	if creds.APIKey == "" || creds.Secret == "" || creds.Passphrase == "" {
 		return nil, fmt.Errorf("okx: api_key, secret, and passphrase are required")
 	}
 
-	creds := map[string]interface{}{
-		"apiKey":   apiKey,
-		"secret":   apiSecret,
-		"password": passphrase,
+	ccxtCreds := map[string]interface{}{
+		"apiKey":   creds.APIKey,
+		"secret":   creds.Secret,
+		"password": creds.Passphrase,
 	}
 
-	client := ccxt.NewOkx(creds)
+	client := ccxt.NewOkx(ccxtCreds)
 
-	if cfg.Exchanges.OKX.Testnet {
+	if testnet {
 		client.SetSandboxMode(true)
 	}
 
 	return &OKXExchange{
 		client:    client,
-		isTestnet: cfg.Exchanges.OKX.Testnet,
+		isTestnet: testnet,
 	}, nil
 }
 

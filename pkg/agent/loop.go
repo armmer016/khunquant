@@ -1376,6 +1376,16 @@ func (al *AgentLoop) runLLMIteration(
 				contentForLLM = r.result.Err.Error()
 			}
 
+			resultPreview := strings.NewReplacer("\n", " ", "\r", "", `"`, "'").Replace(utils.Truncate(contentForLLM, 500))
+			logger.InfoCF("agent", fmt.Sprintf("Tool result: %s", r.tc.Name),
+				map[string]any{
+					"agent_id":       agent.ID,
+					"tool":           r.tc.Name,
+					"iteration":      iteration,
+					"result_preview": resultPreview,
+					"has_error":      r.result.Err != nil,
+				})
+
 			toolResultMsg := providers.Message{
 				Role:       "tool",
 				Content:    contentForLLM,

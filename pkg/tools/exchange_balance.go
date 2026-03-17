@@ -37,6 +37,10 @@ func (t *ExchangeBalanceTool) Parameters() map[string]any {
 				"description": "Exchange to query (default: \"binance\")",
 				"enum":        []string{"binance"},
 			},
+			"account": map[string]any{
+				"type":        "string",
+				"description": "Account name to query (e.g. \"HighRiskPort\"). Omit for default account.",
+			},
 			"wallet_type": map[string]any{
 				"type":        "string",
 				"description": "Wallet type to query. Options: spot, funding, futures_usdt, futures_coin, margin, earn_flexible, earn_locked, earn, all. Defaults to \"all\".",
@@ -57,6 +61,11 @@ func (t *ExchangeBalanceTool) Execute(ctx context.Context, args map[string]any) 
 		exchangeName = v
 	}
 
+	accountName := ""
+	if v, ok := args["account"].(string); ok {
+		accountName = strings.TrimSpace(v)
+	}
+
 	walletType := "all"
 	if v, ok := args["wallet_type"].(string); ok && v != "" {
 		walletType = v
@@ -67,7 +76,7 @@ func (t *ExchangeBalanceTool) Execute(ctx context.Context, args map[string]any) 
 		assetFilter = strings.ToUpper(strings.TrimSpace(v))
 	}
 
-	ex, err := exchanges.CreateExchange(exchangeName, t.cfg)
+	ex, err := exchanges.CreateExchangeForAccount(exchangeName, accountName, t.cfg)
 	if err != nil {
 		return ErrorResult(fmt.Sprintf("exchange_balance: %v", err))
 	}
@@ -75,7 +84,7 @@ func (t *ExchangeBalanceTool) Execute(ctx context.Context, args map[string]any) 
 	// Use WalletExchange if available, otherwise fall back to basic GetBalances.
 	we, ok := ex.(exchanges.WalletExchange)
 	if !ok {
-		return t.fallbackGetBalances(ctx, ex, exchangeName, assetFilter)
+		return t.fallbackGetBalances(ctx, ex, exchangeName, accountName, assetFilter)
 	}
 
 	balances, err := we.GetWalletBalances(ctx, walletType)
@@ -96,6 +105,9 @@ func (t *ExchangeBalanceTool) Execute(ctx context.Context, args map[string]any) 
 
 	if len(balances) == 0 {
 		msg := fmt.Sprintf("No non-zero balances found on %s", exchangeName)
+		if accountName != "" {
+			msg += fmt.Sprintf(" (%s)", accountName)
+		}
 		if walletType != "all" {
 			msg += fmt.Sprintf(" (%s wallet)", walletType)
 		}
@@ -105,11 +117,11 @@ func (t *ExchangeBalanceTool) Execute(ctx context.Context, args map[string]any) 
 		return UserResult(msg + ".")
 	}
 
-	return UserResult(formatWalletBalances(exchangeName, walletType, balances))
+	return UserResult(formatWalletBalances(exchangeName, accountName, walletType, balances))
 }
 
 // fallbackGetBalances handles exchanges that only implement the basic Exchange interface.
-func (t *ExchangeBalanceTool) fallbackGetBalances(ctx context.Context, ex exchanges.Exchange, exchangeName, assetFilter string) *ToolResult {
+func (t *ExchangeBalanceTool) fallbackGetBalances(ctx context.Context, ex exchanges.Exchange, exchangeName, accountName, assetFilter string) *ToolResult {
 	balances, err := ex.GetBalances(ctx)
 	if err != nil {
 		return ErrorResult(fmt.Sprintf("exchange_balance: %v", err))
@@ -125,12 +137,17 @@ func (t *ExchangeBalanceTool) fallbackGetBalances(ctx context.Context, ex exchan
 		balances = filtered
 	}
 
+	header := exchangeName
+	if accountName != "" {
+		header += " (" + accountName + ")"
+	}
+
 	if len(balances) == 0 {
-		return UserResult(fmt.Sprintf("No non-zero balances found on %s.", exchangeName))
+		return UserResult(fmt.Sprintf("No non-zero balances found on %s.", header))
 	}
 
 	var sb strings.Builder
-	sb.WriteString(fmt.Sprintf("Balances on %s:\n\n", exchangeName))
+	sb.WriteString(fmt.Sprintf("Balances on %s:\n\n", header))
 	sb.WriteString(fmt.Sprintf("%-12s %16s %16s\n", "Asset", "Free", "Locked"))
 	sb.WriteString(strings.Repeat("-", 46) + "\n")
 	for _, b := range balances {
@@ -140,8 +157,13 @@ func (t *ExchangeBalanceTool) fallbackGetBalances(ctx context.Context, ex exchan
 }
 
 // formatWalletBalances renders wallet balances grouped by wallet type.
-func formatWalletBalances(exchangeName, walletType string, balances []exchanges.WalletBalance) string {
+func formatWalletBalances(exchangeName, accountName, walletType string, balances []exchanges.WalletBalance) string {
 	var sb strings.Builder
+
+	header := exchangeName
+	if accountName != "" {
+		header += " (" + accountName + ")"
+	}
 
 	if walletType == "all" {
 		// Group by wallet type, preserving a stable order.
@@ -151,7 +173,7 @@ func formatWalletBalances(exchangeName, walletType string, balances []exchanges.
 			groups[b.WalletType] = append(groups[b.WalletType], b)
 		}
 
-		sb.WriteString(fmt.Sprintf("Balances on %s:\n", exchangeName))
+		sb.WriteString(fmt.Sprintf("Balances on %s:\n", header))
 
 		for _, wt := range order {
 			items, ok := groups[wt]
@@ -164,7 +186,7 @@ func formatWalletBalances(exchangeName, walletType string, balances []exchanges.
 		}
 	} else {
 		sort.Slice(balances, func(i, j int) bool { return balances[i].Asset < balances[j].Asset })
-		sb.WriteString(fmt.Sprintf("Balances on %s (%s):\n\n", exchangeName, walletTypeLabel(walletType)))
+		sb.WriteString(fmt.Sprintf("Balances on %s (%s):\n\n", header, walletTypeLabel(walletType)))
 		writeBalanceTable(&sb, balances)
 	}
 

@@ -1,4 +1,4 @@
-import { IconLoader2 } from "@tabler/icons-react"
+import { IconLoader2, IconPlus, IconTrash } from "@tabler/icons-react"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
@@ -22,57 +22,104 @@ function asRecord(value: unknown): Record<string, unknown> {
   return {}
 }
 
-function asString(value: unknown): string {
-  return typeof value === "string" ? value : ""
-}
-
 function asBool(value: unknown): boolean {
   return value === true
 }
 
-interface BinanceForm {
-  enabled: boolean
+// ── Account types ──────────────────────────────────────────────────────────
+
+interface AccountDraft {
+  /** "" means unnamed; will be assigned positional name on the backend */
+  name: string
   apiKey: string
   apiKeyEdit: string
   secret: string
   secretEdit: string
-  testnet: boolean
 }
 
-const EMPTY_BINANCE_FORM: BinanceForm = {
-  enabled: false,
-  apiKey: "",
-  apiKeyEdit: "",
-  secret: "",
-  secretEdit: "",
-  testnet: false,
-}
-
-interface OKXForm {
-  enabled: boolean
-  apiKey: string
-  apiKeyEdit: string
-  secret: string
-  secretEdit: string
+interface OKXAccountDraft extends AccountDraft {
   passphrase: string
   passphraseEdit: string
-  testnet: boolean
 }
 
-interface BitkubForm {
+// ── Exchange-level form ────────────────────────────────────────────────────
+
+interface ExchangeForm {
   enabled: boolean
-  apiKey: string
-  apiKeyEdit: string
-  secret: string
-  secretEdit: string
+  testnet?: boolean
 }
 
-interface BinanceTHForm {
-  enabled: boolean
-  apiKey: string
-  apiKeyEdit: string
-  secret: string
-  secretEdit: string
+interface BinanceForm extends ExchangeForm {
+  accounts: AccountDraft[]
+}
+
+interface OKXForm extends ExchangeForm {
+  accounts: OKXAccountDraft[]
+}
+
+interface BitkubForm extends ExchangeForm {
+  accounts: AccountDraft[]
+}
+
+interface BinanceTHForm extends ExchangeForm {
+  accounts: AccountDraft[]
+}
+
+// ── Helpers ────────────────────────────────────────────────────────────────
+
+function emptyAccount(): AccountDraft {
+  return { name: "", apiKey: "", apiKeyEdit: "", secret: "", secretEdit: "" }
+}
+
+function emptyOKXAccount(): OKXAccountDraft {
+  return { ...emptyAccount(), passphrase: "", passphraseEdit: "" }
+}
+
+function parseAccounts(raw: unknown): AccountDraft[] {
+  if (!Array.isArray(raw)) return []
+  return raw.map((item) => {
+    const r = asRecord(item)
+    return {
+      name: typeof r.name === "string" ? r.name : "",
+      apiKey: typeof r.api_key === "string" ? r.api_key : "",
+      apiKeyEdit: "",
+      secret: typeof r.secret === "string" ? r.secret : "",
+      secretEdit: "",
+    }
+  })
+}
+
+function parseOKXAccounts(raw: unknown): OKXAccountDraft[] {
+  if (!Array.isArray(raw)) return []
+  return raw.map((item) => {
+    const r = asRecord(item)
+    return {
+      name: typeof r.name === "string" ? r.name : "",
+      apiKey: typeof r.api_key === "string" ? r.api_key : "",
+      apiKeyEdit: "",
+      secret: typeof r.secret === "string" ? r.secret : "",
+      secretEdit: "",
+      passphrase: typeof r.passphrase === "string" ? r.passphrase : "",
+      passphraseEdit: "",
+    }
+  })
+}
+
+/** Serialize an AccountDraft to the shape the backend expects */
+function serializeAccount(acc: AccountDraft) {
+  const apiKey = acc.apiKeyEdit.trim() !== "" ? acc.apiKeyEdit : acc.apiKey
+  const secret = acc.secretEdit.trim() !== "" ? acc.secretEdit : acc.secret
+  return {
+    ...(acc.name.trim() !== "" ? { name: acc.name.trim() } : {}),
+    api_key: apiKey,
+    secret: secret,
+  }
+}
+
+function serializeOKXAccount(acc: OKXAccountDraft) {
+  const passphrase =
+    acc.passphraseEdit.trim() !== "" ? acc.passphraseEdit : acc.passphrase
+  return { ...serializeAccount(acc), passphrase }
 }
 
 function getExchangeDisplayName(name: string): string {
@@ -90,292 +137,105 @@ function getExchangeDisplayName(name: string): string {
   }
 }
 
-function BinanceConfigForm({
-  form,
+// ── Account card ───────────────────────────────────────────────────────────
+
+function AccountCard({
+  index,
+  account,
+  hasPassphrase,
   onChange,
+  onRemove,
 }: {
-  form: BinanceForm
-  onChange: (patch: Partial<BinanceForm>) => void
+  index: number
+  account: AccountDraft | OKXAccountDraft
+  hasPassphrase?: boolean
+  onChange: (patch: Partial<OKXAccountDraft>) => void
+  onRemove: () => void
 }) {
   const { t } = useTranslation()
+  const placeholder = `Account ${index + 1}`
+  const okxAcc = account as OKXAccountDraft
 
   return (
-    <div className="divide-border/70 divide-y">
+    <div className="border-border/60 rounded-lg border">
       <div className="flex items-center justify-between px-4 py-3">
-        <div>
-          <p className="text-sm font-medium">
-            {t("portfolios.binance.api_key")}
-          </p>
-          <p className="text-muted-foreground mt-0.5 text-xs">
-            {t("portfolios.binance.api_key_hint")}
-          </p>
-        </div>
-        <div className="w-64">
-          <Input
-            type="password"
-            value={form.apiKeyEdit}
-            placeholder={
-              form.apiKey
-                ? t("portfolios.binance.credential_set")
-                : t("portfolios.binance.api_key_placeholder")
-            }
-            onChange={(e) => onChange({ apiKeyEdit: e.target.value })}
-          />
-        </div>
-      </div>
-
-      <div className="flex items-center justify-between px-4 py-3">
-        <div>
-          <p className="text-sm font-medium">
-            {t("portfolios.binance.secret")}
-          </p>
-          <p className="text-muted-foreground mt-0.5 text-xs">
-            {t("portfolios.binance.secret_hint")}
-          </p>
-        </div>
-        <div className="w-64">
-          <Input
-            type="password"
-            value={form.secretEdit}
-            placeholder={
-              form.secret
-                ? t("portfolios.binance.credential_set")
-                : t("portfolios.binance.secret_placeholder")
-            }
-            onChange={(e) => onChange({ secretEdit: e.target.value })}
-          />
-        </div>
-      </div>
-
-      <div className="flex items-center justify-between px-4 py-3">
-        <div>
-          <p className="text-sm font-medium">
-            {t("portfolios.binance.testnet")}
-          </p>
-          <p className="text-muted-foreground mt-0.5 text-xs">
-            {t("portfolios.binance.testnet_hint")}
-          </p>
-        </div>
-        <Switch
-          checked={form.testnet}
-          onCheckedChange={(checked) => onChange({ testnet: checked })}
+        <Input
+          className="w-48 text-sm"
+          value={account.name}
+          placeholder={placeholder}
+          onChange={(e) => onChange({ name: e.target.value })}
         />
+        <Button
+          variant="ghost"
+          size="icon"
+          className="text-muted-foreground hover:text-destructive"
+          onClick={onRemove}
+          title={t("common.remove")}
+        >
+          <IconTrash className="size-4" />
+        </Button>
+      </div>
+
+      <div className="divide-border/70 divide-y border-t">
+        <div className="flex items-center justify-between px-4 py-3">
+          <p className="text-sm">{t("portfolios.binance.api_key")}</p>
+          <div className="w-64">
+            <Input
+              type="password"
+              value={account.apiKeyEdit}
+              placeholder={
+                account.apiKey
+                  ? t("portfolios.binance.credential_set")
+                  : t("portfolios.binance.api_key_placeholder")
+              }
+              onChange={(e) => onChange({ apiKeyEdit: e.target.value })}
+            />
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between px-4 py-3">
+          <p className="text-sm">{t("portfolios.binance.secret")}</p>
+          <div className="w-64">
+            <Input
+              type="password"
+              value={account.secretEdit}
+              placeholder={
+                account.secret
+                  ? t("portfolios.binance.credential_set")
+                  : t("portfolios.binance.secret_placeholder")
+              }
+              onChange={(e) => onChange({ secretEdit: e.target.value })}
+            />
+          </div>
+        </div>
+
+        {hasPassphrase && (
+          <div className="flex items-center justify-between px-4 py-3">
+            <p className="text-sm">{t("portfolios.okx.passphrase")}</p>
+            <div className="w-64">
+              <Input
+                type="password"
+                value={okxAcc.passphraseEdit ?? ""}
+                placeholder={
+                  okxAcc.passphrase
+                    ? t("portfolios.okx.credential_set")
+                    : t("portfolios.okx.passphrase_placeholder")
+                }
+                onChange={(e) => onChange({ passphraseEdit: e.target.value })}
+              />
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
 }
 
-function BitkubConfigForm({
-  form,
-  onChange,
-}: {
-  form: BitkubForm
-  onChange: (patch: Partial<BitkubForm>) => void
-}) {
-  const { t } = useTranslation()
+// ── Page ───────────────────────────────────────────────────────────────────
 
-  return (
-    <div className="divide-border/70 divide-y">
-      <div className="flex items-center justify-between px-4 py-3">
-        <div>
-          <p className="text-sm font-medium">
-            {t("portfolios.bitkub.api_key")}
-          </p>
-          <p className="text-muted-foreground mt-0.5 text-xs">
-            {t("portfolios.bitkub.api_key_hint")}
-          </p>
-        </div>
-        <div className="w-64">
-          <Input
-            type="password"
-            value={form.apiKeyEdit}
-            placeholder={
-              form.apiKey
-                ? t("portfolios.bitkub.credential_set")
-                : t("portfolios.bitkub.api_key_placeholder")
-            }
-            onChange={(e) => onChange({ apiKeyEdit: e.target.value })}
-          />
-        </div>
-      </div>
+type AnyForm = BinanceForm | OKXForm | BitkubForm | BinanceTHForm
 
-      <div className="flex items-center justify-between px-4 py-3">
-        <div>
-          <p className="text-sm font-medium">
-            {t("portfolios.bitkub.secret")}
-          </p>
-          <p className="text-muted-foreground mt-0.5 text-xs">
-            {t("portfolios.bitkub.secret_hint")}
-          </p>
-        </div>
-        <div className="w-64">
-          <Input
-            type="password"
-            value={form.secretEdit}
-            placeholder={
-              form.secret
-                ? t("portfolios.bitkub.credential_set")
-                : t("portfolios.bitkub.secret_placeholder")
-            }
-            onChange={(e) => onChange({ secretEdit: e.target.value })}
-          />
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function BinanceTHConfigForm({
-  form,
-  onChange,
-}: {
-  form: BinanceTHForm
-  onChange: (patch: Partial<BinanceTHForm>) => void
-}) {
-  const { t } = useTranslation()
-
-  return (
-    <div className="divide-border/70 divide-y">
-      <div className="flex items-center justify-between px-4 py-3">
-        <div>
-          <p className="text-sm font-medium">
-            {t("portfolios.binanceth.api_key")}
-          </p>
-          <p className="text-muted-foreground mt-0.5 text-xs">
-            {t("portfolios.binanceth.api_key_hint")}
-          </p>
-        </div>
-        <div className="w-64">
-          <Input
-            type="password"
-            value={form.apiKeyEdit}
-            placeholder={
-              form.apiKey
-                ? t("portfolios.binanceth.credential_set")
-                : t("portfolios.binanceth.api_key_placeholder")
-            }
-            onChange={(e) => onChange({ apiKeyEdit: e.target.value })}
-          />
-        </div>
-      </div>
-
-      <div className="flex items-center justify-between px-4 py-3">
-        <div>
-          <p className="text-sm font-medium">
-            {t("portfolios.binanceth.secret")}
-          </p>
-          <p className="text-muted-foreground mt-0.5 text-xs">
-            {t("portfolios.binanceth.secret_hint")}
-          </p>
-        </div>
-        <div className="w-64">
-          <Input
-            type="password"
-            value={form.secretEdit}
-            placeholder={
-              form.secret
-                ? t("portfolios.binanceth.credential_set")
-                : t("portfolios.binanceth.secret_placeholder")
-            }
-            onChange={(e) => onChange({ secretEdit: e.target.value })}
-          />
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function OKXConfigForm({
-  form,
-  onChange,
-}: {
-  form: OKXForm
-  onChange: (patch: Partial<OKXForm>) => void
-}) {
-  const { t } = useTranslation()
-
-  return (
-    <div className="divide-border/70 divide-y">
-      <div className="flex items-center justify-between px-4 py-3">
-        <div>
-          <p className="text-sm font-medium">{t("portfolios.okx.api_key")}</p>
-          <p className="text-muted-foreground mt-0.5 text-xs">
-            {t("portfolios.okx.api_key_hint")}
-          </p>
-        </div>
-        <div className="w-64">
-          <Input
-            type="password"
-            value={form.apiKeyEdit}
-            placeholder={
-              form.apiKey
-                ? t("portfolios.okx.credential_set")
-                : t("portfolios.okx.api_key_placeholder")
-            }
-            onChange={(e) => onChange({ apiKeyEdit: e.target.value })}
-          />
-        </div>
-      </div>
-
-      <div className="flex items-center justify-between px-4 py-3">
-        <div>
-          <p className="text-sm font-medium">{t("portfolios.okx.secret")}</p>
-          <p className="text-muted-foreground mt-0.5 text-xs">
-            {t("portfolios.okx.secret_hint")}
-          </p>
-        </div>
-        <div className="w-64">
-          <Input
-            type="password"
-            value={form.secretEdit}
-            placeholder={
-              form.secret
-                ? t("portfolios.okx.credential_set")
-                : t("portfolios.okx.secret_placeholder")
-            }
-            onChange={(e) => onChange({ secretEdit: e.target.value })}
-          />
-        </div>
-      </div>
-
-      <div className="flex items-center justify-between px-4 py-3">
-        <div>
-          <p className="text-sm font-medium">
-            {t("portfolios.okx.passphrase")}
-          </p>
-          <p className="text-muted-foreground mt-0.5 text-xs">
-            {t("portfolios.okx.passphrase_hint")}
-          </p>
-        </div>
-        <div className="w-64">
-          <Input
-            type="password"
-            value={form.passphraseEdit}
-            placeholder={
-              form.passphrase
-                ? t("portfolios.okx.credential_set")
-                : t("portfolios.okx.passphrase_placeholder")
-            }
-            onChange={(e) => onChange({ passphraseEdit: e.target.value })}
-          />
-        </div>
-      </div>
-
-      <div className="flex items-center justify-between px-4 py-3">
-        <div>
-          <p className="text-sm font-medium">{t("portfolios.okx.testnet")}</p>
-          <p className="text-muted-foreground mt-0.5 text-xs">
-            {t("portfolios.okx.testnet_hint")}
-          </p>
-        </div>
-        <Switch
-          checked={form.testnet}
-          onCheckedChange={(checked) => onChange({ testnet: checked })}
-        />
-      </div>
-    </div>
-  )
-}
+const EMPTY_FORM: BinanceForm = { enabled: false, testnet: false, accounts: [] }
 
 export function PortfolioConfigPage({ exchangeName }: PortfolioConfigPageProps) {
   const { t } = useTranslation()
@@ -386,20 +246,11 @@ export function PortfolioConfigPage({ exchangeName }: PortfolioConfigPageProps) 
   const [fetchError, setFetchError] = useState("")
   const [serverError, setServerError] = useState("")
 
-  const [baseForm, setBaseForm] = useState<
-    BinanceForm | OKXForm | BitkubForm | BinanceTHForm
-  >(EMPTY_BINANCE_FORM)
-  const [form, setForm] = useState<
-    BinanceForm | OKXForm | BitkubForm | BinanceTHForm
-  >(EMPTY_BINANCE_FORM)
+  const [baseForm, setBaseForm] = useState<AnyForm>(EMPTY_FORM)
+  const [form, setForm] = useState<AnyForm>(EMPTY_FORM)
 
   const loadData = useCallback(async () => {
-    if (
-      exchangeName !== "binance" &&
-      exchangeName !== "okx" &&
-      exchangeName !== "bitkub" &&
-      exchangeName !== "binanceth"
-    ) {
+    if (!["binance", "okx", "bitkub", "binanceth"].includes(exchangeName)) {
       setFetchError(t("portfolios.notFound", { name: exchangeName }))
       setLoading(false)
       return
@@ -410,46 +261,32 @@ export function PortfolioConfigPage({ exchangeName }: PortfolioConfigPageProps) 
       const appConfig = await getAppConfig()
       const exchangesData = asRecord(asRecord(appConfig).exchanges)
 
-      let loaded: BinanceForm | OKXForm | BitkubForm | BinanceTHForm
+      let loaded: AnyForm
       if (exchangeName === "binance") {
-        const binance = asRecord(exchangesData.binance)
+        const d = asRecord(exchangesData.binance)
         loaded = {
-          enabled: asBool(binance.enabled),
-          apiKey: asString(binance.api_key),
-          apiKeyEdit: "",
-          secret: asString(binance.secret),
-          secretEdit: "",
-          testnet: asBool(binance.testnet),
+          enabled: asBool(d.enabled),
+          testnet: asBool(d.testnet),
+          accounts: parseAccounts(d.accounts),
         } satisfies BinanceForm
       } else if (exchangeName === "okx") {
-        const okx = asRecord(exchangesData.okx)
+        const d = asRecord(exchangesData.okx)
         loaded = {
-          enabled: asBool(okx.enabled),
-          apiKey: asString(okx.api_key),
-          apiKeyEdit: "",
-          secret: asString(okx.secret),
-          secretEdit: "",
-          passphrase: asString(okx.passphrase),
-          passphraseEdit: "",
-          testnet: asBool(okx.testnet),
+          enabled: asBool(d.enabled),
+          testnet: asBool(d.testnet),
+          accounts: parseOKXAccounts(d.accounts),
         } satisfies OKXForm
       } else if (exchangeName === "bitkub") {
-        const bitkub = asRecord(exchangesData.bitkub)
+        const d = asRecord(exchangesData.bitkub)
         loaded = {
-          enabled: asBool(bitkub.enabled),
-          apiKey: asString(bitkub.api_key),
-          apiKeyEdit: "",
-          secret: asString(bitkub.secret),
-          secretEdit: "",
+          enabled: asBool(d.enabled),
+          accounts: parseAccounts(d.accounts),
         } satisfies BitkubForm
       } else {
-        const binanceth = asRecord(exchangesData.binanceth)
+        const d = asRecord(exchangesData.binanceth)
         loaded = {
-          enabled: asBool(binanceth.enabled),
-          apiKey: asString(binanceth.api_key),
-          apiKeyEdit: "",
-          secret: asString(binanceth.secret),
-          secretEdit: "",
+          enabled: asBool(d.enabled),
+          accounts: parseAccounts(d.accounts),
         } satisfies BinanceTHForm
       }
 
@@ -465,7 +302,7 @@ export function PortfolioConfigPage({ exchangeName }: PortfolioConfigPageProps) 
   }, [exchangeName, t])
 
   useEffect(() => {
-    loadData()
+    void loadData()
   }, [loadData])
 
   const previousGatewayStatusRef = useRef(gateway.status)
@@ -477,10 +314,41 @@ export function PortfolioConfigPage({ exchangeName }: PortfolioConfigPageProps) 
     previousGatewayStatusRef.current = gateway.status
   }, [gateway.status, loadData])
 
-  const handleChange = (
-    patch: Partial<BinanceForm | OKXForm | BitkubForm | BinanceTHForm>,
+  const handleEnabledChange = (checked: boolean) =>
+    setForm((prev) => ({ ...prev, enabled: checked }))
+
+  const handleTestnetChange = (checked: boolean) =>
+    setForm((prev) => ({ ...prev, testnet: checked }))
+
+  const handleAccountChange = (
+    index: number,
+    patch: Partial<OKXAccountDraft>,
   ) => {
-    setForm((prev) => ({ ...prev, ...patch }))
+    setForm((prev) => {
+      const accounts = [...(prev as BinanceForm).accounts]
+      accounts[index] = { ...accounts[index], ...patch } as OKXAccountDraft
+      return { ...prev, accounts }
+    })
+  }
+
+  const handleAddAccount = () => {
+    setForm((prev) => {
+      const isOKX = exchangeName === "okx"
+      const accounts = [
+        ...(prev as BinanceForm).accounts,
+        isOKX ? emptyOKXAccount() : emptyAccount(),
+      ]
+      return { ...prev, accounts }
+    })
+  }
+
+  const handleRemoveAccount = (index: number) => {
+    setForm((prev) => {
+      const accounts = (prev as BinanceForm).accounts.filter(
+        (_, i) => i !== index,
+      )
+      return { ...prev, accounts }
+    })
   }
 
   const handleReset = () => {
@@ -494,58 +362,43 @@ export function PortfolioConfigPage({ exchangeName }: PortfolioConfigPageProps) 
     try {
       if (exchangeName === "binance") {
         const f = form as BinanceForm
-        const apiKey = f.apiKeyEdit.trim() !== "" ? f.apiKeyEdit : f.apiKey
-        const secret = f.secretEdit.trim() !== "" ? f.secretEdit : f.secret
         await patchAppConfig({
           exchanges: {
             binance: {
               enabled: f.enabled,
-              api_key: apiKey,
-              secret: secret,
               testnet: f.testnet,
+              accounts: f.accounts.map(serializeAccount),
             },
           },
         })
       } else if (exchangeName === "okx") {
         const f = form as OKXForm
-        const apiKey = f.apiKeyEdit.trim() !== "" ? f.apiKeyEdit : f.apiKey
-        const secret = f.secretEdit.trim() !== "" ? f.secretEdit : f.secret
-        const passphrase =
-          f.passphraseEdit.trim() !== "" ? f.passphraseEdit : f.passphrase
         await patchAppConfig({
           exchanges: {
             okx: {
               enabled: f.enabled,
-              api_key: apiKey,
-              secret: secret,
-              passphrase: passphrase,
               testnet: f.testnet,
+              accounts: f.accounts.map(serializeOKXAccount),
             },
           },
         })
       } else if (exchangeName === "bitkub") {
         const f = form as BitkubForm
-        const apiKey = f.apiKeyEdit.trim() !== "" ? f.apiKeyEdit : f.apiKey
-        const secret = f.secretEdit.trim() !== "" ? f.secretEdit : f.secret
         await patchAppConfig({
           exchanges: {
             bitkub: {
               enabled: f.enabled,
-              api_key: apiKey,
-              secret: secret,
+              accounts: f.accounts.map(serializeAccount),
             },
           },
         })
       } else if (exchangeName === "binanceth") {
         const f = form as BinanceTHForm
-        const apiKey = f.apiKeyEdit.trim() !== "" ? f.apiKeyEdit : f.apiKey
-        const secret = f.secretEdit.trim() !== "" ? f.secretEdit : f.secret
         await patchAppConfig({
           exchanges: {
             binanceth: {
               enabled: f.enabled,
-              api_key: apiKey,
-              secret: secret,
+              accounts: f.accounts.map(serializeAccount),
             },
           },
         })
@@ -563,8 +416,8 @@ export function PortfolioConfigPage({ exchangeName }: PortfolioConfigPageProps) 
   }
 
   const displayName = getExchangeDisplayName(exchangeName)
-  const isConfigured =
-    (form as BinanceForm).apiKey !== "" && (form as BinanceForm).secret !== ""
+  const accounts = (form as BinanceForm).accounts
+  const isConfigured = accounts.length > 0
 
   return (
     <div className="flex h-full flex-col">
@@ -600,6 +453,7 @@ export function PortfolioConfigPage({ exchangeName }: PortfolioConfigPageProps) 
               {t("portfolios.edit", { name: displayName })}
             </p>
 
+            {/* Exchange-level settings */}
             <div className="border-border/60 bg-background rounded-lg border">
               <div className="flex items-center justify-between px-4 py-3">
                 <p className="text-sm font-medium">
@@ -607,36 +461,54 @@ export function PortfolioConfigPage({ exchangeName }: PortfolioConfigPageProps) 
                 </p>
                 <Switch
                   checked={form.enabled}
-                  onCheckedChange={(checked) =>
-                    handleChange({ enabled: checked })
-                  }
+                  onCheckedChange={handleEnabledChange}
                 />
               </div>
 
-              {exchangeName === "binance" && (
-                <BinanceConfigForm
-                  form={form as BinanceForm}
-                  onChange={handleChange}
-                />
+              {(exchangeName === "binance" || exchangeName === "okx") && (
+                <div className="border-border/70 flex items-center justify-between border-t px-4 py-3">
+                  <div>
+                    <p className="text-sm font-medium">
+                      {t("portfolios.binance.testnet")}
+                    </p>
+                    <p className="text-muted-foreground mt-0.5 text-xs">
+                      {t("portfolios.binance.testnet_hint")}
+                    </p>
+                  </div>
+                  <Switch
+                    checked={form.testnet ?? false}
+                    onCheckedChange={handleTestnetChange}
+                  />
+                </div>
               )}
-              {exchangeName === "okx" && (
-                <OKXConfigForm
-                  form={form as OKXForm}
-                  onChange={handleChange}
+            </div>
+
+            {/* Accounts list */}
+            <div className="space-y-3">
+              <p className="text-sm font-medium">
+                {t("portfolios.accounts", "Accounts")}
+              </p>
+
+              {accounts.map((acc, i) => (
+                <AccountCard
+                  key={i}
+                  index={i}
+                  account={acc}
+                  hasPassphrase={exchangeName === "okx"}
+                  onChange={(patch) => handleAccountChange(i, patch)}
+                  onRemove={() => handleRemoveAccount(i)}
                 />
-              )}
-              {exchangeName === "bitkub" && (
-                <BitkubConfigForm
-                  form={form as BitkubForm}
-                  onChange={handleChange}
-                />
-              )}
-              {exchangeName === "binanceth" && (
-                <BinanceTHConfigForm
-                  form={form as BinanceTHForm}
-                  onChange={handleChange}
-                />
-              )}
+              ))}
+
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1.5"
+                onClick={handleAddAccount}
+              >
+                <IconPlus className="size-4" />
+                {t("portfolios.addAccount", "Add Account")}
+              </Button>
             </div>
 
             {serverError && (

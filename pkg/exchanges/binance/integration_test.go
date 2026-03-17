@@ -18,7 +18,7 @@ func loadConfig(t *testing.T) *config.Config {
 	if err != nil {
 		t.Fatalf("load config: %v", err)
 	}
-	if cfg.Exchanges.Binance.APIKey == "" || cfg.Exchanges.Binance.Secret == "" {
+	if _, ok := cfg.Exchanges.Binance.ResolveAccount(""); !ok {
 		t.Skip("binance credentials not configured, skipping")
 	}
 	t.Logf("exchange enabled: %v", cfg.Exchanges.Binance.Enabled)

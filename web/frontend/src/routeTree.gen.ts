@@ -23,7 +23,9 @@ import { Route as ChannelsNameRouteImport } from './routes/channels/$name'
 import { Route as AgentToolsRouteImport } from './routes/agent/tools'
 import { Route as AgentSkillsRouteImport } from './routes/agent/skills'
 import { Route as AgentPairingRouteImport } from './routes/agent/pairing'
+import { Route as AgentMemoryRouteImport } from './routes/agent/memory'
 import { Route as AgentCronRouteImport } from './routes/agent/cron'
+import { Route as AgentConfigRouteImport } from './routes/agent/config'
 
 const ModelsRoute = ModelsRouteImport.update({
   id: '/models',
@@ -95,9 +97,19 @@ const AgentPairingRoute = AgentPairingRouteImport.update({
   path: '/pairing',
   getParentRoute: () => AgentRoute,
 } as any)
+const AgentMemoryRoute = AgentMemoryRouteImport.update({
+  id: '/memory',
+  path: '/memory',
+  getParentRoute: () => AgentRoute,
+} as any)
 const AgentCronRoute = AgentCronRouteImport.update({
   id: '/cron',
   path: '/cron',
+  getParentRoute: () => AgentRoute,
+} as any)
+const AgentConfigRoute = AgentConfigRouteImport.update({
+  id: '/config',
+  path: '/config',
   getParentRoute: () => AgentRoute,
 } as any)
 
@@ -110,7 +122,9 @@ export interface FileRoutesByFullPath {
   '/credentials': typeof CredentialsRoute
   '/logs': typeof LogsRoute
   '/models': typeof ModelsRoute
+  '/agent/config': typeof AgentConfigRoute
   '/agent/cron': typeof AgentCronRoute
+  '/agent/memory': typeof AgentMemoryRoute
   '/agent/pairing': typeof AgentPairingRoute
   '/agent/skills': typeof AgentSkillsRoute
   '/agent/tools': typeof AgentToolsRoute
@@ -127,7 +141,9 @@ export interface FileRoutesByTo {
   '/credentials': typeof CredentialsRoute
   '/logs': typeof LogsRoute
   '/models': typeof ModelsRoute
+  '/agent/config': typeof AgentConfigRoute
   '/agent/cron': typeof AgentCronRoute
+  '/agent/memory': typeof AgentMemoryRoute
   '/agent/pairing': typeof AgentPairingRoute
   '/agent/skills': typeof AgentSkillsRoute
   '/agent/tools': typeof AgentToolsRoute
@@ -145,7 +161,9 @@ export interface FileRoutesById {
   '/credentials': typeof CredentialsRoute
   '/logs': typeof LogsRoute
   '/models': typeof ModelsRoute
+  '/agent/config': typeof AgentConfigRoute
   '/agent/cron': typeof AgentCronRoute
+  '/agent/memory': typeof AgentMemoryRoute
   '/agent/pairing': typeof AgentPairingRoute
   '/agent/skills': typeof AgentSkillsRoute
   '/agent/tools': typeof AgentToolsRoute
@@ -164,7 +182,9 @@ export interface FileRouteTypes {
     | '/credentials'
     | '/logs'
     | '/models'
+    | '/agent/config'
     | '/agent/cron'
+    | '/agent/memory'
     | '/agent/pairing'
     | '/agent/skills'
     | '/agent/tools'
@@ -181,7 +201,9 @@ export interface FileRouteTypes {
     | '/credentials'
     | '/logs'
     | '/models'
+    | '/agent/config'
     | '/agent/cron'
+    | '/agent/memory'
     | '/agent/pairing'
     | '/agent/skills'
     | '/agent/tools'
@@ -198,7 +220,9 @@ export interface FileRouteTypes {
     | '/credentials'
     | '/logs'
     | '/models'
+    | '/agent/config'
     | '/agent/cron'
+    | '/agent/memory'
     | '/agent/pairing'
     | '/agent/skills'
     | '/agent/tools'
@@ -318,11 +342,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AgentPairingRouteImport
       parentRoute: typeof AgentRoute
     }
+    '/agent/memory': {
+      id: '/agent/memory'
+      path: '/memory'
+      fullPath: '/agent/memory'
+      preLoaderRoute: typeof AgentMemoryRouteImport
+      parentRoute: typeof AgentRoute
+    }
     '/agent/cron': {
       id: '/agent/cron'
       path: '/cron'
       fullPath: '/agent/cron'
       preLoaderRoute: typeof AgentCronRouteImport
+      parentRoute: typeof AgentRoute
+    }
+    '/agent/config': {
+      id: '/agent/config'
+      path: '/config'
+      fullPath: '/agent/config'
+      preLoaderRoute: typeof AgentConfigRouteImport
       parentRoute: typeof AgentRoute
     }
   }
@@ -353,14 +391,18 @@ const PortfoliosRouteRouteWithChildren = PortfoliosRouteRoute._addFileChildren(
 )
 
 interface AgentRouteChildren {
+  AgentConfigRoute: typeof AgentConfigRoute
   AgentCronRoute: typeof AgentCronRoute
+  AgentMemoryRoute: typeof AgentMemoryRoute
   AgentPairingRoute: typeof AgentPairingRoute
   AgentSkillsRoute: typeof AgentSkillsRoute
   AgentToolsRoute: typeof AgentToolsRoute
 }
 
 const AgentRouteChildren: AgentRouteChildren = {
+  AgentConfigRoute: AgentConfigRoute,
   AgentCronRoute: AgentCronRoute,
+  AgentMemoryRoute: AgentMemoryRoute,
   AgentPairingRoute: AgentPairingRoute,
   AgentSkillsRoute: AgentSkillsRoute,
   AgentToolsRoute: AgentToolsRoute,

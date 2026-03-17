@@ -19,7 +19,9 @@
     "config": "配置",
     "logs": "日志",
     "cron": "定时任务",
-    "pairing": "配对请求"
+    "pairing": "配对请求",
+    "agent_config": "配置文件",
+    "agent_memory": "记忆"
   },
   "chat": {
     "welcome": "今天我能为您做些什么？",
@@ -422,6 +424,48 @@
         "reject_success": "请求已拒绝。",
         "reject_error": "拒绝请求失败。"
       },
+      "agent_memory": {
+        "empty": "记忆目录中没有文件。",
+        "select_hint": "选择文件进行编辑。",
+        "new_file": "新建文件",
+        "new_file_title": "创建记忆文件",
+        "new_file_description": "输入路径，如 NOTE.md（根目录）或 202603/note.md（月份目录）。系统将自动添加 .md 扩展名。",
+        "create_confirm": "创建",
+        "create_success": "文件已创建。",
+        "create_error": "创建文件失败。",
+        "save_success": "文件已保存。",
+        "save_error": "保存文件失败。",
+        "delete": "删除",
+        "delete_title": "删除文件？",
+        "delete_description": "\"{{path}}\" 将被永久删除。",
+        "delete_confirm": "删除",
+        "delete_success": "文件已删除。",
+        "delete_error": "删除文件失败。",
+        "unsaved_changes": "有未保存的更改。",
+        "unsaved_confirm": "有未保存的更改，确定放弃？",
+        "placeholder": "输入 Markdown 内容..."
+      },
+      "agent_config": {
+        "empty": "工作区中没有 .md 文件。",
+        "select_hint": "选择文件进行编辑。",
+        "new_file": "新建文件",
+        "new_file_title": "创建新文件",
+        "new_file_description": "输入新 Markdown 文件的名称，系统将自动添加 .md 扩展名。",
+        "create_confirm": "创建",
+        "create_success": "文件已创建。",
+        "create_error": "创建文件失败。",
+        "save_success": "文件已保存。",
+        "save_error": "保存文件失败。",
+        "delete": "删除",
+        "delete_title": "删除文件？",
+        "delete_description": "\"{{name}}\" 将被永久删除。",
+        "delete_confirm": "删除",
+        "delete_success": "文件已删除。",
+        "delete_error": "删除文件失败。",
+        "unsaved_changes": "有未保存的更改。",
+        "unsaved_confirm": "有未保存的更改，确定放弃？",
+        "placeholder": "输入 Markdown 内容..."
+      },
       "tools": {
         "description": "这里展示每个 Agent 工具当前是已启用、已禁用，还是被依赖条件阻塞。",
         "empty": "当前没有可用工具。",
@@ -523,7 +567,11 @@
     },
     "logs": {
       "clear": "清空日志",
-      "empty": "等待日志中..."
+      "empty": "等待日志中...",
+      "tabs": {
+        "all": "全部",
+        "tools": "工具"
+      }
     }
   }
 }

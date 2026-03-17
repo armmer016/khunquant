@@ -25,16 +25,14 @@ type BinanceTHExchange struct {
 	client    *http.Client
 }
 
-// NewBinanceTHExchange creates a new BinanceTHExchange from config.
-func NewBinanceTHExchange(cfg *config.Config) (*BinanceTHExchange, error) {
-	apiKey := cfg.Exchanges.BinanceTH.APIKey
-	apiSecret := cfg.Exchanges.BinanceTH.Secret
-	if apiKey == "" || apiSecret == "" {
+// NewBinanceTHExchange creates a new BinanceTHExchange using resolved credentials.
+func NewBinanceTHExchange(creds config.ExchangeAccount) (*BinanceTHExchange, error) {
+	if creds.APIKey == "" || creds.Secret == "" {
 		return nil, fmt.Errorf("binanceth: api_key and secret are required")
 	}
 	return &BinanceTHExchange{
-		apiKey:    apiKey,
-		apiSecret: apiSecret,
+		apiKey:    creds.APIKey,
+		apiSecret: creds.Secret,
 		client:    &http.Client{Timeout: 15 * time.Second},
 	}, nil
 }

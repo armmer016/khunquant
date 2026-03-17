@@ -17,6 +17,7 @@ func (h *Handler) registerCronRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/cron/jobs", h.handleListCronJobs)
 	mux.HandleFunc("PATCH /api/cron/jobs/{id}", h.handleUpdateCronJob)
 	mux.HandleFunc("DELETE /api/cron/jobs/{id}", h.handleDeleteCronJob)
+	mux.HandleFunc("POST /api/cron/jobs/{id}/run", h.handleRunCronJob)
 }
 
 // gatewayBase returns the base URL of the live gateway (e.g. "http://127.0.0.1:8080").
@@ -116,6 +117,19 @@ func (h *Handler) handleDeleteCronJob(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
 	proxyToGateway(w, r, base+"/api/cron/jobs/"+id)
 }
+
+// --- Run --------------------------------------------------------------------
+
+func (h *Handler) handleRunCronJob(w http.ResponseWriter, r *http.Request) {
+	base, err := h.gatewayBase()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	id := r.PathValue("id")
+	proxyToGateway(w, r, base+"/api/cron/jobs/"+id+"/run")
+}
+
 
 // --- File fallback helpers (used only when gateway is offline) --------------
 

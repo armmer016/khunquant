@@ -60,6 +60,12 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 	// Channel catalog (for frontend navigation/config pages)
 	h.registerChannelRoutes(mux)
 
+	// Agent config files (workspace .md files)
+	h.registerAgentConfigRoutes(mux)
+
+	// Agent memory files (workspace/memory/)
+	h.registerAgentMemoryRoutes(mux)
+
 	// Skills and tools support/actions
 	h.registerSkillRoutes(mux)
 	h.registerToolRoutes(mux)

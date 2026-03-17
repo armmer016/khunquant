@@ -24,16 +24,14 @@ type BitkubExchange struct {
 	client    *http.Client
 }
 
-// NewBitkubExchange creates a new BitkubExchange from config.
-func NewBitkubExchange(cfg *config.Config) (*BitkubExchange, error) {
-	apiKey := cfg.Exchanges.Bitkub.APIKey
-	apiSecret := cfg.Exchanges.Bitkub.Secret
-	if apiKey == "" || apiSecret == "" {
+// NewBitkubExchange creates a new BitkubExchange using resolved credentials.
+func NewBitkubExchange(creds config.ExchangeAccount) (*BitkubExchange, error) {
+	if creds.APIKey == "" || creds.Secret == "" {
 		return nil, fmt.Errorf("bitkub: api_key and secret are required")
 	}
 	return &BitkubExchange{
-		apiKey:    apiKey,
-		apiSecret: apiSecret,
+		apiKey:    creds.APIKey,
+		apiSecret: creds.Secret,
 		client:    &http.Client{Timeout: 15 * time.Second},
 	}, nil
 }

@@ -19,7 +19,9 @@
     "config": "การตั้งค่า",
     "logs": "บันทึก",
     "cron": "งานตามตาราง",
-    "pairing": "คำขอจับคู่"
+    "pairing": "คำขอจับคู่",
+    "agent_config": "คอนฟิก",
+    "agent_memory": "หน่วยความจำ"
   },
   "chat": {
     "welcome": "วันนี้ให้ฉันช่วยอะไรได้บ้าง?",
@@ -435,6 +437,48 @@
         "reject_success": "ปฏิเสธคำขอแล้ว",
         "reject_error": "ปฏิเสธคำขอล้มเหลว"
       },
+      "agent_memory": {
+        "empty": "ไม่มีไฟล์ในโฟลเดอร์ memory",
+        "select_hint": "เลือกไฟล์เพื่อแก้ไข",
+        "new_file": "ไฟล์ใหม่",
+        "new_file_title": "สร้างไฟล์ Memory",
+        "new_file_description": "กรอก path เช่น NOTE.md (root) หรือ 202603/note.md (รายเดือน) ระบบจะเพิ่มนามสกุล .md ให้อัตโนมัติ",
+        "create_confirm": "สร้าง",
+        "create_success": "สร้างไฟล์สำเร็จ",
+        "create_error": "สร้างไฟล์ล้มเหลว",
+        "save_success": "บันทึกไฟล์สำเร็จ",
+        "save_error": "บันทึกไฟล์ล้มเหลว",
+        "delete": "ลบ",
+        "delete_title": "ลบไฟล์?",
+        "delete_description": "\"{{path}}\" จะถูกลบอย่างถาวร",
+        "delete_confirm": "ลบ",
+        "delete_success": "ลบไฟล์สำเร็จ",
+        "delete_error": "ลบไฟล์ล้มเหลว",
+        "unsaved_changes": "มีการเปลี่ยนแปลงที่ยังไม่ได้บันทึก",
+        "unsaved_confirm": "มีการเปลี่ยนแปลงที่ยังไม่ได้บันทึก ยกเลิกการเปลี่ยนแปลง?",
+        "placeholder": "กรอกเนื้อหา markdown..."
+      },
+      "agent_config": {
+        "empty": "ไม่มีไฟล์ .md ในเวิร์กสเปซ",
+        "select_hint": "เลือกไฟล์เพื่อแก้ไข",
+        "new_file": "ไฟล์ใหม่",
+        "new_file_title": "สร้างไฟล์ใหม่",
+        "new_file_description": "กรอกชื่อไฟล์มาร์กดาวน์ใหม่ ระบบจะเพิ่มนามสกุล .md ให้อัตโนมัติ",
+        "create_confirm": "สร้าง",
+        "create_success": "สร้างไฟล์สำเร็จ",
+        "create_error": "สร้างไฟล์ล้มเหลว",
+        "save_success": "บันทึกไฟล์สำเร็จ",
+        "save_error": "บันทึกไฟล์ล้มเหลว",
+        "delete": "ลบ",
+        "delete_title": "ลบไฟล์?",
+        "delete_description": "\"{{name}}\" จะถูกลบอย่างถาวร",
+        "delete_confirm": "ลบ",
+        "delete_success": "ลบไฟล์สำเร็จ",
+        "delete_error": "ลบไฟล์ล้มเหลว",
+        "unsaved_changes": "มีการเปลี่ยนแปลงที่ยังไม่ได้บันทึก",
+        "unsaved_confirm": "มีการเปลี่ยนแปลงที่ยังไม่ได้บันทึก ยกเลิกการเปลี่ยนแปลง?",
+        "placeholder": "กรอกเนื้อหา markdown..."
+      },
       "tools": {
         "description": "มุมมองนี้แสดงสถานะของแต่ละเครื่องมือว่าเปิดใช้งาน ปิดใช้งาน หรือถูกบล็อกเนื่องจากขาดข้อกำหนดเบื้องต้น",
         "empty": "ไม่มีเครื่องมือพร้อมใช้งาน",
@@ -536,7 +580,11 @@
     },
     "logs": {
       "clear": "ล้างบันทึก",
-      "empty": "กำลังรอบันทึก..."
+      "empty": "กำลังรอบันทึก...",
+      "tabs": {
+        "all": "ทั้งหมด",
+        "tools": "เครื่องมือ"
+      }
     }
   },
   "portfolios": {

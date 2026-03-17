@@ -20,24 +20,22 @@ type BinanceExchange struct {
 	isTestnet bool
 }
 
-// NewBinanceExchange creates a new BinanceExchange from config using CCXT.
-func NewBinanceExchange(cfg *config.Config) (*BinanceExchange, error) {
-	apiKey := cfg.Exchanges.Binance.APIKey
-	apiSecret := cfg.Exchanges.Binance.Secret
-	if apiKey == "" || apiSecret == "" {
+// NewBinanceExchange creates a new BinanceExchange using resolved credentials.
+func NewBinanceExchange(creds config.ExchangeAccount, testnet bool) (*BinanceExchange, error) {
+	if creds.APIKey == "" || creds.Secret == "" {
 		return nil, fmt.Errorf("binance: api_key and secret are required")
 	}
 
-	creds := map[string]interface{}{
-		"apiKey": apiKey,
-		"secret": apiSecret,
+	ccxtCreds := map[string]interface{}{
+		"apiKey": creds.APIKey,
+		"secret": creds.Secret,
 	}
 
-	spot := ccxt.NewBinance(creds)
-	usdm := ccxt.NewBinanceusdm(creds)
-	coinm := ccxt.NewBinancecoinm(creds)
+	spot := ccxt.NewBinance(ccxtCreds)
+	usdm := ccxt.NewBinanceusdm(ccxtCreds)
+	coinm := ccxt.NewBinancecoinm(ccxtCreds)
 
-	if cfg.Exchanges.Binance.Testnet {
+	if testnet {
 		spot.SetSandboxMode(true)
 		usdm.SetSandboxMode(true)
 		coinm.SetSandboxMode(true)
@@ -47,7 +45,7 @@ func NewBinanceExchange(cfg *config.Config) (*BinanceExchange, error) {
 		spot:      spot,
 		usdm:      usdm,
 		coinm:     coinm,
-		isTestnet: cfg.Exchanges.Binance.Testnet,
+		isTestnet: testnet,
 	}, nil
 }
 

@@ -19,7 +19,9 @@
     "config": "Config",
     "logs": "Logs",
     "cron": "Cron Jobs",
-    "pairing": "Pairing Requests"
+    "pairing": "Pairing Requests",
+    "agent_config": "Config",
+    "agent_memory": "Memory"
   },
   "chat": {
     "welcome": "How can I help you today?",
@@ -435,6 +437,48 @@
         "reject_success": "Request rejected.",
         "reject_error": "Failed to reject request."
       },
+      "agent_memory": {
+        "empty": "No files in memory directory.",
+        "select_hint": "Select a file to edit.",
+        "new_file": "New File",
+        "new_file_title": "Create Memory File",
+        "new_file_description": "Enter a path like NOTE.md (root) or 202603/note.md (monthly). The .md extension is added automatically.",
+        "create_confirm": "Create",
+        "create_success": "File created.",
+        "create_error": "Failed to create file.",
+        "save_success": "File saved.",
+        "save_error": "Failed to save file.",
+        "delete": "Delete",
+        "delete_title": "Delete File?",
+        "delete_description": "\"{{path}}\" will be permanently deleted.",
+        "delete_confirm": "Delete",
+        "delete_success": "File deleted.",
+        "delete_error": "Failed to delete file.",
+        "unsaved_changes": "You have unsaved changes.",
+        "unsaved_confirm": "You have unsaved changes. Discard them?",
+        "placeholder": "Enter markdown content..."
+      },
+      "agent_config": {
+        "empty": "No .md files in workspace.",
+        "select_hint": "Select a file to edit.",
+        "new_file": "New File",
+        "new_file_title": "Create New File",
+        "new_file_description": "Enter a name for the new markdown file. The .md extension will be added automatically.",
+        "create_confirm": "Create",
+        "create_success": "File created.",
+        "create_error": "Failed to create file.",
+        "save_success": "File saved.",
+        "save_error": "Failed to save file.",
+        "delete": "Delete",
+        "delete_title": "Delete File?",
+        "delete_description": "\"{{name}}\" will be permanently deleted.",
+        "delete_confirm": "Delete",
+        "delete_success": "File deleted.",
+        "delete_error": "Failed to delete file.",
+        "unsaved_changes": "You have unsaved changes.",
+        "unsaved_confirm": "You have unsaved changes. Discard them?",
+        "placeholder": "Enter markdown content..."
+      },
       "tools": {
         "description": "This view reflects whether each agent tool is enabled, disabled, or blocked by a missing prerequisite.",
         "empty": "No tools are available.",
@@ -536,7 +580,11 @@
     },
     "logs": {
       "clear": "Clear logs",
-      "empty": "Waiting for logs..."
+      "empty": "Waiting for logs...",
+      "tabs": {
+        "all": "All",
+        "tools": "Tool"
+      }
     }
   },
   "portfolios": {

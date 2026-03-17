@@ -2,10 +2,12 @@ import { IconChevronRight } from "@tabler/icons-react"
 import { AlertDot } from "@/components/ui/alert-dot"
 import {
   IconAtom,
+  IconBrain,
   IconBuildingBank,
   IconChevronsDown,
   IconChevronsUp,
   IconClock,
+  IconFileText,
   IconKey,
   IconListDetails,
   IconMessageCircle,
@@ -155,6 +157,18 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       {
         ...baseNavGroups[2],
         items: [
+          {
+            title: "navigation.agent_config",
+            url: "/agent/config",
+            icon: IconFileText,
+            translateTitle: true,
+          },
+          {
+            title: "navigation.agent_memory",
+            url: "/agent/memory",
+            icon: IconBrain,
+            translateTitle: true,
+          },
           {
             title: "navigation.skills",
             url: "/agent/skills",
