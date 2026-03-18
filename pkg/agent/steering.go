@@ -192,14 +192,13 @@ func (al *AgentLoop) Continue(ctx context.Context, sessionKey, channel, chatID s
 
 // dequeuePendingSubTurnResults polls the SubTurn result channel for the given
 // session and returns all available results without blocking.
-// Returns nil if no channel is registered for this session.
+// Returns nil if no active turn state exists for this session.
 func (al *AgentLoop) dequeuePendingSubTurnResults(sessionKey string) []*tools.ToolResult {
-	chInterface, ok := al.subTurnResults.Load(sessionKey)
+	tsInterface, ok := al.activeTurnStates.Load(sessionKey)
 	if !ok {
 		return nil
 	}
-
-	ch, ok := chInterface.(chan *tools.ToolResult)
+	ts, ok := tsInterface.(*turnState)
 	if !ok {
 		return nil
 	}
@@ -207,7 +206,7 @@ func (al *AgentLoop) dequeuePendingSubTurnResults(sessionKey string) []*tools.To
 	var results []*tools.ToolResult
 	for {
 		select {
-		case result := <-ch:
+		case result := <-ts.pendingResults:
 			if result != nil {
 				results = append(results, result)
 			}
@@ -215,17 +214,6 @@ func (al *AgentLoop) dequeuePendingSubTurnResults(sessionKey string) []*tools.To
 			return results
 		}
 	}
-}
-
-// registerSubTurnResultChannel registers a SubTurn result channel for the given session.
-// This allows the parent loop to poll for results from child SubTurns.
-func (al *AgentLoop) registerSubTurnResultChannel(sessionKey string, ch chan *tools.ToolResult) {
-	al.subTurnResults.Store(sessionKey, ch)
-}
-
-// unregisterSubTurnResultChannel removes the SubTurn result channel for the given session.
-func (al *AgentLoop) unregisterSubTurnResultChannel(sessionKey string) {
-	al.subTurnResults.Delete(sessionKey)
 }
 
 // ====================== Hard Abort ======================

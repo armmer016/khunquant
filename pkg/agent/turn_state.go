@@ -52,6 +52,10 @@ type turnState struct {
 	// to continue running (Critical=true) or exit gracefully (Critical=false).
 	parentEnded atomic.Bool
 
+	// critical indicates whether this SubTurn should continue running after
+	// the parent turn finishes gracefully. Set from SubTurnConfig.Critical.
+	critical bool
+
 	// parentTurnState holds a reference to the parent turnState.
 	// This allows child SubTurns to check if the parent has ended.
 	// Nil for root turns.

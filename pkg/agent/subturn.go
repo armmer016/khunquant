@@ -186,11 +186,14 @@ func (s *AgentLoopSpawner) SpawnSubTurn(ctx context.Context, cfg tools.SubTurnCo
 
 	// Convert tools.SubTurnConfig to agent.SubTurnConfig
 	agentCfg := SubTurnConfig{
-		Model:        cfg.Model,
-		Tools:        cfg.Tools,
-		SystemPrompt: cfg.SystemPrompt,
-		MaxTokens:    cfg.MaxTokens,
-		Async:        cfg.Async,
+		Model:           cfg.Model,
+		Tools:           cfg.Tools,
+		SystemPrompt:    cfg.SystemPrompt,
+		MaxTokens:       cfg.MaxTokens,
+		Async:           cfg.Async,
+		Critical:        cfg.Critical,
+		Timeout:         cfg.Timeout,
+		MaxContextRunes: cfg.MaxContextRunes,
 	}
 
 	return spawnSubTurn(ctx, s.al, parentTS, agentCfg)
@@ -277,6 +280,7 @@ func spawnSubTurn(ctx context.Context, al *AgentLoop, parentTS *turnState, cfg S
 	childTS := newTurnState(childCtx, childID, parentTS)
 	// Set the cancel function so Finish(true) can trigger hard cancellation
 	childTS.cancelFunc = cancel
+	childTS.critical = cfg.Critical
 
 	// IMPORTANT: Put childTS into childCtx so that code inside runTurn can retrieve it
 	childCtx = withTurnState(childCtx, childTS)

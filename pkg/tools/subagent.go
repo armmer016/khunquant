@@ -22,7 +22,10 @@ type SubTurnConfig struct {
 	SystemPrompt string
 	MaxTokens    int
 	Temperature  float64
-	Async        bool // true for async (spawn), false for sync (subagent)
+	Async        bool          // true for async (spawn), false for sync (subagent)
+	Critical     bool          // continue running after parent finishes gracefully
+	Timeout      time.Duration // 0 = use default (5 minutes)
+	MaxContextRunes int        // 0 = auto, -1 = no limit, >0 = explicit limit
 }
 
 type SubagentTask struct {

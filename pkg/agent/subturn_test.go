@@ -315,11 +315,6 @@ func TestSubTurnResultChannelRegistration(t *testing.T) {
 	}
 
 	_, _ = spawnSubTurn(context.Background(), al, parent, cfg)
-
-	// After spawn completes: channel should be unregistered (defer cleanup in spawnSubTurn)
-	if _, ok := al.subTurnResults.Load(parent.turnID); ok {
-		t.Error("channel should be unregistered after spawnSubTurn completes")
-	}
 }
 
 // ====================== Extra Independent Test: Dequeue Pending SubTurn Results ======================
@@ -328,21 +323,27 @@ func TestDequeuePendingSubTurnResults(t *testing.T) {
 	defer cleanup()
 
 	sessionKey := "test-session-dequeue"
-	ch := make(chan *tools.ToolResult, 4)
 
-	// Register channel manually
-	al.registerSubTurnResultChannel(sessionKey, ch)
-	defer al.unregisterSubTurnResultChannel(sessionKey)
-
-	// Empty channel returns nil
+	// Empty (no turnState registered) returns nil
 	if results := al.dequeuePendingSubTurnResults(sessionKey); len(results) != 0 {
 		t.Errorf("expected empty results, got %d", len(results))
 	}
 
+	// Register a turnState so dequeuePendingSubTurnResults can find it
+	ts := &turnState{
+		ctx:            context.Background(),
+		turnID:         sessionKey,
+		depth:          0,
+		session:        &ephemeralSessionStore{},
+		pendingResults: make(chan *tools.ToolResult, 4),
+	}
+	al.activeTurnStates.Store(sessionKey, ts)
+	defer al.activeTurnStates.Delete(sessionKey)
+
 	// Put 3 results in
-	ch <- &tools.ToolResult{ForLLM: "result-1"}
-	ch <- &tools.ToolResult{ForLLM: "result-2"}
-	ch <- &tools.ToolResult{ForLLM: "result-3"}
+	ts.pendingResults <- &tools.ToolResult{ForLLM: "result-1"}
+	ts.pendingResults <- &tools.ToolResult{ForLLM: "result-2"}
+	ts.pendingResults <- &tools.ToolResult{ForLLM: "result-3"}
 
 	results := al.dequeuePendingSubTurnResults(sessionKey)
 	if len(results) != 3 {
@@ -357,8 +358,8 @@ func TestDequeuePendingSubTurnResults(t *testing.T) {
 		t.Errorf("expected empty after drain, got %d", len(results))
 	}
 
-	// Unregistered session returns nil
-	al.unregisterSubTurnResultChannel(sessionKey)
+	// After removing from activeTurnStates, returns nil
+	al.activeTurnStates.Delete(sessionKey)
 	if results := al.dequeuePendingSubTurnResults(sessionKey); results != nil {
 		t.Error("expected nil for unregistered session")
 	}
@@ -766,15 +767,21 @@ func TestFinalPollCapturesLateResults(t *testing.T) {
 	defer cleanup()
 
 	sessionKey := "test-session-final-poll"
-	ch := make(chan *tools.ToolResult, 4)
 
-	// Register the channel
-	al.registerSubTurnResultChannel(sessionKey, ch)
-	defer al.unregisterSubTurnResultChannel(sessionKey)
+	// Register a turnState
+	ts := &turnState{
+		ctx:            context.Background(),
+		turnID:         sessionKey,
+		depth:          0,
+		session:        &ephemeralSessionStore{},
+		pendingResults: make(chan *tools.ToolResult, 4),
+	}
+	al.activeTurnStates.Store(sessionKey, ts)
+	defer al.activeTurnStates.Delete(sessionKey)
 
 	// Simulate results arriving after last iteration poll
-	ch <- &tools.ToolResult{ForLLM: "result 1"}
-	ch <- &tools.ToolResult{ForLLM: "result 2"}
+	ts.pendingResults <- &tools.ToolResult{ForLLM: "result 1"}
+	ts.pendingResults <- &tools.ToolResult{ForLLM: "result 2"}
 
 	// Dequeue should capture both results
 	results := al.dequeuePendingSubTurnResults(sessionKey)
@@ -1414,8 +1421,6 @@ func TestContextWrapping_SingleLayer(t *testing.T) {
 	t.Log("Context wrapping test passed - no redundant layers detected")
 }
 
-
-
 // TestSyncSubTurn_NoChannelDelivery verifies that synchronous sub-turns
 // do NOT deliver results to the pendingResults channel (only return directly).
 func TestSyncSubTurn_NoChannelDelivery(t *testing.T) {
@@ -1525,8 +1530,6 @@ func TestAsyncSubTurn_ChannelDelivery(t *testing.T) {
 		t.Error("Expected result in channel for async sub-turn, but channel was empty")
 	}
 }
-
-
 
 // TestGrandchildAbort_CascadingCancellation verifies that when a grandparent turn
 // is hard aborted, the cancellation cascades down to grandchild turns.
@@ -1949,9 +1952,9 @@ func TestFinish_GracefulVsHard(t *testing.T) {
 		parentTS.ctx, parentTS.cancelFunc = context.WithCancel(ctx)
 
 		childTS := &turnState{
-			ctx:            ctx,
-			turnID:         "child-isended-test",
-			depth:          1,
+			ctx:             ctx,
+			turnID:          "child-isended-test",
+			depth:           1,
 			parentTurnState: parentTS,
 			pendingResults:  make(chan *tools.ToolResult, 16),
 		}
