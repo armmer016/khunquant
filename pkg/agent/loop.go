@@ -48,8 +48,8 @@ type AgentLoop struct {
 	cmdRegistry      *commands.Registry
 	mcp              mcpRuntime
 	steering         *steeringQueue
-	subTurnResults   sync.Map // key: sessionKey (string), value: chan *tools.ToolResult
-	activeTurnStates sync.Map // key: sessionKey (string), value: *turnState
+	subTurnResults   sync.Map     // key: sessionKey (string), value: chan *tools.ToolResult
+	activeTurnStates sync.Map     // key: sessionKey (string), value: *turnState
 	subTurnCounter   atomic.Int64 // Counter for generating unique SubTurn IDs
 	mu               sync.RWMutex
 	// Track active requests for safe provider cleanup
@@ -58,15 +58,17 @@ type AgentLoop struct {
 
 // processOptions configures how a message is processed
 type processOptions struct {
-	SessionKey      string   // Session identifier for history/context
-	Channel         string   // Target channel for tool execution
-	ChatID          string   // Target chat ID for tool execution
-	UserMessage     string   // User message content (may include prefix)
-	Media           []string // media:// refs from inbound message
-	DefaultResponse string   // Response when LLM returns empty
-	EnableSummary   bool     // Whether to trigger summarization
-	SendResponse    bool     // Whether to send response via bus
-	NoHistory       bool     // If true, don't load session history (for heartbeat)
+	SessionKey              string   // Session identifier for history/context
+	Channel                 string   // Target channel for tool execution
+	ChatID                  string   // Target chat ID for tool execution
+	UserMessage             string   // User message content (may include prefix)
+	Media                   []string // media:// refs from inbound message
+	DefaultResponse         string   // Response when LLM returns empty
+	EnableSummary           bool     // Whether to trigger summarization
+	SendResponse            bool     // Whether to send response via bus
+	NoHistory               bool     // If true, don't load session history (for heartbeat)
+	SkipInitialSteeringPoll bool     // If true, skip the steering poll at loop start (used by Continue)
+	SkipAddUserMessage      bool     // If true, skip adding UserMessage to session history
 }
 
 const (
@@ -962,7 +964,9 @@ func (al *AgentLoop) runAgentLoop(
 	}
 
 	// 2. Save user message to session
-	agent.Sessions.AddMessage(opts.SessionKey, "user", opts.UserMessage)
+	if !opts.SkipAddUserMessage && opts.UserMessage != "" {
+		agent.Sessions.AddMessage(opts.SessionKey, "user", opts.UserMessage)
+	}
 
 	// 3. Run LLM iteration loop
 	finalContent, iteration, err := al.runLLMIteration(ctx, agent, messages, opts)
@@ -987,7 +991,7 @@ func (al *AgentLoop) runAgentLoop(
 	// Signal completion to rootTS so it knows it is finished, terminating any active sub-turns.
 	// Only call Finish() if this is a root turn (not a SubTurn recursively calling runAgentLoop).
 	if isRootTurn {
-		rootTS.Finish()
+		rootTS.Finish(false)
 	}
 
 	// If last tool had ForUser content and we already sent it, we might not need to send final response
@@ -1261,6 +1265,11 @@ func (al *AgentLoop) runLLMIteration(
 					"error":     err.Error(),
 				})
 			return "", iteration, fmt.Errorf("LLM call failed after retries: %w", err)
+		}
+
+		// Save finishReason to turnState for SubTurn truncation detection
+		if ts := turnStateFromContext(ctx); ts != nil {
+			ts.SetLastFinishReason(response.FinishReason)
 		}
 
 		go al.handleReasoning(
