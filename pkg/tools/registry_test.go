@@ -336,6 +336,96 @@ func TestToolToSchema(t *testing.T) {
 	}
 }
 
+func TestToolRegistry_Clone(t *testing.T) {
+	r := NewToolRegistry()
+	r.Register(newMockTool("read_file", "reads files"))
+	r.Register(newMockTool("exec", "runs commands"))
+	r.Register(newMockTool("web_search", "searches the web"))
+
+	clone := r.Clone()
+
+	// Clone should have the same tools
+	if clone.Count() != 3 {
+		t.Errorf("expected clone to have 3 tools, got %d", clone.Count())
+	}
+	for _, name := range []string{"read_file", "exec", "web_search"} {
+		if _, ok := clone.Get(name); !ok {
+			t.Errorf("expected clone to have tool %q", name)
+		}
+	}
+
+	// Registering on parent should NOT affect clone
+	r.Register(newMockTool("spawn", "spawns subagent"))
+	if r.Count() != 4 {
+		t.Errorf("expected parent to have 4 tools, got %d", r.Count())
+	}
+	if clone.Count() != 3 {
+		t.Errorf("expected clone to still have 3 tools after parent mutation, got %d", clone.Count())
+	}
+	if _, ok := clone.Get("spawn"); ok {
+		t.Error("expected clone NOT to have 'spawn' tool registered on parent after cloning")
+	}
+
+	// Registering on clone should NOT affect parent
+	clone.Register(newMockTool("custom", "custom tool"))
+	if clone.Count() != 4 {
+		t.Errorf("expected clone to have 4 tools, got %d", clone.Count())
+	}
+	if _, ok := r.Get("custom"); ok {
+		t.Error("expected parent NOT to have 'custom' tool registered on clone")
+	}
+}
+
+func TestToolRegistry_Clone_Empty(t *testing.T) {
+	r := NewToolRegistry()
+	clone := r.Clone()
+	if clone.Count() != 0 {
+		t.Errorf("expected empty clone, got count %d", clone.Count())
+	}
+}
+
+func TestToolRegistry_Clone_PreservesHiddenToolState(t *testing.T) {
+	r := NewToolRegistry()
+	r.RegisterHidden(newMockTool("mcp_tool", "dynamic MCP tool"))
+
+	clone := r.Clone()
+
+	// Hidden tools with TTL=0 should not be gettable (same behavior as parent)
+	if _, ok := clone.Get("mcp_tool"); ok {
+		t.Error("expected hidden tool with TTL=0 to be invisible in clone")
+	}
+
+	// But the entry should exist (count includes hidden tools)
+	if clone.Count() != 1 {
+		t.Errorf("expected clone count 1 (hidden entry exists), got %d", clone.Count())
+	}
+}
+
+func TestToolRegistry_Clone_PreservesTTLValue(t *testing.T) {
+	r := NewToolRegistry()
+	r.RegisterHidden(newMockTool("ttl_tool", "tool with TTL"))
+
+	// Manually set a non-zero TTL on the entry
+	r.mu.RLock()
+	if entry, ok := r.tools["ttl_tool"]; ok {
+		entry.TTL = 5
+	}
+	r.mu.RUnlock()
+
+	clone := r.Clone()
+
+	// Verify TTL value is preserved in the clone
+	clone.mu.RLock()
+	defer clone.mu.RUnlock()
+	entry, ok := clone.tools["ttl_tool"]
+	if !ok {
+		t.Fatal("expected ttl_tool to exist in clone")
+	}
+	if entry.TTL != 5 {
+		t.Errorf("expected TTL=5 in clone, got %d", entry.TTL)
+	}
+}
+
 func TestToolRegistry_ConcurrentAccess(t *testing.T) {
 	r := NewToolRegistry()
 	var wg sync.WaitGroup
