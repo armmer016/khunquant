@@ -423,10 +423,7 @@ Task: %s`, label, task)
 		}
 	}
 
-	// Fallback: use manager's provider directly for synchronous execution
-	if t.manager != nil {
-		return t.manager.runSyncTask(ctx, label, task)
-	}
+	// Fallback: spawner not configured
 
 	return ErrorResult("Subagent manager not configured").WithError(fmt.Errorf("spawner not set"))
 }

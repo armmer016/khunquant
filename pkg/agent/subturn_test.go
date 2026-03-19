@@ -34,17 +34,6 @@ func (c *eventCollector) hasEventOfType(typ any) bool {
 	return false
 }
 
-func (c *eventCollector) countOfType(typ any) int {
-	targetType := reflect.TypeOf(typ)
-	count := 0
-	for _, e := range c.events {
-		if reflect.TypeOf(e) == targetType {
-			count++
-		}
-	}
-	return count
-}
-
 // ====================== Main Test Function ======================
 func TestSpawnSubTurn(t *testing.T) {
 	tests := []struct {
@@ -551,7 +540,6 @@ func TestNestedSubTurnHierarchy(t *testing.T) {
 	type turnInfo struct {
 		parentID string
 		childID  string
-		depth    int
 	}
 	var spawnedTurns []turnInfo
 	var mu sync.Mutex
@@ -697,12 +685,12 @@ func TestHardAbortOrderOfOperations(t *testing.T) {
 		t.Fatalf("HardAbort failed: %v", err)
 	}
 
-	// Verify context was cancelled (Finish() was called)
+	// Verify context was canceled (Finish() was called)
 	select {
 	case <-rootTS.ctx.Done():
-		// Good - context was cancelled
+		// Good - context was canceled
 	default:
-		t.Error("expected context to be cancelled after HardAbort")
+		t.Error("expected context to be canceled after HardAbort")
 	}
 
 	// Verify history was rolled back
@@ -1578,17 +1566,17 @@ func TestGrandchildAbort_CascadingCancellation(t *testing.T) {
 	// Verify all contexts are active
 	select {
 	case <-grandparentTS.ctx.Done():
-		t.Error("Grandparent context should not be cancelled yet")
+		t.Error("Grandparent context should not be canceled yet")
 	default:
 	}
 	select {
 	case <-parentTS.ctx.Done():
-		t.Error("Parent context should not be cancelled yet")
+		t.Error("Parent context should not be canceled yet")
 	default:
 	}
 	select {
 	case <-childTS.ctx.Done():
-		t.Error("Child context should not be cancelled yet")
+		t.Error("Child context should not be canceled yet")
 	default:
 	}
 
@@ -1601,23 +1589,23 @@ func TestGrandchildAbort_CascadingCancellation(t *testing.T) {
 	// Verify cascading cancellation
 	select {
 	case <-grandparentTS.ctx.Done():
-		t.Log("Grandparent context cancelled (expected)")
+		t.Log("Grandparent context canceled (expected)")
 	default:
-		t.Error("Grandparent context should be cancelled")
+		t.Error("Grandparent context should be canceled")
 	}
 
 	select {
 	case <-parentTS.ctx.Done():
-		t.Log("Parent context cancelled via cascade (expected)")
+		t.Log("Parent context canceled via cascade (expected)")
 	default:
-		t.Error("Parent context should be cancelled via cascade")
+		t.Error("Parent context should be canceled via cascade")
 	}
 
 	select {
 	case <-childTS.ctx.Done():
-		t.Log("Grandchild context cancelled via cascade (expected)")
+		t.Log("Grandchild context canceled via cascade (expected)")
 	default:
-		t.Error("Grandchild context should be cancelled via cascade")
+		t.Error("Grandchild context should be canceled via cascade")
 	}
 }
 
@@ -1672,7 +1660,7 @@ func TestSpawnDuringAbort_RaceCondition(t *testing.T) {
 	wg.Wait()
 
 	// The spawn should either succeed (if it started before abort)
-	// or fail with context cancelled error (if abort happened first)
+	// or fail with context canceled error (if abort happened first)
 	if spawnErr != nil {
 		if errors.Is(spawnErr, context.Canceled) {
 			t.Logf("Spawn failed with expected context cancellation: %v", spawnErr)
@@ -1709,7 +1697,7 @@ func (m *slowMockProvider) Chat(
 			Content: "slow response completed",
 		}, nil
 	case <-ctx.Done():
-		// Context was cancelled while waiting
+		// Context was canceled while waiting
 		return nil, ctx.Err()
 	}
 }
@@ -1721,7 +1709,7 @@ func (m *slowMockProvider) GetDefaultModel() string {
 // TestAsyncSubTurn_ParentFinishesEarly simulates the scenario where:
 // 1. Parent spawns an async SubTurn that takes a long time
 // 2. Parent finishes quickly
-// 3. SubTurn should be cancelled with context canceled error
+// 3. SubTurn should be canceled with context canceled error
 func TestAsyncSubTurn_ParentFinishesEarly(t *testing.T) {
 	// Save original MockEventBus.Emit to capture events
 	originalEmit := MockEventBus.Emit
@@ -1779,7 +1767,7 @@ func TestAsyncSubTurn_ParentFinishesEarly(t *testing.T) {
 	t.Log("Parent finishing early...")
 	parentTS.Finish(false)
 
-	// Wait for SubTurn to complete (or be cancelled)
+	// Wait for SubTurn to complete (or be canceled)
 	wg.Wait()
 
 	// Check the result
@@ -1788,7 +1776,7 @@ func TestAsyncSubTurn_ParentFinishesEarly(t *testing.T) {
 
 	if subTurnErr != nil {
 		if errors.Is(subTurnErr, context.Canceled) {
-			t.Log("✓ SubTurn was cancelled as expected (context canceled)")
+			t.Log("✓ SubTurn was canceled as expected (context canceled)")
 		} else {
 			t.Logf("SubTurn failed with other error: %v", subTurnErr)
 		}
@@ -1858,7 +1846,7 @@ func TestAsyncSubTurn_ParentWaitsForChild(t *testing.T) {
 	// Check the result
 	if subTurnErr != nil {
 		if errors.Is(subTurnErr, context.Canceled) {
-			t.Errorf("SubTurn should NOT have been cancelled: %v", subTurnErr)
+			t.Errorf("SubTurn should NOT have been canceled: %v", subTurnErr)
 		} else {
 			t.Logf("SubTurn failed with error: %v", subTurnErr)
 		}
@@ -1907,12 +1895,12 @@ func TestFinish_GracefulVsHard(t *testing.T) {
 			t.Error("parentEnded should be true after graceful finish")
 		}
 
-		// Verify context is NOT cancelled (for graceful finish, children continue)
+		// Verify context is NOT canceled (for graceful finish, children continue)
 		// Note: In graceful mode, we don't call cancelFunc()
-		// But since we're using WithCancel on the same ctx, it might be cancelled
+		// But since we're using WithCancel on the same ctx, it might be canceled
 		// Let's check that the context is still valid for a moment
 		time.Sleep(10 * time.Millisecond)
-		// Context might be cancelled by the deferred cancel() in test, which is fine
+		// Context might be canceled by the deferred cancel() in test, which is fine
 	})
 
 	// Test 2: Hard abort should cancel context immediately
@@ -1930,12 +1918,12 @@ func TestFinish_GracefulVsHard(t *testing.T) {
 		// Finish with hard abort
 		ts.Finish(true)
 
-		// Verify context is cancelled
+		// Verify context is canceled
 		select {
 		case <-ts.ctx.Done():
-			t.Log("✓ Context cancelled after hard abort")
+			t.Log("✓ Context canceled after hard abort")
 		default:
-			t.Error("Context should be cancelled after hard abort")
+			t.Error("Context should be canceled after hard abort")
 		}
 	})
 
@@ -1975,7 +1963,7 @@ func TestFinish_GracefulVsHard(t *testing.T) {
 }
 
 // TestSubTurn_IndependentContext verifies that SubTurns use independent contexts
-// that don't get cancelled when the parent finishes gracefully.
+// that don't get canceled when the parent finishes gracefully.
 func TestSubTurn_IndependentContext(t *testing.T) {
 	cfg := &config.Config{
 		Agents: config.AgentsConfig{
@@ -2024,14 +2012,14 @@ func TestSubTurn_IndependentContext(t *testing.T) {
 	// Wait for SubTurn to complete
 	wg.Wait()
 
-	// SubTurn should complete without context cancelled error
+	// SubTurn should complete without context canceled error
 	// (because it uses independent context now)
 	if subTurnErr != nil {
 		t.Logf("SubTurn error: %v", subTurnErr)
 		// The error might be context.DeadlineExceeded if timeout is too short
 		// but should NOT be context.Canceled from parent
 		if errors.Is(subTurnErr, context.Canceled) {
-			t.Error("SubTurn should not be cancelled by parent's graceful finish")
+			t.Error("SubTurn should not be canceled by parent's graceful finish")
 		}
 	} else {
 		t.Log("✓ SubTurn completed successfully (independent context)")
