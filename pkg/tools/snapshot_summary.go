@@ -17,7 +17,7 @@ func NewSnapshotSummaryTool(store *snapshot.Store) *SnapshotSummaryTool {
 	return &SnapshotSummaryTool{store: store}
 }
 
-func (t *SnapshotSummaryTool) Name() string { return "snapshot_summary" }
+func (t *SnapshotSummaryTool) Name() string { return NameSnapshotSummary }
 
 func (t *SnapshotSummaryTool) Description() string {
 	return "Compute aggregate analytics over portfolio snapshots: count, time range, min/max/avg values, total change, and change percentage. Supports grouping by day, week, month, or source."

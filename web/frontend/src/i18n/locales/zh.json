@@ -443,7 +443,29 @@
         "delete_error": "删除文件失败。",
         "unsaved_changes": "有未保存的更改。",
         "unsaved_confirm": "有未保存的更改，确定放弃？",
-        "placeholder": "输入 Markdown 内容..."
+        "placeholder": "输入 Markdown 内容...",
+        "tabs": {
+          "general": "通用",
+          "snapshot": "快照"
+        },
+        "snapshot": {
+          "empty": "未找到快照。",
+          "select_hint": "选择快照以查看详情。",
+          "delete_title": "删除快照？",
+          "delete_description": "快照 #{{id}}（{{date}}）将被永久删除。",
+          "delete_confirm": "删除",
+          "delete_success": "快照已删除。",
+          "delete_error": "删除快照失败。",
+          "total_value": "总价值",
+          "positions": "持仓",
+          "col_source": "来源",
+          "col_account": "账户",
+          "col_category": "类别",
+          "col_asset": "资产",
+          "col_quantity": "数量",
+          "col_price": "价格",
+          "col_value": "价值"
+        }
       },
       "agent_config": {
         "empty": "工作区中没有 .md 文件。",

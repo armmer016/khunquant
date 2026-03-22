@@ -48,7 +48,7 @@ func NewCronTool(
 
 // Name returns the tool name
 func (t *CronTool) Name() string {
-	return "cron"
+	return NameCron
 }
 
 // Description returns the tool description

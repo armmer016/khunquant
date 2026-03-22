@@ -21,7 +21,7 @@ func NewSpawnTool(manager *SubagentManager) *SpawnTool {
 }
 
 func (t *SpawnTool) Name() string {
-	return "spawn"
+	return NameSpawn
 }
 
 func (t *SpawnTool) Description() string {

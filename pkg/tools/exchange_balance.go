@@ -21,7 +21,7 @@ func NewExchangeBalanceTool(cfg *config.Config) *ExchangeBalanceTool {
 }
 
 func (t *ExchangeBalanceTool) Name() string {
-	return "get_assets_list"
+	return NameGetAssetsList
 }
 
 func (t *ExchangeBalanceTool) Description() string {

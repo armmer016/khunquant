@@ -36,7 +36,7 @@ func NewInstallSkillTool(registryMgr *skills.RegistryManager, workspace string) 
 }
 
 func (t *InstallSkillTool) Name() string {
-	return "install_skill"
+	return NameInstallSkill
 }
 
 func (t *InstallSkillTool) Description() string {

@@ -16,6 +16,7 @@ import {
   deleteMemoryFile,
   getMemoryFile,
   getMemoryFiles,
+  getMemorySize,
   saveMemoryFile,
 } from "@/api/agent-memory"
 import { PageHeader } from "@/components/page-header"
@@ -30,7 +31,15 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
+
+import { SnapshotPanel } from "./snapshot-panel"
+
+function formatBytes(bytes: number): string {
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(2)} KB`
+  return `${(bytes / (1024 * 1024)).toFixed(2)} MB`
+}
 
 interface GroupedFiles {
   root: AgentMemoryFile[]
@@ -74,6 +83,11 @@ export function AgentMemoryPage() {
   const [showNewFileDialog, setShowNewFileDialog] = useState(false)
   const [newFilePath, setNewFilePath] = useState("")
 
+  const { data: sizeInfo } = useQuery({
+    queryKey: ["agent-memory-size"],
+    queryFn: getMemorySize,
+  })
+
   const { data: files, isLoading: isFilesLoading } = useQuery({
     queryKey: ["agent-memory-files"],
     queryFn: getMemoryFiles,
@@ -105,6 +119,7 @@ export function AgentMemoryPage() {
       setIsDirty(false)
       void queryClient.invalidateQueries({ queryKey: ["agent-memory-files"] })
       void queryClient.invalidateQueries({ queryKey: ["agent-memory-file", selectedPath] })
+      void queryClient.invalidateQueries({ queryKey: ["agent-memory-size"] })
     },
     onError: (err) => {
       toast.error(err instanceof Error ? err.message : t("pages.agent.agent_memory.save_error"))
@@ -120,6 +135,7 @@ export function AgentMemoryPage() {
       setEditorValue("")
       setIsDirty(false)
       void queryClient.invalidateQueries({ queryKey: ["agent-memory-files"] })
+      void queryClient.invalidateQueries({ queryKey: ["agent-memory-size"] })
     },
     onError: (err) => {
       toast.error(err instanceof Error ? err.message : t("pages.agent.agent_memory.delete_error"))
@@ -136,6 +152,7 @@ export function AgentMemoryPage() {
       setShowNewFileDialog(false)
       setNewFilePath("")
       void queryClient.invalidateQueries({ queryKey: ["agent-memory-files"] })
+      void queryClient.invalidateQueries({ queryKey: ["agent-memory-size"] })
       setSelectedPath(result.path)
       setEditorValue("")
       setIsDirty(false)
@@ -154,127 +171,172 @@ export function AgentMemoryPage() {
 
   return (
     <div className="flex h-full flex-col">
-      <PageHeader title={t("navigation.agent_memory")}>
-        <Button variant="outline" size="sm" onClick={() => setShowNewFileDialog(true)}>
-          <IconPlus className="size-4" />
-          {t("pages.agent.agent_memory.new_file")}
-        </Button>
-      </PageHeader>
+      <PageHeader
+        title={t("navigation.agent_memory")}
+        titleExtra={
+          sizeInfo != null ? (
+            <span className="text-muted-foreground text-sm font-normal">
+              (~{formatBytes(sizeInfo.total_bytes)})
+            </span>
+          ) : undefined
+        }
+      />
 
-      <div className="flex min-h-0 flex-1 overflow-hidden">
-        {/* Left panel */}
-        <div className="border-border/40 flex w-56 shrink-0 flex-col border-r">
-          <div className="flex-1 overflow-auto p-2">
-            {isFilesLoading ? (
-              <div className="text-muted-foreground p-2 text-sm">{t("labels.loading")}</div>
-            ) : (
-              <>
-                {/* Root files */}
-                {grouped.root.length > 0 && (
-                  <ul className="mb-2 space-y-0.5">
-                    {grouped.root.map((f) => (
-                      <li key={f.path}>
-                        <button onClick={() => handleSelectFile(f.path)} className={fileItemClass(f.path)}>
-                          <IconFileText className="size-3.5 shrink-0 opacity-60" />
-                          <span className="truncate">{f.name}</span>
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-
-                {/* Monthly groups */}
-                {grouped.months.map((group) => (
-                  <div key={group.label} className="mb-2">
-                    <div className="text-muted-foreground/60 mb-0.5 flex items-center gap-1.5 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider">
-                      <IconFolder className="size-3 shrink-0" />
-                      {group.label}
-                    </div>
-                    <ul className="space-y-0.5">
-                      {group.files.map((f) => (
-                        <li key={f.path}>
-                          <button onClick={() => handleSelectFile(f.path)} className={fileItemClass(f.path)}>
-                            <IconFileText className="size-3.5 shrink-0 opacity-60" />
-                            <span className="truncate">{f.name}</span>
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ))}
-
-                {grouped.root.length === 0 && grouped.months.length === 0 && (
-                  <div className="text-muted-foreground p-2 text-sm">
-                    {t("pages.agent.agent_memory.empty")}
-                  </div>
-                )}
-              </>
+      <Tabs defaultValue="general" className="flex flex-1 flex-col overflow-hidden px-4 pb-4">
+        <TabsList className="mb-2 shrink-0 self-start">
+          <TabsTrigger value="general">
+            {t("pages.agent.agent_memory.tabs.general")}
+            {sizeInfo != null && (
+              <span className="text-muted-foreground ml-1.5 text-xs font-normal">
+                ({formatBytes(sizeInfo.general_bytes)})
+              </span>
             )}
+          </TabsTrigger>
+          <TabsTrigger value="snapshot">
+            {t("pages.agent.agent_memory.tabs.snapshot")}
+            {sizeInfo != null && (
+              <span className="text-muted-foreground ml-1.5 text-xs font-normal">
+                ({formatBytes(sizeInfo.snapshot_bytes)})
+              </span>
+            )}
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="general" className="mt-0 flex flex-1 flex-col overflow-hidden">
+          {/* General tab header with New File button */}
+          <div className="mb-2 flex shrink-0 justify-end">
+            <Button variant="outline" size="sm" onClick={() => setShowNewFileDialog(true)}>
+              <IconPlus className="size-4" />
+              {t("pages.agent.agent_memory.new_file")}
+            </Button>
           </div>
-        </div>
 
-        {/* Right panel: editor */}
-        <div className="flex min-h-0 flex-1 flex-col p-4">
-          {selectedPath ? (
-            <div className="flex min-h-0 flex-1 flex-col gap-3">
-              <div className="flex shrink-0 items-center justify-between">
-                <h3 className="text-foreground/90 font-mono text-sm font-medium">
-                  {selectedPath}
-                </h3>
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  className="text-muted-foreground hover:text-destructive"
-                  onClick={() => setShowDeleteDialog(true)}
-                  title={t("pages.agent.agent_memory.delete")}
-                >
-                  <IconTrash className="size-4" />
-                </Button>
+          <div className="border-border/40 flex min-h-0 flex-1 overflow-hidden rounded-lg border">
+            {/* Left panel */}
+            <div className="border-border/40 flex w-56 shrink-0 flex-col border-r">
+              <div className="flex-1 overflow-auto p-2">
+                {isFilesLoading ? (
+                  <div className="text-muted-foreground p-2 text-sm">{t("labels.loading")}</div>
+                ) : (
+                  <>
+                    {/* Root files */}
+                    {grouped.root.length > 0 && (
+                      <ul className="mb-2 space-y-0.5">
+                        {grouped.root.map((f) => (
+                          <li key={f.path}>
+                            <button onClick={() => handleSelectFile(f.path)} className={fileItemClass(f.path)}>
+                              <IconFileText className="size-3.5 shrink-0 opacity-60" />
+                              <span className="truncate">{f.name}</span>
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+
+                    {/* Monthly groups */}
+                    {grouped.months.map((group) => (
+                      <div key={group.label} className="mb-2">
+                        <div className="text-muted-foreground/60 mb-0.5 flex items-center gap-1.5 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider">
+                          <IconFolder className="size-3 shrink-0" />
+                          {group.label}
+                        </div>
+                        <ul className="space-y-0.5">
+                          {group.files.map((f) => (
+                            <li key={f.path}>
+                              <button onClick={() => handleSelectFile(f.path)} className={fileItemClass(f.path)}>
+                                <IconFileText className="size-3.5 shrink-0 opacity-60" />
+                                <span className="truncate">{f.name}</span>
+                              </button>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ))}
+
+                    {grouped.root.length === 0 && grouped.months.length === 0 && (
+                      <div className="text-muted-foreground p-2 text-sm">
+                        {t("pages.agent.agent_memory.empty")}
+                      </div>
+                    )}
+                  </>
+                )}
               </div>
+            </div>
 
-              {isDirty && (
-                <div className="shrink-0 rounded-lg border border-yellow-200 bg-yellow-50 p-2 text-sm text-yellow-700">
-                  {t("pages.agent.agent_memory.unsaved_changes")}
+            {/* Right panel: editor */}
+            <div className="flex min-h-0 flex-1 flex-col p-4">
+              {selectedPath ? (
+                <div className="flex min-h-0 flex-1 flex-col gap-3">
+                  <div className="flex shrink-0 items-center justify-between">
+                    <h3 className="text-foreground/90 font-mono text-sm font-medium">
+                      {selectedPath}
+                    </h3>
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      className="text-muted-foreground hover:text-destructive"
+                      onClick={() => setShowDeleteDialog(true)}
+                      title={t("pages.agent.agent_memory.delete")}
+                    >
+                      <IconTrash className="size-4" />
+                    </Button>
+                  </div>
+
+                  {isDirty && (
+                    <div className="shrink-0 rounded-lg border border-yellow-200 bg-yellow-50 p-2 text-sm text-yellow-700">
+                      {t("pages.agent.agent_memory.unsaved_changes")}
+                    </div>
+                  )}
+
+                  <div className="relative min-h-0 flex-1 overflow-hidden rounded-lg border shadow-sm">
+                    {isFileLoading ? (
+                      <div className="flex h-full items-center justify-center">
+                        <IconLoader2 className="text-muted-foreground size-5 animate-spin" />
+                      </div>
+                    ) : (
+                      <Textarea
+                        value={effectiveEditorValue}
+                        onChange={(e) => {
+                          setEditorValue(e.target.value)
+                          setIsDirty(true)
+                        }}
+                        wrap="off"
+                        className="h-full min-h-0 resize-none overflow-auto border-0 bg-transparent px-4 py-3 font-mono text-sm [overflow-wrap:normal] whitespace-pre shadow-none focus-visible:ring-0"
+                        placeholder={t("pages.agent.agent_memory.placeholder")}
+                      />
+                    )}
+                  </div>
+
+                  <div className="flex shrink-0 justify-end">
+                    <Button
+                      onClick={() => saveMutation.mutate()}
+                      disabled={saveMutation.isPending || !isDirty}
+                    >
+                      {saveMutation.isPending ? t("common.saving") : t("common.save")}
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-muted-foreground flex h-full items-center justify-center text-sm">
+                  {t("pages.agent.agent_memory.select_hint")}
                 </div>
               )}
-
-              <div className="relative min-h-0 flex-1 overflow-hidden rounded-lg border shadow-sm">
-                {isFileLoading ? (
-                  <div className="flex h-full items-center justify-center">
-                    <IconLoader2 className="text-muted-foreground size-5 animate-spin" />
-                  </div>
-                ) : (
-                  <Textarea
-                    value={effectiveEditorValue}
-                    onChange={(e) => {
-                      setEditorValue(e.target.value)
-                      setIsDirty(true)
-                    }}
-                    wrap="off"
-                    className="h-full min-h-0 resize-none overflow-auto border-0 bg-transparent px-4 py-3 font-mono text-sm [overflow-wrap:normal] whitespace-pre shadow-none focus-visible:ring-0"
-                    placeholder={t("pages.agent.agent_memory.placeholder")}
-                  />
-                )}
-              </div>
-
-              <div className="flex shrink-0 justify-end">
-                <Button
-                  onClick={() => saveMutation.mutate()}
-                  disabled={saveMutation.isPending || !isDirty}
-                >
-                  {saveMutation.isPending ? t("common.saving") : t("common.save")}
-                </Button>
-              </div>
             </div>
-          ) : (
-            <div className="text-muted-foreground flex h-full items-center justify-center text-sm">
-              {t("pages.agent.agent_memory.select_hint")}
-            </div>
-          )}
-        </div>
-      </div>
+          </div>
+        </TabsContent>
 
-      {/* Delete dialog */}
+        <TabsContent value="snapshot" className="mt-0 flex flex-1 overflow-hidden">
+          <div className="border-border/40 flex min-h-0 flex-1 overflow-hidden rounded-lg border">
+            <SnapshotPanel
+              onDeleteSuccess={() =>
+                void queryClient.invalidateQueries({ queryKey: ["agent-memory-size"] })
+              }
+            />
+          </div>
+        </TabsContent>
+      </Tabs>
+
+      {/* Delete file dialog */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent size="sm">
           <AlertDialogHeader>

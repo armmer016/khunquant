@@ -456,7 +456,29 @@
         "delete_error": "Failed to delete file.",
         "unsaved_changes": "You have unsaved changes.",
         "unsaved_confirm": "You have unsaved changes. Discard them?",
-        "placeholder": "Enter markdown content..."
+        "placeholder": "Enter markdown content...",
+        "tabs": {
+          "general": "General",
+          "snapshot": "Snapshot"
+        },
+        "snapshot": {
+          "empty": "No snapshots found.",
+          "select_hint": "Select a snapshot to view details.",
+          "delete_title": "Delete Snapshot?",
+          "delete_description": "Snapshot #{{id}} ({{date}}) will be permanently deleted.",
+          "delete_confirm": "Delete",
+          "delete_success": "Snapshot deleted.",
+          "delete_error": "Failed to delete snapshot.",
+          "total_value": "Total Value",
+          "positions": "Positions",
+          "col_source": "Source",
+          "col_account": "Account",
+          "col_category": "Category",
+          "col_asset": "Asset",
+          "col_quantity": "Quantity",
+          "col_price": "Price",
+          "col_value": "Value"
+        }
       },
       "agent_config": {
         "empty": "No .md files in workspace.",

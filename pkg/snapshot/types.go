@@ -12,7 +12,8 @@ type Position struct {
 	Category   string            // "spot", "futures_usdt", "stock", "forex", "bond"
 	Asset      string            // "BTC", "AAPL", "EUR/USD"
 	Quantity   float64
-	Price      float64           // unit price in snapshot's quote currency
+	Quote      string            // quote currency for Price and Value (e.g. "USDT", "THB")
+	Price      float64           // unit price in Quote currency
 	Value      float64           // quantity * price
 	Meta       map[string]string // "locked", "unrealized_pnl", "sector", etc.
 }

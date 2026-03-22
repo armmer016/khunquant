@@ -20,7 +20,7 @@ func NewExchangeTotalValueTool(cfg *config.Config) *ExchangeTotalValueTool {
 	return &ExchangeTotalValueTool{cfg: cfg}
 }
 
-func (t *ExchangeTotalValueTool) Name() string { return "get_total_value" }
+func (t *ExchangeTotalValueTool) Name() string { return NameGetTotalValue }
 
 func (t *ExchangeTotalValueTool) Description() string {
 	return "Estimate the total portfolio value in a quote currency (default USDT) by fetching all wallet balances and looking up live prices for each asset."

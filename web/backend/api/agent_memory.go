@@ -25,6 +25,7 @@ type agentMemoryFileContent struct {
 }
 
 func (h *Handler) registerAgentMemoryRoutes(mux *http.ServeMux) {
+	mux.HandleFunc("GET /api/agent/memory/size", h.handleMemorySize)
 	mux.HandleFunc("GET /api/agent/memory/files", h.handleListMemoryFiles)
 	mux.HandleFunc("POST /api/agent/memory/files", h.handleCreateMemoryFile)
 	mux.HandleFunc("GET /api/agent/memory/files/{path...}", h.handleGetMemoryFile)
@@ -234,6 +235,59 @@ func (h *Handler) handleCreateMemoryFile(w http.ResponseWriter, r *http.Request)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(map[string]string{"path": body.Path})
+}
+
+type agentMemorySizeInfo struct {
+	GeneralBytes  int64 `json:"general_bytes"`
+	SnapshotBytes int64 `json:"snapshot_bytes"`
+	TotalBytes    int64 `json:"total_bytes"`
+}
+
+func (h *Handler) handleMemorySize(w http.ResponseWriter, r *http.Request) {
+	memDir, err := h.memoryDir()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	snapshotsDir := filepath.Join(memDir, "snapshots")
+
+	var generalBytes int64
+	filepath.WalkDir(memDir, func(path string, d os.DirEntry, err error) error { //nolint:errcheck
+		if err != nil {
+			return nil
+		}
+		// Skip the snapshots subdirectory entirely
+		if d.IsDir() && path == snapshotsDir {
+			return filepath.SkipDir
+		}
+		if !d.IsDir() {
+			if info, err := d.Info(); err == nil {
+				generalBytes += info.Size()
+			}
+		}
+		return nil
+	})
+
+	var snapshotBytes int64
+	filepath.WalkDir(snapshotsDir, func(path string, d os.DirEntry, err error) error { //nolint:errcheck
+		if err != nil {
+			return nil
+		}
+		if !d.IsDir() {
+			if info, err := d.Info(); err == nil {
+				snapshotBytes += info.Size()
+			}
+		}
+		return nil
+	})
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(agentMemorySizeInfo{
+		GeneralBytes:  generalBytes,
+		SnapshotBytes: snapshotBytes,
+		TotalBytes:    generalBytes + snapshotBytes,
+	})
 }
 
 func (h *Handler) handleDeleteMemoryFile(w http.ResponseWriter, r *http.Request) {

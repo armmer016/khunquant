@@ -19,7 +19,7 @@ func NewTakeSnapshotTool(cfg *config.Config, store *snapshot.Store) *TakeSnapsho
 	return &TakeSnapshotTool{cfg: cfg, store: store}
 }
 
-func (t *TakeSnapshotTool) Name() string { return "take_snapshot" }
+func (t *TakeSnapshotTool) Name() string { return NameTakeSnapshot }
 
 func (t *TakeSnapshotTool) Description() string {
 	return "Capture the current portfolio state from configured exchange accounts. Stores a snapshot with all asset positions and their current values for historical tracking and growth analysis."

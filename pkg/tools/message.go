@@ -18,7 +18,7 @@ func NewMessageTool() *MessageTool {
 }
 
 func (t *MessageTool) Name() string {
-	return "message"
+	return NameMessage
 }
 
 func (t *MessageTool) Description() string {

@@ -99,6 +99,7 @@ func CollectFromExchanges(ctx context.Context, cfg *config.Config, opts CollectO
 					Category: "spot",
 					Asset:    b.Asset,
 					Quantity: qty,
+					Quote:    quote,
 				}
 				if b.Locked > 0 {
 					pos.Meta = map[string]string{"locked": fmt.Sprintf("%f", b.Locked)}
@@ -146,6 +147,7 @@ func CollectFromExchanges(ctx context.Context, cfg *config.Config, opts CollectO
 				Category: b.WalletType,
 				Asset:    b.Asset,
 				Quantity: qty,
+				Quote:    quote,
 			}
 
 			if canPrice {

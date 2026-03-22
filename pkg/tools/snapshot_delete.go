@@ -18,7 +18,7 @@ func NewDeleteSnapshotsTool(store *snapshot.Store) *DeleteSnapshotsTool {
 	return &DeleteSnapshotsTool{store: store}
 }
 
-func (t *DeleteSnapshotsTool) Name() string { return "delete_snapshots" }
+func (t *DeleteSnapshotsTool) Name() string { return NameDeleteSnapshots }
 
 func (t *DeleteSnapshotsTool) Description() string {
 	return "Delete old or unwanted portfolio snapshots. Supports deletion by ID, date, or label. Always keeps the N most recent snapshots as a safety measure (default 5)."

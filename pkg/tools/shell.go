@@ -152,7 +152,7 @@ func NewExecToolWithConfig(workingDir string, restrict bool, config *config.Conf
 }
 
 func (t *ExecTool) Name() string {
-	return "exec"
+	return NameExec
 }
 
 func (t *ExecTool) Description() string {

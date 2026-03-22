@@ -38,7 +38,7 @@ func NewSendFileTool(workspace string, restrict bool, maxFileSize int, store med
 	}
 }
 
-func (t *SendFileTool) Name() string { return "send_file" }
+func (t *SendFileTool) Name() string { return NameSendFile }
 func (t *SendFileTool) Description() string {
 	return "Send a local file (image, document, etc.) to the user on the current chat channel."
 }

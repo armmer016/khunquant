@@ -18,7 +18,7 @@ func NewQuerySnapshotsTool(store *snapshot.Store) *QuerySnapshotsTool {
 	return &QuerySnapshotsTool{store: store}
 }
 
-func (t *QuerySnapshotsTool) Name() string { return "query_snapshots" }
+func (t *QuerySnapshotsTool) Name() string { return NameQuerySnapshots }
 
 func (t *QuerySnapshotsTool) Description() string {
 	return "Query historical portfolio snapshots. Filter by time range, label, source, or asset. Returns a table of snapshots with timestamps, values, and optional per-asset positions."
@@ -122,12 +122,12 @@ func (t *QuerySnapshotsTool) Execute(ctx context.Context, args map[string]any) *
 				continue
 			}
 			sb.WriteString(fmt.Sprintf("\n## Snapshot #%d (%s)\n\n", s.ID, s.TakenAt.Format("2006-01-02 15:04:05")))
-			sb.WriteString(fmt.Sprintf("%-12s  %-10s  %-12s  %16s  %14s  %14s\n",
-				"Source", "Account", "Asset", "Quantity", "Price", "Value"))
-			sb.WriteString(strings.Repeat("-", 86) + "\n")
+			sb.WriteString(fmt.Sprintf("%-12s  %-10s  %-12s  %16s  %14s  %-6s  %14s\n",
+				"Source", "Account", "Asset", "Quantity", "Price", "Quote", "Value"))
+			sb.WriteString(strings.Repeat("-", 92) + "\n")
 			for _, p := range full.Positions {
-				sb.WriteString(fmt.Sprintf("%-12s  %-10s  %-12s  %16s  %14s  %14.2f\n",
-					p.Source, p.Account, p.Asset, formatAmount(p.Quantity), formatAmount(p.Price), p.Value))
+				sb.WriteString(fmt.Sprintf("%-12s  %-10s  %-12s  %16s  %14s  %-6s  %14.2f\n",
+					p.Source, p.Account, p.Asset, formatAmount(p.Quantity), formatAmount(p.Price), p.Quote, p.Value))
 			}
 		}
 	}

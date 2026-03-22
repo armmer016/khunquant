@@ -17,7 +17,7 @@ func NewI2CTool() *I2CTool {
 }
 
 func (t *I2CTool) Name() string {
-	return "i2c"
+	return NameI2C
 }
 
 func (t *I2CTool) Description() string {

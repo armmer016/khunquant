@@ -25,7 +25,7 @@ func NewFindSkillsTool(registryMgr *skills.RegistryManager, cache *skills.Search
 }
 
 func (t *FindSkillsTool) Name() string {
-	return "find_skills"
+	return NameFindSkills
 }
 
 func (t *FindSkillsTool) Description() string {

@@ -27,7 +27,7 @@ func NewRegexSearchTool(r *ToolRegistry, ttl int, maxSearchResults int) *RegexSe
 }
 
 func (t *RegexSearchTool) Name() string {
-	return "tool_search_tool_regex"
+	return NameToolSearchRegex
 }
 
 func (t *RegexSearchTool) Description() string {
@@ -88,7 +88,7 @@ func NewBM25SearchTool(r *ToolRegistry, ttl int, maxSearchResults int) *BM25Sear
 }
 
 func (t *BM25SearchTool) Name() string {
-	return "tool_search_tool_bm25"
+	return NameToolSearchBM25
 }
 
 func (t *BM25SearchTool) Description() string {

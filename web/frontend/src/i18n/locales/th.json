@@ -456,7 +456,29 @@
         "delete_error": "ลบไฟล์ล้มเหลว",
         "unsaved_changes": "มีการเปลี่ยนแปลงที่ยังไม่ได้บันทึก",
         "unsaved_confirm": "มีการเปลี่ยนแปลงที่ยังไม่ได้บันทึก ยกเลิกการเปลี่ยนแปลง?",
-        "placeholder": "กรอกเนื้อหา markdown..."
+        "placeholder": "กรอกเนื้อหา markdown...",
+        "tabs": {
+          "general": "ทั่วไป",
+          "snapshot": "Snapshot"
+        },
+        "snapshot": {
+          "empty": "ไม่พบ snapshot",
+          "select_hint": "เลือก snapshot เพื่อดูรายละเอียด",
+          "delete_title": "ลบ Snapshot?",
+          "delete_description": "Snapshot #{{id}} ({{date}}) จะถูกลบอย่างถาวร",
+          "delete_confirm": "ลบ",
+          "delete_success": "ลบ snapshot สำเร็จ",
+          "delete_error": "ลบ snapshot ล้มเหลว",
+          "total_value": "มูลค่ารวม",
+          "positions": "รายการสินทรัพย์",
+          "col_source": "แหล่งที่มา",
+          "col_account": "บัญชี",
+          "col_category": "ประเภท",
+          "col_asset": "สินทรัพย์",
+          "col_quantity": "จำนวน",
+          "col_price": "ราคา",
+          "col_value": "มูลค่า"
+        }
       },
       "agent_config": {
         "empty": "ไม่มีไฟล์ .md ในเวิร์กสเปซ",

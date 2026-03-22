@@ -20,7 +20,7 @@ func NewListPortfoliosTool(cfg *config.Config) *ListPortfoliosTool {
 }
 
 func (t *ListPortfoliosTool) Name() string {
-	return "list_portfolios"
+	return NameListPortfolios
 }
 
 func (t *ListPortfoliosTool) Description() string {

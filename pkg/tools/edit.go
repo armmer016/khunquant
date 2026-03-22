@@ -25,7 +25,7 @@ func NewEditFileTool(workspace string, restrict bool, allowPaths ...[]*regexp.Re
 }
 
 func (t *EditFileTool) Name() string {
-	return "edit_file"
+	return NameEditFile
 }
 
 func (t *EditFileTool) Description() string {
@@ -88,7 +88,7 @@ func NewAppendFileTool(workspace string, restrict bool, allowPaths ...[]*regexp.
 }
 
 func (t *AppendFileTool) Name() string {
-	return "append_file"
+	return NameAppendFile
 }
 
 func (t *AppendFileTool) Description() string {

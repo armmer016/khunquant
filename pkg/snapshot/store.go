@@ -79,6 +79,9 @@ func NewStore(workspacePath string) (*Store, error) {
 		return nil, fmt.Errorf("snapshot: create schema: %w", err)
 	}
 
+	// Migrate: add quote column to positions if it doesn't exist yet.
+	db.Exec(`ALTER TABLE positions ADD COLUMN quote TEXT NOT NULL DEFAULT ''`) //nolint:errcheck
+
 	return &Store{db: db}, nil
 }
 
@@ -120,9 +123,9 @@ func (s *Store) SaveSnapshot(ctx context.Context, snap *Snapshot) (int64, error)
 		}
 
 		_, err := tx.ExecContext(ctx,
-			`INSERT INTO positions (snapshot_id, source, account, category, asset, quantity, price, value, meta)
-			 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-			id, p.Source, p.Account, p.Category, p.Asset, p.Quantity, p.Price, p.Value, meta,
+			`INSERT INTO positions (snapshot_id, source, account, category, asset, quantity, quote, price, value, meta)
+			 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+			id, p.Source, p.Account, p.Category, p.Asset, p.Quantity, p.Quote, p.Price, p.Value, meta,
 		)
 		if err != nil {
 			return 0, fmt.Errorf("snapshot: insert position %s/%s: %w", p.Source, p.Asset, err)
@@ -439,7 +442,7 @@ func (s *Store) DeleteSnapshots(ctx context.Context, f DeleteFilter) (int, error
 
 func (s *Store) loadPositions(ctx context.Context, snapshotID int64) ([]Position, error) {
 	rows, err := s.db.QueryContext(ctx,
-		`SELECT id, snapshot_id, source, account, category, asset, quantity, price, value, meta
+		`SELECT id, snapshot_id, source, account, category, asset, quantity, quote, price, value, meta
 		 FROM positions WHERE snapshot_id = ?`, snapshotID)
 	if err != nil {
 		return nil, err
@@ -451,7 +454,7 @@ func (s *Store) loadPositions(ctx context.Context, snapshotID int64) ([]Position
 		var p Position
 		var metaJSON string
 		if err := rows.Scan(&p.ID, &p.SnapshotID, &p.Source, &p.Account, &p.Category,
-			&p.Asset, &p.Quantity, &p.Price, &p.Value, &metaJSON); err != nil {
+			&p.Asset, &p.Quantity, &p.Quote, &p.Price, &p.Value, &metaJSON); err != nil {
 			return nil, err
 		}
 		if metaJSON != "" && metaJSON != "{}" {
