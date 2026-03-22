@@ -223,6 +223,152 @@ func TestToolRegistry_GetDefinitions(t *testing.T) {
 	}
 }
 
+func TestProcessMessage_MediaToolHandledSkipsFollowUpLLMAndFinalText(t *testing.T) {
+	tmpDir := t.TempDir()
+	cfg := &config.Config{
+		Agents: config.AgentsConfig{
+			Defaults: config.AgentDefaults{
+				Workspace:         tmpDir,
+				Model:             "test-model",
+				MaxTokens:         4096,
+				MaxToolIterations: 10,
+			},
+		},
+	}
+
+	msgBus := bus.NewMessageBus()
+	provider := &handledMediaProvider{}
+	al := NewAgentLoop(cfg, msgBus, provider)
+
+	store := media.NewFileMediaStore()
+	al.SetMediaStore(store)
+
+	imagePath := filepath.Join(tmpDir, "screen.png")
+	if err := os.WriteFile(imagePath, []byte("fake screenshot"), 0o644); err != nil {
+		t.Fatalf("WriteFile(imagePath) error = %v", err)
+	}
+
+	al.RegisterTool(&handledMediaTool{
+		store: store,
+		path:  imagePath,
+	})
+
+	response, err := al.processMessage(context.Background(), bus.InboundMessage{
+		Channel:  "telegram",
+		ChatID:   "chat1",
+		SenderID: "user1",
+		Content:  "take a screenshot of the screen and send it to me",
+	})
+	if err != nil {
+		t.Fatalf("processMessage() error = %v", err)
+	}
+	if response != "" {
+		t.Fatalf("expected no final response when media tool already handled delivery, got %q", response)
+	}
+	if provider.calls != 1 {
+		t.Fatalf("expected exactly 1 LLM call, got %d", provider.calls)
+	}
+	if len(provider.toolCounts) != 1 {
+		t.Fatalf("expected tool counts for 1 provider call, got %d", len(provider.toolCounts))
+	}
+	if provider.toolCounts[0] == 0 {
+		t.Fatal("expected tools to be available on the first LLM call")
+	}
+
+	select {
+	case mediaMsg := <-msgBus.OutboundMediaChan():
+		if mediaMsg.Channel != "telegram" || mediaMsg.ChatID != "chat1" {
+			t.Fatalf("unexpected outbound media target: %+v", mediaMsg)
+		}
+		if len(mediaMsg.Parts) != 1 {
+			t.Fatalf("expected exactly 1 outbound media part, got %d", len(mediaMsg.Parts))
+		}
+	default:
+		t.Fatal("expected outbound media message to be published")
+	}
+
+	defaultAgent := al.GetRegistry().GetDefaultAgent()
+	if defaultAgent == nil {
+		t.Fatal("expected default agent")
+	}
+	route, _, err := al.resolveMessageRoute(bus.InboundMessage{
+		Channel:  "telegram",
+		ChatID:   "chat1",
+		SenderID: "user1",
+		Content:  "take a screenshot of the screen and send it to me",
+	})
+	if err != nil {
+		t.Fatalf("resolveMessageRoute() error = %v", err)
+	}
+	sessionKey := resolveScopeKey(route, "")
+	history := defaultAgent.Sessions.GetHistory(sessionKey)
+	if len(history) == 0 {
+		t.Fatal("expected session history to be saved")
+	}
+	last := history[len(history)-1]
+	if last.Role != "assistant" || last.Content != handledToolResponseSummary {
+		t.Fatalf("expected handled assistant summary in history, got %+v", last)
+	}
+}
+
+func TestProcessMessage_MediaArtifactCanBeForwardedBySendFile(t *testing.T) {
+	tmpDir := t.TempDir()
+	cfg := config.DefaultConfig()
+	cfg.Agents.Defaults.Workspace = tmpDir
+	cfg.Agents.Defaults.Model = "test-model"
+	cfg.Agents.Defaults.MaxTokens = 4096
+	cfg.Agents.Defaults.MaxToolIterations = 10
+
+	msgBus := bus.NewMessageBus()
+	provider := &artifactThenSendProvider{}
+	al := NewAgentLoop(cfg, msgBus, provider)
+
+	store := media.NewFileMediaStore()
+	al.SetMediaStore(store)
+
+	mediaDir := media.TempDir()
+	if err := os.MkdirAll(mediaDir, 0o700); err != nil {
+		t.Fatalf("MkdirAll(mediaDir) error = %v", err)
+	}
+	imagePath := filepath.Join(mediaDir, "artifact-screen.png")
+	if err := os.WriteFile(imagePath, []byte("fake screenshot"), 0o644); err != nil {
+		t.Fatalf("WriteFile(imagePath) error = %v", err)
+	}
+
+	al.RegisterTool(&mediaArtifactTool{
+		store: store,
+		path:  imagePath,
+	})
+
+	response, err := al.processMessage(context.Background(), bus.InboundMessage{
+		Channel:  "telegram",
+		ChatID:   "chat1",
+		SenderID: "user1",
+		Content:  "take a screenshot of the screen and send it to me",
+	})
+	if err != nil {
+		t.Fatalf("processMessage() error = %v", err)
+	}
+	if response != "" {
+		t.Fatalf("expected no final response after send_file handled delivery, got %q", response)
+	}
+	if provider.calls != 2 {
+		t.Fatalf("expected 2 LLM calls (artifact + send_file), got %d", provider.calls)
+	}
+
+	select {
+	case mediaMsg := <-msgBus.OutboundMediaChan():
+		if mediaMsg.Channel != "telegram" || mediaMsg.ChatID != "chat1" {
+			t.Fatalf("unexpected outbound media target: %+v", mediaMsg)
+		}
+		if len(mediaMsg.Parts) != 1 {
+			t.Fatalf("expected exactly 1 outbound media part, got %d", len(mediaMsg.Parts))
+		}
+	default:
+		t.Fatal("expected outbound media from send_file")
+	}
+}
+
 // TestAgentLoop_GetStartupInfo verifies startup info contains tools
 func TestAgentLoop_GetStartupInfo(t *testing.T) {
 	tmpDir, err := os.MkdirTemp("", "agent-test-*")
@@ -494,6 +640,7 @@ func (m *toolFeedbackProvider) GetDefaultModel() string {
 	return "heartbeat-tool-feedback-model"
 }
 
+
 type toolLimitOnlyProvider struct{}
 
 func (m *toolLimitOnlyProvider) Chat(
@@ -573,6 +720,64 @@ func (m *picoInterleavedContentProvider) Chat(
 
 func (m *picoInterleavedContentProvider) GetDefaultModel() string {
 	return "pico-interleaved-model"
+}
+
+type handledMediaTool struct {
+	store media.MediaStore
+	path  string
+}
+
+func (m *handledMediaTool) Name() string { return "handled_media_tool" }
+func (m *handledMediaTool) Description() string {
+	return "Returns a media attachment and fully handles the user response"
+}
+
+func (m *handledMediaTool) Parameters() map[string]any {
+	return map[string]any{
+		"type":       "object",
+		"properties": map[string]any{},
+	}
+}
+
+func (m *handledMediaTool) Execute(ctx context.Context, args map[string]any) *tools.ToolResult {
+	ref, err := m.store.Store(m.path, media.MediaMeta{
+		Filename:    filepath.Base(m.path),
+		ContentType: "image/png",
+		Source:      "test:handled_media_tool",
+	}, "test:handled_media")
+	if err != nil {
+		return tools.ErrorResult(err.Error()).WithError(err)
+	}
+	return tools.MediaResult("Attachment delivered by tool.", []string{ref}).WithResponseHandled()
+}
+
+type mediaArtifactTool struct {
+	store media.MediaStore
+	path  string
+}
+
+func (m *mediaArtifactTool) Name() string { return "media_artifact_tool" }
+func (m *mediaArtifactTool) Description() string {
+	return "Returns a media artifact that the agent can forward or save later"
+}
+
+func (m *mediaArtifactTool) Parameters() map[string]any {
+	return map[string]any{
+		"type":       "object",
+		"properties": map[string]any{},
+	}
+}
+
+func (m *mediaArtifactTool) Execute(ctx context.Context, args map[string]any) *tools.ToolResult {
+	ref, err := m.store.Store(m.path, media.MediaMeta{
+		Filename:    filepath.Base(m.path),
+		ContentType: "image/png",
+		Source:      "test:media_artifact_tool",
+	}, "test:media_artifact")
+	if err != nil {
+		return tools.ErrorResult(err.Error()).WithError(err)
+	}
+	return tools.MediaResult("Artifact created.", []string{ref})
 }
 
 type toolLimitTestTool struct{}

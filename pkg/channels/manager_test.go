@@ -43,6 +43,20 @@ func (m *mockChannel) EditMessage(ctx context.Context, chatID, messageID, conten
 	return nil
 }
 
+type mockMediaChannel struct {
+	mockChannel
+	sendMediaFn       func(ctx context.Context, msg bus.OutboundMediaMessage) error
+	sentMediaMessages []bus.OutboundMediaMessage
+}
+
+func (m *mockMediaChannel) SendMedia(ctx context.Context, msg bus.OutboundMediaMessage) error {
+	m.sentMediaMessages = append(m.sentMediaMessages, msg)
+	if m.sendMediaFn != nil {
+		return m.sendMediaFn(ctx, msg)
+	}
+	return nil
+}
+
 // newTestManager creates a minimal Manager suitable for unit tests.
 func newTestManager() *Manager {
 	return &Manager{
@@ -205,6 +219,62 @@ func TestSendWithRetry_MaxRetriesExhausted(t *testing.T) {
 	expected := maxRetries + 1 // initial attempt + maxRetries retries
 	if callCount != expected {
 		t.Fatalf("expected %d Send calls, got %d", expected, callCount)
+	}
+}
+
+func TestSendMedia_Success(t *testing.T) {
+	m := newTestManager()
+	var callCount int
+	ch := &mockMediaChannel{
+		sendMediaFn: func(_ context.Context, _ bus.OutboundMediaMessage) error {
+			callCount++
+			return nil
+		},
+	}
+	w := &channelWorker{
+		ch:      ch,
+		limiter: rate.NewLimiter(rate.Inf, 1),
+	}
+	m.channels["test"] = ch
+	m.workers["test"] = w
+
+	err := m.SendMedia(context.Background(), bus.OutboundMediaMessage{
+		Channel: "test",
+		ChatID:  "chat1",
+		Parts:   []bus.MediaPart{{Ref: "media://abc"}},
+	})
+	if err != nil {
+		t.Fatalf("SendMedia() error = %v", err)
+	}
+	if callCount != 1 {
+		t.Fatalf("expected 1 SendMedia call, got %d", callCount)
+	}
+}
+
+func TestSendMedia_PropagatesFailure(t *testing.T) {
+	m := newTestManager()
+	ch := &mockMediaChannel{
+		sendMediaFn: func(_ context.Context, _ bus.OutboundMediaMessage) error {
+			return fmt.Errorf("bad upload: %w", ErrSendFailed)
+		},
+	}
+	w := &channelWorker{
+		ch:      ch,
+		limiter: rate.NewLimiter(rate.Inf, 1),
+	}
+	m.channels["test"] = ch
+	m.workers["test"] = w
+
+	err := m.SendMedia(context.Background(), bus.OutboundMediaMessage{
+		Channel: "test",
+		ChatID:  "chat1",
+		Parts:   []bus.MediaPart{{Ref: "media://abc"}},
+	})
+	if err == nil {
+		t.Fatal("expected SendMedia to return error")
+	}
+	if !errors.Is(err, ErrSendFailed) {
+		t.Fatalf("expected ErrSendFailed, got %v", err)
 	}
 }
 
