@@ -17,7 +17,7 @@ func NewSPITool() *SPITool {
 }
 
 func (t *SPITool) Name() string {
-	return "spi"
+	return NameSPI
 }
 
 func (t *SPITool) Description() string {

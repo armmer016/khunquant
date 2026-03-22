@@ -722,7 +722,7 @@ func NewWebSearchTool(opts WebSearchToolOptions) (*WebSearchTool, error) {
 }
 
 func (t *WebSearchTool) Name() string {
-	return "web_search"
+	return NameWebSearch
 }
 
 func (t *WebSearchTool) Description() string {
@@ -824,7 +824,7 @@ func NewWebFetchToolWithProxy(maxChars int, proxy string, fetchLimitBytes int64)
 }
 
 func (t *WebFetchTool) Name() string {
-	return "web_fetch"
+	return NameWebFetch
 }
 
 func (t *WebFetchTool) Description() string {

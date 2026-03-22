@@ -83,11 +83,109 @@ type Config struct {
 	ModelList []ModelConfig   `json:"model_list"` // New model-centric provider configuration
 	Gateway   GatewayConfig   `json:"gateway"`
 	Tools     ToolsConfig     `json:"tools"`
+	Exchanges ExchangesConfig `json:"exchanges"`
 	Heartbeat HeartbeatConfig `json:"heartbeat"`
 	Devices   DevicesConfig   `json:"devices"`
 	Voice     VoiceConfig     `json:"voice"`
 	// BuildInfo contains build-time version information
 	BuildInfo BuildInfo `json:"build_info,omitempty"`
+}
+
+// ExchangeAccount holds credentials for a single named exchange sub-account.
+type ExchangeAccount struct {
+	Name   string `json:"name,omitempty"`
+	APIKey string `json:"api_key"`
+	Secret string `json:"secret"`
+}
+
+// OKXExchangeAccount extends ExchangeAccount with the OKX-specific passphrase.
+type OKXExchangeAccount struct {
+	ExchangeAccount
+	Passphrase string `json:"passphrase"`
+}
+
+// ExchangesConfig holds configuration for all supported exchanges.
+type ExchangesConfig struct {
+	Binance   BinanceExchangeConfig   `json:"binance"`
+	OKX       OKXExchangeConfig       `json:"okx"`
+	Bitkub    BitkubExchangeConfig    `json:"bitkub"`
+	BinanceTH BinanceTHExchangeConfig `json:"binanceth"`
+}
+
+// BinanceExchangeConfig holds the Binance exchange credentials and settings.
+type BinanceExchangeConfig struct {
+	Enabled  bool              `json:"enabled"  env:"KHUNQUANT_EXCHANGES_BINANCE_ENABLED"`
+	Testnet  bool              `json:"testnet"  env:"KHUNQUANT_EXCHANGES_BINANCE_TESTNET"`
+	Accounts []ExchangeAccount `json:"accounts,omitempty"`
+}
+
+// ResolveAccount returns the account matching name, or the first account when name is "".
+// Accounts with no name are assigned positional names "1", "2", etc.
+func (c *BinanceExchangeConfig) ResolveAccount(name string) (ExchangeAccount, bool) {
+	return resolveAccount(c.Accounts, name)
+}
+
+// BinanceTHExchangeConfig holds the Binance Thailand exchange credentials and settings.
+type BinanceTHExchangeConfig struct {
+	Enabled  bool              `json:"enabled"  env:"KHUNQUANT_EXCHANGES_BINANCETH_ENABLED"`
+	Accounts []ExchangeAccount `json:"accounts,omitempty"`
+}
+
+// ResolveAccount returns the account matching name, or the first account when name is "".
+func (c *BinanceTHExchangeConfig) ResolveAccount(name string) (ExchangeAccount, bool) {
+	return resolveAccount(c.Accounts, name)
+}
+
+// BitkubExchangeConfig holds the Bitkub exchange credentials and settings.
+type BitkubExchangeConfig struct {
+	Enabled  bool              `json:"enabled"  env:"KHUNQUANT_EXCHANGES_BITKUB_ENABLED"`
+	Accounts []ExchangeAccount `json:"accounts,omitempty"`
+}
+
+// ResolveAccount returns the account matching name, or the first account when name is "".
+func (c *BitkubExchangeConfig) ResolveAccount(name string) (ExchangeAccount, bool) {
+	return resolveAccount(c.Accounts, name)
+}
+
+// OKXExchangeConfig holds the OKX exchange credentials and settings.
+type OKXExchangeConfig struct {
+	Enabled  bool                 `json:"enabled"  env:"KHUNQUANT_EXCHANGES_OKX_ENABLED"`
+	Testnet  bool                 `json:"testnet"  env:"KHUNQUANT_EXCHANGES_OKX_TESTNET"`
+	Accounts []OKXExchangeAccount `json:"accounts,omitempty"`
+}
+
+// ResolveAccount returns the OKX account matching name, or the first account when name is "".
+func (c *OKXExchangeConfig) ResolveAccount(name string) (OKXExchangeAccount, bool) {
+	for i, acc := range c.Accounts {
+		effectiveName := acc.Name
+		if effectiveName == "" {
+			effectiveName = fmt.Sprintf("%d", i+1)
+		}
+		if name == "" || strings.EqualFold(effectiveName, name) {
+			if acc.Name == "" {
+				acc.Name = effectiveName
+			}
+			return acc, true
+		}
+	}
+	return OKXExchangeAccount{}, false
+}
+
+// resolveAccount is a generic helper for []ExchangeAccount resolution.
+func resolveAccount(accounts []ExchangeAccount, name string) (ExchangeAccount, bool) {
+	for i, acc := range accounts {
+		effectiveName := acc.Name
+		if effectiveName == "" {
+			effectiveName = fmt.Sprintf("%d", i+1)
+		}
+		if name == "" || strings.EqualFold(effectiveName, name) {
+			if acc.Name == "" {
+				acc.Name = effectiveName
+			}
+			return acc, true
+		}
+	}
+	return ExchangeAccount{}, false
 }
 
 // BuildInfo contains build-time version information
@@ -305,6 +403,7 @@ type TelegramConfig struct {
 	BaseURL            string              `json:"base_url"                env:"KHUNQUANT_CHANNELS_TELEGRAM_BASE_URL"`
 	Proxy              string              `json:"proxy"                   env:"KHUNQUANT_CHANNELS_TELEGRAM_PROXY"`
 	AllowFrom          FlexibleStringSlice `json:"allow_from"              env:"KHUNQUANT_CHANNELS_TELEGRAM_ALLOW_FROM"`
+	PairingEnabled     bool                `json:"pairing_enabled"         env:"KHUNQUANT_CHANNELS_TELEGRAM_PAIRING_ENABLED"`
 	GroupTrigger       GroupTriggerConfig  `json:"group_trigger,omitempty"`
 	Typing             TypingConfig        `json:"typing,omitempty"`
 	Placeholder        PlaceholderConfig   `json:"placeholder,omitempty"`
@@ -752,6 +851,13 @@ type ToolsConfig struct {
 	Subagent        ToolConfig         `json:"subagent"                                                 envPrefix:"KHUNQUANT_TOOLS_SUBAGENT_"`
 	WebFetch        ToolConfig         `json:"web_fetch"                                                envPrefix:"KHUNQUANT_TOOLS_WEB_FETCH_"`
 	WriteFile       ToolConfig         `json:"write_file"                                               envPrefix:"KHUNQUANT_TOOLS_WRITE_FILE_"`
+	GetAssetsList  ToolConfig         `json:"get_assets_list"                                          envPrefix:"KHUNQUANT_TOOLS_GET_ASSETS_LIST_"`
+	GetTotalValue  ToolConfig         `json:"get_total_value"                                          envPrefix:"KHUNQUANT_TOOLS_GET_TOTAL_VALUE_"`
+	ListPortfolios     ToolConfig         `json:"list_portfolios"                                          envPrefix:"KHUNQUANT_TOOLS_LIST_PORTFOLIOS_"`
+	TakeSnapshot       ToolConfig         `json:"take_snapshot"                                            envPrefix:"KHUNQUANT_TOOLS_TAKE_SNAPSHOT_"`
+	QuerySnapshots     ToolConfig         `json:"query_snapshots"                                          envPrefix:"KHUNQUANT_TOOLS_QUERY_SNAPSHOTS_"`
+	SnapshotSummary    ToolConfig         `json:"snapshot_summary"                                         envPrefix:"KHUNQUANT_TOOLS_SNAPSHOT_SUMMARY_"`
+	DeleteSnapshots    ToolConfig         `json:"delete_snapshots"                                         envPrefix:"KHUNQUANT_TOOLS_DELETE_SNAPSHOTS_"`
 }
 
 type SearchCacheConfig struct {
@@ -856,6 +962,7 @@ func LoadConfig(path string) (*Config, error) {
 
 	return cfg, nil
 }
+
 
 func (c *Config) migrateChannelConfigs() {
 	// Discord: mention_only -> group_trigger.mention_only
@@ -1055,6 +1162,20 @@ func (t *ToolsConfig) IsToolEnabled(name string) bool {
 		return t.WriteFile.Enabled
 	case "mcp":
 		return t.MCP.Enabled
+	case "get_assets_list":
+		return t.GetAssetsList.Enabled
+	case "get_total_value":
+		return t.GetTotalValue.Enabled
+	case "list_portfolios":
+		return t.ListPortfolios.Enabled
+	case "take_snapshot":
+		return t.TakeSnapshot.Enabled
+	case "query_snapshots":
+		return t.QuerySnapshots.Enabled
+	case "snapshot_summary":
+		return t.SnapshotSummary.Enabled
+	case "delete_snapshots":
+		return t.DeleteSnapshots.Enabled
 	default:
 		return true
 	}

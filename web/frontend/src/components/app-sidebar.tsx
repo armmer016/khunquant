@@ -1,8 +1,13 @@
 import { IconChevronRight } from "@tabler/icons-react"
+import { AlertDot } from "@/components/ui/alert-dot"
 import {
   IconAtom,
+  IconBrain,
+  IconBuildingBank,
   IconChevronsDown,
   IconChevronsUp,
+  IconClock,
+  IconFileText,
   IconKey,
   IconListDetails,
   IconMessageCircle,
@@ -37,6 +42,7 @@ interface NavItem {
   url: string
   icon: React.ComponentType<{ className?: string }>
   translateTitle?: boolean
+  badge?: string
 }
 
 interface NavGroup {
@@ -114,12 +120,55 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           url: item.url,
           icon: item.icon,
           translateTitle: false,
+          badge: item.badge,
         })),
         isChannelsGroup: true,
       },
       {
+        label: "navigation.portfolios_group",
+        defaultOpen: true,
+        items: [
+          {
+            title: "navigation.portfolios_binance",
+            url: "/portfolios/binance",
+            icon: IconBuildingBank,
+            translateTitle: true,
+          },
+          {
+            title: "navigation.portfolios_okx",
+            url: "/portfolios/okx",
+            icon: IconBuildingBank,
+            translateTitle: true,
+          },
+          {
+            title: "navigation.portfolios_bitkub",
+            url: "/portfolios/bitkub",
+            icon: IconBuildingBank,
+            translateTitle: true,
+          },
+          {
+            title: "navigation.portfolios_binanceth",
+            url: "/portfolios/binanceth",
+            icon: IconBuildingBank,
+            translateTitle: true,
+          },
+        ],
+      },
+      {
         ...baseNavGroups[2],
         items: [
+          {
+            title: "navigation.agent_config",
+            url: "/agent/config",
+            icon: IconFileText,
+            translateTitle: true,
+          },
+          {
+            title: "navigation.agent_memory",
+            url: "/agent/memory",
+            icon: IconBrain,
+            translateTitle: true,
+          },
           {
             title: "navigation.skills",
             url: "/agent/skills",
@@ -130,6 +179,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             title: "navigation.tools",
             url: "/agent/tools",
             icon: IconTools,
+            translateTitle: true,
+          },
+          {
+            title: "navigation.cron",
+            url: "/agent/cron",
+            icon: IconClock,
             translateTitle: true,
           },
         ],
@@ -201,6 +256,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                                   ? item.title
                                   : t(item.title)}
                               </span>
+                              {item.badge && (
+                                <AlertDot className="ml-auto" />
+                              )}
                             </Link>
                           </SidebarMenuButton>
                         </SidebarMenuItem>

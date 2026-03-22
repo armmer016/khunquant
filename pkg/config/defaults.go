@@ -50,10 +50,11 @@ func DefaultConfig() *Config {
 				AllowFrom:        FlexibleStringSlice{},
 			},
 			Telegram: TelegramConfig{
-				Enabled:   false,
-				Token:     "",
-				AllowFrom: FlexibleStringSlice{},
-				Typing:    TypingConfig{Enabled: true},
+				Enabled:        false,
+				Token:          "",
+				AllowFrom:      FlexibleStringSlice{},
+				PairingEnabled: true,
+				Typing:         TypingConfig{Enabled: true},
 				Placeholder: PlaceholderConfig{
 					Enabled: true,
 					Text:    "Thinking... 💭",
@@ -532,6 +533,32 @@ func DefaultConfig() *Config {
 			},
 			WriteFile: ToolConfig{
 				Enabled: true,
+			},
+			GetAssetsList: ToolConfig{
+				Enabled: true,
+			},
+			GetTotalValue: ToolConfig{
+				Enabled: true,
+			},
+			ListPortfolios: ToolConfig{
+				Enabled: true,
+			},
+			TakeSnapshot: ToolConfig{
+				Enabled: true,
+			},
+			QuerySnapshots: ToolConfig{
+				Enabled: true,
+			},
+			SnapshotSummary: ToolConfig{
+				Enabled: true,
+			},
+			DeleteSnapshots: ToolConfig{
+				Enabled: true,
+			},
+		},
+		Exchanges: ExchangesConfig{
+			Binance: BinanceExchangeConfig{
+				Enabled: false,
 			},
 		},
 		Heartbeat: HeartbeatConfig{

@@ -60,9 +60,24 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 	// Channel catalog (for frontend navigation/config pages)
 	h.registerChannelRoutes(mux)
 
+	// Agent config files (workspace .md files)
+	h.registerAgentConfigRoutes(mux)
+
+	// Agent memory files (workspace/memory/)
+	h.registerAgentMemoryRoutes(mux)
+
+	// Agent snapshot store (workspace/memory/snapshots/snapshots.db)
+	h.registerAgentSnapshotRoutes(mux)
+
 	// Skills and tools support/actions
 	h.registerSkillRoutes(mux)
 	h.registerToolRoutes(mux)
+
+	// Cron job management
+	h.registerCronRoutes(mux)
+
+	// Telegram pairing requests
+	h.registerPairingRoutes(mux)
 
 	// OS startup / launch-at-login
 	h.registerStartupRoutes(mux)

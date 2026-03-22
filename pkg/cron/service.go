@@ -470,6 +470,26 @@ func (cs *CronService) EnableJob(jobID string, enabled bool) *CronJob {
 	return nil
 }
 
+// RunJobNow fires a job immediately in the background, regardless of its schedule.
+// Returns false if the job ID is not found.
+func (cs *CronService) RunJobNow(jobID string) bool {
+	cs.mu.RLock()
+	found := false
+	for _, j := range cs.store.Jobs {
+		if j.ID == jobID {
+			found = true
+			break
+		}
+	}
+	cs.mu.RUnlock()
+
+	if !found {
+		return false
+	}
+	go cs.executeJobByID(jobID)
+	return true
+}
+
 func (cs *CronService) ListJobs(includeDisabled bool) []CronJob {
 	cs.mu.RLock()
 	defer cs.mu.RUnlock()

@@ -7,6 +7,7 @@ import (
 	"runtime"
 
 	"github.com/khunquant/khunquant/pkg/config"
+	"github.com/khunquant/khunquant/pkg/tools"
 )
 
 type toolCatalogEntry struct {
@@ -35,111 +36,153 @@ type toolStateRequest struct {
 
 var toolCatalog = []toolCatalogEntry{
 	{
-		Name:        "read_file",
-		Description: "Read file content from the workspace or explicitly allowed paths.",
-		Category:    "filesystem",
-		ConfigKey:   "read_file",
+		Name:        tools.NameReadFile,
+		Description: tools.DescReadFile,
+		Category:    tools.CatFilesystem,
+		ConfigKey:   tools.NameReadFile,
 	},
 	{
-		Name:        "write_file",
-		Description: "Create or overwrite files within the writable workspace scope.",
-		Category:    "filesystem",
-		ConfigKey:   "write_file",
+		Name:        tools.NameWriteFile,
+		Description: tools.DescWriteFile,
+		Category:    tools.CatFilesystem,
+		ConfigKey:   tools.NameWriteFile,
 	},
 	{
-		Name:        "list_dir",
-		Description: "Inspect directories and enumerate files available to the agent.",
-		Category:    "filesystem",
-		ConfigKey:   "list_dir",
+		Name:        tools.NameListDir,
+		Description: tools.DescListDir,
+		Category:    tools.CatFilesystem,
+		ConfigKey:   tools.NameListDir,
 	},
 	{
-		Name:        "edit_file",
-		Description: "Apply targeted edits to existing files without rewriting everything.",
-		Category:    "filesystem",
-		ConfigKey:   "edit_file",
+		Name:        tools.NameEditFile,
+		Description: tools.DescEditFile,
+		Category:    tools.CatFilesystem,
+		ConfigKey:   tools.NameEditFile,
 	},
 	{
-		Name:        "append_file",
-		Description: "Append content to the end of an existing file.",
-		Category:    "filesystem",
-		ConfigKey:   "append_file",
+		Name:        tools.NameAppendFile,
+		Description: tools.DescAppendFile,
+		Category:    tools.CatFilesystem,
+		ConfigKey:   tools.NameAppendFile,
 	},
 	{
-		Name:        "exec",
-		Description: "Run shell commands inside the configured workspace sandbox.",
-		Category:    "filesystem",
-		ConfigKey:   "exec",
+		Name:        tools.NameExec,
+		Description: tools.DescExec,
+		Category:    tools.CatFilesystem,
+		ConfigKey:   tools.NameExec,
 	},
 	{
-		Name:        "cron",
-		Description: "Schedule one-time or recurring reminders, jobs, and shell commands.",
-		Category:    "automation",
-		ConfigKey:   "cron",
+		Name:        tools.NameCron,
+		Description: tools.DescCron,
+		Category:    tools.CatAutomation,
+		ConfigKey:   tools.NameCron,
 	},
 	{
-		Name:        "web_search",
-		Description: "Search the web using the configured providers.",
-		Category:    "web",
+		Name:        tools.NameWebSearch,
+		Description: tools.DescWebSearch,
+		Category:    tools.CatWeb,
 		ConfigKey:   "web",
 	},
 	{
-		Name:        "web_fetch",
-		Description: "Fetch and summarize the contents of a webpage.",
-		Category:    "web",
-		ConfigKey:   "web_fetch",
+		Name:        tools.NameWebFetch,
+		Description: tools.DescWebFetch,
+		Category:    tools.CatWeb,
+		ConfigKey:   tools.NameWebFetch,
 	},
 	{
-		Name:        "message",
-		Description: "Send a follow-up message back to the active user or chat.",
-		Category:    "communication",
-		ConfigKey:   "message",
+		Name:        tools.NameMessage,
+		Description: tools.DescMessage,
+		Category:    tools.CatCommunication,
+		ConfigKey:   tools.NameMessage,
 	},
 	{
-		Name:        "send_file",
-		Description: "Send an outbound file or media attachment to the active chat.",
-		Category:    "communication",
-		ConfigKey:   "send_file",
+		Name:        tools.NameSendFile,
+		Description: tools.DescSendFile,
+		Category:    tools.CatCommunication,
+		ConfigKey:   tools.NameSendFile,
 	},
 	{
-		Name:        "find_skills",
-		Description: "Search external skill registries for installable skills.",
-		Category:    "skills",
-		ConfigKey:   "find_skills",
+		Name:        tools.NameFindSkills,
+		Description: tools.DescFindSkills,
+		Category:    tools.CatSkills,
+		ConfigKey:   tools.NameFindSkills,
 	},
 	{
-		Name:        "install_skill",
-		Description: "Install a skill into the current workspace from a registry.",
-		Category:    "skills",
-		ConfigKey:   "install_skill",
+		Name:        tools.NameInstallSkill,
+		Description: tools.DescInstallSkill,
+		Category:    tools.CatSkills,
+		ConfigKey:   tools.NameInstallSkill,
 	},
 	{
-		Name:        "spawn",
-		Description: "Launch a background subagent for long-running or delegated work.",
-		Category:    "agents",
-		ConfigKey:   "spawn",
+		Name:        tools.NameSpawn,
+		Description: tools.DescSpawn,
+		Category:    tools.CatAgents,
+		ConfigKey:   tools.NameSpawn,
 	},
 	{
-		Name:        "i2c",
-		Description: "Interact with I2C hardware devices exposed on the host.",
-		Category:    "hardware",
-		ConfigKey:   "i2c",
+		Name:        tools.NameGetAssetsList,
+		Description: tools.DescGetAssetsList,
+		Category:    tools.CatPortfolios,
+		ConfigKey:   tools.NameGetAssetsList,
 	},
 	{
-		Name:        "spi",
-		Description: "Interact with SPI hardware devices exposed on the host.",
-		Category:    "hardware",
-		ConfigKey:   "spi",
+		Name:        tools.NameGetTotalValue,
+		Description: tools.DescGetTotalValue,
+		Category:    tools.CatPortfolios,
+		ConfigKey:   tools.NameGetTotalValue,
 	},
 	{
-		Name:        "tool_search_tool_regex",
-		Description: "Discover hidden MCP tools by regex search when tool discovery is enabled.",
-		Category:    "discovery",
+		Name:        tools.NameListPortfolios,
+		Description: tools.DescListPortfolios,
+		Category:    tools.CatPortfolios,
+		ConfigKey:   tools.NameListPortfolios,
+	},
+	{
+		Name:        tools.NameTakeSnapshot,
+		Description: tools.DescTakeSnapshot,
+		Category:    tools.CatPortfolios,
+		ConfigKey:   tools.NameTakeSnapshot,
+	},
+	{
+		Name:        tools.NameQuerySnapshots,
+		Description: tools.DescQuerySnapshots,
+		Category:    tools.CatPortfolios,
+		ConfigKey:   tools.NameQuerySnapshots,
+	},
+	{
+		Name:        tools.NameSnapshotSummary,
+		Description: tools.DescSnapshotSummary,
+		Category:    tools.CatPortfolios,
+		ConfigKey:   tools.NameSnapshotSummary,
+	},
+	{
+		Name:        tools.NameDeleteSnapshots,
+		Description: tools.DescDeleteSnapshots,
+		Category:    tools.CatPortfolios,
+		ConfigKey:   tools.NameDeleteSnapshots,
+	},
+	{
+		Name:        tools.NameI2C,
+		Description: tools.DescI2C,
+		Category:    tools.CatHardware,
+		ConfigKey:   tools.NameI2C,
+	},
+	{
+		Name:        tools.NameSPI,
+		Description: tools.DescSPI,
+		Category:    tools.CatHardware,
+		ConfigKey:   tools.NameSPI,
+	},
+	{
+		Name:        tools.NameToolSearchRegex,
+		Description: tools.DescToolSearchRegex,
+		Category:    tools.CatDiscovery,
 		ConfigKey:   "mcp.discovery.use_regex",
 	},
 	{
-		Name:        "tool_search_tool_bm25",
-		Description: "Discover hidden MCP tools by semantic ranking when tool discovery is enabled.",
-		Category:    "discovery",
+		Name:        tools.NameToolSearchBM25,
+		Description: tools.DescToolSearchBM25,
+		Category:    tools.CatDiscovery,
 		ConfigKey:   "mcp.discovery.use_bm25",
 	},
 }
@@ -196,7 +239,7 @@ func buildToolSupport(cfg *config.Config) []toolSupportItem {
 		reasonCode := ""
 
 		switch entry.Name {
-		case "find_skills", "install_skill":
+		case tools.NameFindSkills, tools.NameInstallSkill:
 			if cfg.Tools.IsToolEnabled(entry.ConfigKey) {
 				if cfg.Tools.IsToolEnabled("skills") {
 					status = "enabled"
@@ -205,7 +248,7 @@ func buildToolSupport(cfg *config.Config) []toolSupportItem {
 					reasonCode = "requires_skills"
 				}
 			}
-		case "spawn":
+		case tools.NameSpawn:
 			if cfg.Tools.IsToolEnabled(entry.ConfigKey) {
 				if cfg.Tools.IsToolEnabled("subagent") {
 					status = "enabled"
@@ -214,11 +257,11 @@ func buildToolSupport(cfg *config.Config) []toolSupportItem {
 					reasonCode = "requires_subagent"
 				}
 			}
-		case "tool_search_tool_regex":
+		case tools.NameToolSearchRegex:
 			status, reasonCode = resolveDiscoveryToolSupport(cfg, cfg.Tools.MCP.Discovery.UseRegex)
-		case "tool_search_tool_bm25":
+		case tools.NameToolSearchBM25:
 			status, reasonCode = resolveDiscoveryToolSupport(cfg, cfg.Tools.MCP.Discovery.UseBM25)
-		case "i2c", "spi":
+		case tools.NameI2C, tools.NameSPI:
 			status, reasonCode = resolveHardwareToolSupport(cfg.Tools.IsToolEnabled(entry.ConfigKey))
 		default:
 			if cfg.Tools.IsToolEnabled(entry.ConfigKey) {
@@ -263,54 +306,68 @@ func resolveDiscoveryToolSupport(cfg *config.Config, methodEnabled bool) (string
 
 func applyToolState(cfg *config.Config, toolName string, enabled bool) error {
 	switch toolName {
-	case "read_file":
+	case tools.NameReadFile:
 		cfg.Tools.ReadFile.Enabled = enabled
-	case "write_file":
+	case tools.NameWriteFile:
 		cfg.Tools.WriteFile.Enabled = enabled
-	case "list_dir":
+	case tools.NameListDir:
 		cfg.Tools.ListDir.Enabled = enabled
-	case "edit_file":
+	case tools.NameEditFile:
 		cfg.Tools.EditFile.Enabled = enabled
-	case "append_file":
+	case tools.NameAppendFile:
 		cfg.Tools.AppendFile.Enabled = enabled
-	case "exec":
+	case tools.NameExec:
 		cfg.Tools.Exec.Enabled = enabled
-	case "cron":
+	case tools.NameCron:
 		cfg.Tools.Cron.Enabled = enabled
-	case "web_search":
+	case tools.NameWebSearch:
 		cfg.Tools.Web.Enabled = enabled
-	case "web_fetch":
+	case tools.NameWebFetch:
 		cfg.Tools.WebFetch.Enabled = enabled
-	case "message":
+	case tools.NameMessage:
 		cfg.Tools.Message.Enabled = enabled
-	case "send_file":
+	case tools.NameSendFile:
 		cfg.Tools.SendFile.Enabled = enabled
-	case "find_skills":
+	case tools.NameFindSkills:
 		cfg.Tools.FindSkills.Enabled = enabled
 		if enabled {
 			cfg.Tools.Skills.Enabled = true
 		}
-	case "install_skill":
+	case tools.NameInstallSkill:
 		cfg.Tools.InstallSkill.Enabled = enabled
 		if enabled {
 			cfg.Tools.Skills.Enabled = true
 		}
-	case "spawn":
+	case tools.NameSpawn:
 		cfg.Tools.Spawn.Enabled = enabled
 		if enabled {
 			cfg.Tools.Subagent.Enabled = true
 		}
-	case "i2c":
+	case tools.NameGetAssetsList:
+		cfg.Tools.GetAssetsList.Enabled = enabled
+	case tools.NameGetTotalValue:
+		cfg.Tools.GetTotalValue.Enabled = enabled
+	case tools.NameListPortfolios:
+		cfg.Tools.ListPortfolios.Enabled = enabled
+	case tools.NameTakeSnapshot:
+		cfg.Tools.TakeSnapshot.Enabled = enabled
+	case tools.NameQuerySnapshots:
+		cfg.Tools.QuerySnapshots.Enabled = enabled
+	case tools.NameSnapshotSummary:
+		cfg.Tools.SnapshotSummary.Enabled = enabled
+	case tools.NameDeleteSnapshots:
+		cfg.Tools.DeleteSnapshots.Enabled = enabled
+	case tools.NameI2C:
 		cfg.Tools.I2C.Enabled = enabled
-	case "spi":
+	case tools.NameSPI:
 		cfg.Tools.SPI.Enabled = enabled
-	case "tool_search_tool_regex":
+	case tools.NameToolSearchRegex:
 		cfg.Tools.MCP.Discovery.UseRegex = enabled
 		if enabled {
 			cfg.Tools.MCP.Enabled = true
 			cfg.Tools.MCP.Discovery.Enabled = true
 		}
-	case "tool_search_tool_bm25":
+	case tools.NameToolSearchBM25:
 		cfg.Tools.MCP.Discovery.UseBM25 = enabled
 		if enabled {
 			cfg.Tools.MCP.Enabled = true

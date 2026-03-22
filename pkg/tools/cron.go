@@ -48,12 +48,12 @@ func NewCronTool(
 
 // Name returns the tool name
 func (t *CronTool) Name() string {
-	return "cron"
+	return NameCron
 }
 
 // Description returns the tool description
 func (t *CronTool) Description() string {
-	return "Schedule reminders, tasks, or system commands. IMPORTANT: When user asks to be reminded or scheduled, you MUST call this tool. Use 'at_seconds' for one-time reminders (e.g., 'remind me in 10 minutes' → at_seconds=600). Use 'every_seconds' ONLY for recurring tasks (e.g., 'every 2 hours' → every_seconds=7200). Use 'cron_expr' for complex recurring schedules. Use 'command' to execute shell commands directly."
+	return "Schedule reminders, tasks, or system commands. IMPORTANT: When user asks to be reminded or scheduled, you MUST call this tool. Use 'at_seconds' for one-time reminders (e.g., 'remind me in 10 minutes' → at_seconds=600). Use 'every_seconds' ONLY for recurring tasks (e.g., 'every 2 hours' → every_seconds=7200). Use 'cron_expr' for complex recurring schedules. Use 'command' to execute shell commands directly. For **dynamic reports** (live prices, portfolio values, weather, etc.): set deliver=false and write message as a re-fetch instruction (e.g. \"Fetch and report current portfolio values from all exchanges\"). The agent will re-run tools on each trigger. For **static reminders**: set deliver=true and write the literal reminder text."
 }
 
 // Parameters returns the tool parameters schema
@@ -68,7 +68,7 @@ func (t *CronTool) Parameters() map[string]any {
 			},
 			"message": map[string]any{
 				"type":        "string",
-				"description": "The reminder/task message to display when triggered. If 'command' is used, this describes what the command does.",
+				"description": "**Static reminder**: the literal text to show when triggered (use with deliver=true). **Dynamic task**: an agent instruction to execute on each trigger, e.g. \"Fetch and report current portfolio value from Binance and OKX\" (use with deliver=false). Do NOT embed current values — write the instruction so fresh data is fetched each time. If 'command' is used, this describes what the command does.",
 			},
 			"command": map[string]any{
 				"type":        "string",
@@ -96,7 +96,7 @@ func (t *CronTool) Parameters() map[string]any {
 			},
 			"deliver": map[string]any{
 				"type":        "boolean",
-				"description": "If true, send message directly to channel. If false, let agent process message (for complex tasks). Default: true",
+				"description": "true (default): send message text directly to the user as-is — use for static reminders. false: pass message to the agent as a task prompt — **required for dynamic data** (live prices, portfolio, system stats) so fresh tool calls happen on every trigger.",
 			},
 		},
 		"required": []string{"action"},
@@ -275,7 +275,7 @@ func (t *CronTool) enableJob(args map[string]any, enable bool) *ToolResult {
 }
 
 // ExecuteJob executes a cron job through the agent
-func (t *CronTool) ExecuteJob(ctx context.Context, job *cron.CronJob) string {
+func (t *CronTool) ExecuteJob(ctx context.Context, job *cron.CronJob) (string, error) {
 	// Get channel/chatID from job payload
 	channel := job.Payload.Channel
 	chatID := job.Payload.To
@@ -306,24 +306,28 @@ func (t *CronTool) ExecuteJob(ctx context.Context, job *cron.CronJob) string {
 
 		pubCtx, pubCancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer pubCancel()
-		t.msgBus.PublishOutbound(pubCtx, bus.OutboundMessage{
+		if err := t.msgBus.PublishOutbound(pubCtx, bus.OutboundMessage{
 			Channel: channel,
 			ChatID:  chatID,
 			Content: output,
-		})
-		return "ok"
+		}); err != nil {
+			return "", err
+		}
+		return "ok", nil
 	}
 
 	// If deliver=true, send message directly without agent processing
 	if job.Payload.Deliver {
 		pubCtx, pubCancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer pubCancel()
-		t.msgBus.PublishOutbound(pubCtx, bus.OutboundMessage{
+		if err := t.msgBus.PublishOutbound(pubCtx, bus.OutboundMessage{
 			Channel: channel,
 			ChatID:  chatID,
 			Content: job.Payload.Message,
-		})
-		return "ok"
+		}); err != nil {
+			return "", err
+		}
+		return "ok", nil
 	}
 
 	// For deliver=false, process through agent (for complex tasks)
@@ -338,10 +342,10 @@ func (t *CronTool) ExecuteJob(ctx context.Context, job *cron.CronJob) string {
 		chatID,
 	)
 	if err != nil {
-		return fmt.Sprintf("Error: %v", err)
+		return "", err
 	}
 
 	// Response is automatically sent via MessageBus by AgentLoop
 	_ = response // Will be sent by AgentLoop
-	return "ok"
+	return "ok", nil
 }

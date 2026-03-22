@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 
@@ -28,6 +29,10 @@ import (
 	_ "github.com/khunquant/khunquant/pkg/channels/wecom"
 	_ "github.com/khunquant/khunquant/pkg/channels/whatsapp"
 	_ "github.com/khunquant/khunquant/pkg/channels/whatsapp_native"
+	_ "github.com/khunquant/khunquant/pkg/exchanges/binance"
+	_ "github.com/khunquant/khunquant/pkg/exchanges/binanceth"
+	_ "github.com/khunquant/khunquant/pkg/exchanges/bitkub"
+	_ "github.com/khunquant/khunquant/pkg/exchanges/okx"
 	"github.com/khunquant/khunquant/pkg/config"
 	"github.com/khunquant/khunquant/pkg/cron"
 	"github.com/khunquant/khunquant/pkg/devices"
@@ -89,7 +94,8 @@ func gatewayCmd(debug bool) error {
 	startupInfo := agentLoop.GetStartupInfo()
 	toolsInfo := startupInfo["tools"].(map[string]any)
 	skillsInfo := startupInfo["skills"].(map[string]any)
-	fmt.Printf("  • Tools: %d loaded\n", toolsInfo["count"])
+	toolNames, _ := toolsInfo["names"].([]string)
+	fmt.Printf("  • Tools: %d loaded (%s)\n", toolsInfo["count"], strings.Join(toolNames, ", "))
 	fmt.Printf("  • Skills: %d/%d available\n",
 		skillsInfo["available"],
 		skillsInfo["total"])
@@ -98,6 +104,7 @@ func gatewayCmd(debug bool) error {
 	logger.InfoCF("agent", "Agent initialized",
 		map[string]any{
 			"tools_count":      toolsInfo["count"],
+			"tools":            toolNames,
 			"skills_total":     skillsInfo["total"],
 			"skills_available": skillsInfo["available"],
 		})
@@ -237,6 +244,7 @@ func setupAndStartServices(
 	addr := fmt.Sprintf("%s:%d", cfg.Gateway.Host, cfg.Gateway.Port)
 	services.HealthServer = health.NewServer(cfg.Gateway.Host, cfg.Gateway.Port)
 	services.ChannelManager.SetupHTTPServer(addr, services.HealthServer)
+	registerCronAPI(services.ChannelManager, services.CronService)
 
 	if err := services.ChannelManager.StartAll(context.Background()); err != nil {
 		return nil, fmt.Errorf("error starting channels: %w", err)
@@ -386,8 +394,9 @@ func restartServices(
 	services *gatewayServices,
 	msgBus *bus.MessageBus,
 ) error {
-	// Create an independent context with timeout for service restart
-	// This prevents cancellation from the main loop context during reload
+	// Create an independent context with timeout for service restart operations
+	// (cron, heartbeat, device startup). This is intentionally separate from the
+	// context passed to StartAll below, which must outlive this function.
 	ctx, cancel := context.WithTimeout(context.Background(), serviceRestartTimeout)
 	defer cancel()
 
@@ -476,8 +485,12 @@ func restartServices(
 	addr := fmt.Sprintf("%s:%d", cfg.Gateway.Host, cfg.Gateway.Port)
 	services.HealthServer = health.NewServer(cfg.Gateway.Host, cfg.Gateway.Port)
 	services.ChannelManager.SetupHTTPServer(addr, services.HealthServer)
+	registerCronAPI(services.ChannelManager, services.CronService)
 
-	if err := services.ChannelManager.StartAll(ctx); err != nil {
+	// Use context.Background() so channel goroutines (e.g. pico WebSocket readLoops)
+	// are not cancelled when this function returns. Channels are stopped explicitly
+	// via StopAll() on the next reload or shutdown.
+	if err := services.ChannelManager.StartAll(context.Background()); err != nil {
 		return fmt.Errorf("error restarting channels: %w", err)
 	}
 	fmt.Printf(
@@ -634,8 +647,7 @@ func setupCronTool(
 	// Set onJob handler
 	if cronTool != nil {
 		cronService.SetOnJob(func(job *cron.CronJob) (string, error) {
-			result := cronTool.ExecuteJob(context.Background(), job)
-			return result, nil
+			return cronTool.ExecuteJob(context.Background(), job)
 		})
 	}
 

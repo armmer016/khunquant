@@ -119,7 +119,7 @@ func NewReadFileTool(
 }
 
 func (t *ReadFileTool) Name() string {
-	return "read_file"
+	return NameReadFile
 }
 
 func (t *ReadFileTool) Description() string {
@@ -335,7 +335,7 @@ func NewWriteFileTool(workspace string, restrict bool, allowPaths ...[]*regexp.R
 }
 
 func (t *WriteFileTool) Name() string {
-	return "write_file"
+	return NameWriteFile
 }
 
 func (t *WriteFileTool) Description() string {
@@ -390,7 +390,7 @@ func NewListDirTool(workspace string, restrict bool, allowPaths ...[]*regexp.Reg
 }
 
 func (t *ListDirTool) Name() string {
-	return "list_dir"
+	return NameListDir
 }
 
 func (t *ListDirTool) Description() string {

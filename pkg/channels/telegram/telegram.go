@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
@@ -22,6 +23,7 @@ import (
 	"github.com/khunquant/khunquant/pkg/identity"
 	"github.com/khunquant/khunquant/pkg/logger"
 	"github.com/khunquant/khunquant/pkg/media"
+	"github.com/khunquant/khunquant/pkg/pairing"
 	"github.com/khunquant/khunquant/pkg/utils"
 )
 
@@ -426,11 +428,39 @@ func (c *TelegramChannel) handleMessage(ctx context.Context, message *telego.Mes
 		DisplayName: user.FirstName,
 	}
 
-	// check allowlist to avoid downloading attachments for rejected users
-	if !c.IsAllowedSender(sender) {
-		logger.DebugCF("telegram", "Message rejected by allowlist", map[string]any{
-			"user_id": platformID,
-		})
+	// /pair command is handled before any allowlist check so both unknown and
+	// approved users can run it in private chats.
+	if message.Chat.Type == "private" && isPairCommand(message.Text) {
+		c.handlePairCommand(ctx, message, sender)
+		return nil
+	}
+
+	// check allowlist to avoid downloading attachments for rejected users.
+	// When pairing is enabled for private chats, use a strict check where an empty
+	// allow_from list means "no one approved yet" (deny-all), not "allow everyone".
+	isPairingDM := message.Chat.Type == "private" && c.config.Channels.Telegram.PairingEnabled
+	allowed := false
+	if isPairingDM {
+		// Strict allowlist: empty = deny all. Read from live config so we use
+		// the latest allow_from without requiring a code restart for the check.
+		for _, id := range c.config.Channels.Telegram.AllowFrom {
+			if identity.MatchAllowed(sender, id) {
+				allowed = true
+				break
+			}
+		}
+	} else {
+		allowed = c.IsAllowedSender(sender)
+	}
+
+	if !allowed {
+		if isPairingDM {
+			c.handlePairingRequest(ctx, message, sender)
+		} else {
+			logger.DebugCF("telegram", "Message rejected by allowlist", map[string]any{
+				"user_id": platformID,
+			})
+		}
 		return nil
 	}
 
@@ -583,6 +613,87 @@ func (c *TelegramChannel) handleMessage(ctx context.Context, message *telego.Mes
 		sender,
 	)
 	return nil
+}
+
+// isPairCommand returns true if the message text is the /pair command.
+func isPairCommand(text string) bool {
+	t := strings.TrimSpace(text)
+	// Match "/pair", "/pair@botname", "/pair some args"
+	if !strings.HasPrefix(t, "/pair") {
+		return false
+	}
+	rest := t[len("/pair"):]
+	return rest == "" || rest[0] == ' ' || rest[0] == '@'
+}
+
+// handlePairCommand handles the /pair command for both approved and unknown users.
+// Approved users receive a confirmation; unknown users receive their pairing code.
+func (c *TelegramChannel) handlePairCommand(ctx context.Context, message *telego.Message, sender bus.SenderInfo) {
+	// Check if sender is already approved (strict: empty list = not approved).
+	approved := false
+	for _, id := range c.config.Channels.Telegram.AllowFrom {
+		if identity.MatchAllowed(sender, id) {
+			approved = true
+			break
+		}
+	}
+
+	if approved {
+		msg := tu.Message(tu.ID(message.Chat.ID), "You are already authorized. ✅")
+		if _, err := c.bot.SendMessage(ctx, msg); err != nil {
+			logger.ErrorCF("telegram", "Failed to send pair confirmation", map[string]any{"error": err.Error()})
+		}
+		return
+	}
+
+	if !c.config.Channels.Telegram.PairingEnabled {
+		logger.DebugCF("telegram", "/pair used but pairing is disabled", map[string]any{
+			"user_id": sender.PlatformID,
+		})
+		return
+	}
+
+	c.handlePairingRequest(ctx, message, sender)
+}
+
+// handlePairingRequest generates (or retrieves) a pairing code for an unknown
+// Telegram DM sender and replies with instructions for the bot owner to approve.
+func (c *TelegramChannel) handlePairingRequest(ctx context.Context, message *telego.Message, sender bus.SenderInfo) {
+	storePath := filepath.Join(c.config.WorkspacePath(), "pairing", "requests.json")
+	store := pairing.NewStore(storePath)
+
+	req, isNew, err := store.Upsert(
+		"telegram",
+		sender.PlatformID,
+		sender.Username,
+		sender.DisplayName,
+		message.Chat.ID,
+	)
+	if err != nil {
+		logger.ErrorCF("telegram", "Failed to upsert pairing request", map[string]any{
+			"user_id": sender.PlatformID,
+			"error":   err.Error(),
+		})
+		return
+	}
+
+	logger.InfoCF("telegram", "Pairing request", map[string]any{
+		"user_id":  sender.PlatformID,
+		"code":     req.Code,
+		"is_new":   isNew,
+	})
+
+	text := fmt.Sprintf(
+		"Access not configured.\n\nYour pairing code: <code>%s</code>\n\nShare this code with the bot owner to request access. The code expires in 2 hours.",
+		req.Code,
+	)
+	msg := tu.Message(tu.ID(message.Chat.ID), text)
+	msg.ParseMode = telego.ModeHTML
+	if _, err := c.bot.SendMessage(ctx, msg); err != nil {
+		logger.ErrorCF("telegram", "Failed to send pairing code message", map[string]any{
+			"error": err.Error(),
+		})
+	}
 }
 
 func (c *TelegramChannel) downloadPhoto(ctx context.Context, fileID string) string {

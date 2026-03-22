@@ -227,6 +227,7 @@ func registerSharedTools(
 			if cfg.Tools.IsToolEnabled("subagent") {
 				subagentManager := tools.NewSubagentManager(provider, agent.Model, agent.Workspace)
 				subagentManager.SetLLMOptions(agent.MaxTokens, agent.Temperature)
+				subagentManager.SetTools(agent.Tools)
 				spawnTool := tools.NewSpawnTool(subagentManager)
 				currentAgentID := agentID
 				spawnTool.SetAllowlistChecker(func(targetAgentID string) bool {
@@ -1374,6 +1375,16 @@ func (al *AgentLoop) runLLMIteration(
 			if contentForLLM == "" && r.result.Err != nil {
 				contentForLLM = r.result.Err.Error()
 			}
+
+			resultPreview := strings.NewReplacer("\n", " ", "\r", "", `"`, "'").Replace(utils.Truncate(contentForLLM, 500))
+			logger.InfoCF("agent", fmt.Sprintf("Tool result: %s", r.tc.Name),
+				map[string]any{
+					"agent_id":       agent.ID,
+					"tool":           r.tc.Name,
+					"iteration":      iteration,
+					"result_preview": resultPreview,
+					"has_error":      r.result.Err != nil,
+				})
 
 			toolResultMsg := providers.Message{
 				Role:       "tool",
