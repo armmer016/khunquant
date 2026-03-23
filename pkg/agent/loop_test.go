@@ -322,6 +322,29 @@ func (m *simpleMockProvider) GetDefaultModel() string {
 	return "mock-model"
 }
 
+type reasoningContentProvider struct {
+	response         string
+	reasoningContent string
+}
+
+func (m *reasoningContentProvider) Chat(
+	ctx context.Context,
+	messages []providers.Message,
+	tools []providers.ToolDefinition,
+	model string,
+	opts map[string]any,
+) (*providers.LLMResponse, error) {
+	return &providers.LLMResponse{
+		Content:          m.response,
+		ReasoningContent: m.reasoningContent,
+		ToolCalls:        []providers.ToolCall{},
+	}, nil
+}
+
+func (m *reasoningContentProvider) GetDefaultModel() string {
+	return "reasoning-content-model"
+}
+
 type countingMockProvider struct {
 	response string
 	calls    int
@@ -1689,6 +1712,7 @@ func TestProcessMessage_PublishesToolFeedbackWhenEnabled(t *testing.T) {
 		t.Fatal("expected outbound tool feedback for regular messages")
 	}
 }
+
 
 func TestResolveMediaRefs_ResolvesToBase64(t *testing.T) {
 	store := media.NewFileMediaStore()

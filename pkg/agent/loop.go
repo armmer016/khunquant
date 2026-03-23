@@ -1390,9 +1390,13 @@ func (al *AgentLoop) runLLMIteration(
 			ts.SetLastFinishReason(response.FinishReason)
 		}
 
+		reasoningContent := response.Reasoning
+		if reasoningContent == "" {
+			reasoningContent = response.ReasoningContent
+		}
 		go al.handleReasoning(
 			ctx,
-			response.Reasoning,
+			reasoningContent,
 			opts.Channel,
 			al.targetReasoningChannelID(opts.Channel),
 		)
