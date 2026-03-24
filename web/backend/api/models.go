@@ -156,7 +156,12 @@ func (h *Handler) handleUpdateModel(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	var mc config.ModelConfig
+	type custom struct {
+		config.ModelConfig
+		APIKey string `json:"api_key"`
+	}
+
+	var mc custom
 	if err = json.Unmarshal(body, &mc); err != nil {
 		http.Error(w, fmt.Sprintf("Invalid JSON: %v", err), http.StatusBadRequest)
 		return
