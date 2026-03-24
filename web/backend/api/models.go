@@ -186,10 +186,12 @@ func (h *Handler) handleUpdateModel(w http.ResponseWriter, r *http.Request) {
 	// Preserve the existing API key when the caller omits it (empty string).
 	// This lets the UI update api_base / proxy without clearing the stored secret.
 	if mc.APIKey == "" {
-		mc.APIKey = cfg.ModelList[idx].APIKey
+		mc.ModelConfig.APIKey = cfg.ModelList[idx].APIKey
+	} else {
+		mc.ModelConfig.APIKey = mc.APIKey
 	}
 
-	cfg.ModelList[idx] = mc
+	cfg.ModelList[idx] = mc.ModelConfig
 
 	if err := config.SaveConfig(h.configPath, cfg); err != nil {
 		http.Error(w, fmt.Sprintf("Failed to save config: %v", err), http.StatusInternalServerError)
