@@ -57,17 +57,29 @@ type AgentLoop struct {
 
 // processOptions configures how a message is processed
 type processOptions struct {
-	SessionKey              string   // Session identifier for history/context
-	Channel                 string   // Target channel for tool execution
-	ChatID                  string   // Target chat ID for tool execution
-	UserMessage             string   // User message content (may include prefix)
-	Media                   []string // media:// refs from inbound message
-	DefaultResponse         string   // Response when LLM returns empty
-	EnableSummary           bool     // Whether to trigger summarization
-	SendResponse            bool     // Whether to send response via bus
-	NoHistory               bool     // If true, don't load session history (for heartbeat)
-	SkipInitialSteeringPoll bool     // If true, skip the steering poll at loop start (used by Continue)
-	SkipAddUserMessage      bool     // If true, skip adding UserMessage to session history
+	SessionKey              string              // Session identifier for history/context
+	Channel                 string              // Target channel for tool execution
+	ChatID                  string              // Target chat ID for tool execution
+	SenderID                string              // Current sender ID for dynamic context
+	SenderDisplayName       string              // Current sender display name for dynamic context
+	UserMessage             string              // User message content (may include prefix)
+	ForcedSkills            []string            // Skills explicitly requested for this message
+	SystemPromptOverride    string              // Override the default system prompt (Used by SubTurns)
+	Media                   []string            // media:// refs from inbound message
+	InitialSteeringMessages []providers.Message // Steering messages from refactor/agent
+	DefaultResponse         string              // Response when LLM returns empty
+	EnableSummary           bool                // Whether to trigger summarization
+	SendResponse            bool                // Whether to send response via bus
+	SuppressToolFeedback    bool                // Whether to suppress inline tool feedback messages
+	NoHistory               bool                // If true, don't load session history (for heartbeat)
+	SkipInitialSteeringPoll bool                // If true, skip the steering poll at loop start (used by Continue)
+	SkipAddUserMessage      bool                // If true, skip adding UserMessage to session history
+}
+
+type continuationTarget struct {
+	SessionKey string
+	Channel    string
+	ChatID     string
 }
 
 const (
@@ -755,14 +767,15 @@ func (al *AgentLoop) ProcessHeartbeat(
 		return "", fmt.Errorf("no default agent for heartbeat")
 	}
 	return al.runAgentLoop(ctx, agent, processOptions{
-		SessionKey:      "heartbeat",
-		Channel:         channel,
-		ChatID:          chatID,
-		UserMessage:     content,
-		DefaultResponse: defaultResponse,
-		EnableSummary:   false,
-		SendResponse:    false,
-		NoHistory:       true, // Don't load session history for heartbeat
+		SessionKey:           "heartbeat",
+		Channel:              channel,
+		ChatID:               chatID,
+		UserMessage:          content,
+		DefaultResponse:      defaultResponse,
+		EnableSummary:        false,
+		SendResponse:         false,
+		SuppressToolFeedback: true,
+		NoHistory:            true, // Don't load session history for heartbeat
 	})
 }
 
