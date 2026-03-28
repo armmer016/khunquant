@@ -289,10 +289,17 @@ func (al *AgentLoop) Run(ctx context.Context) error {
 		return err
 	}
 
-	for al.running.Load() {
+	idleTicker := time.NewTicker(100 * time.Millisecond)
+	defer idleTicker.Stop()
+
+	for {
 		select {
 		case <-ctx.Done():
 			return nil
+		case <-idleTicker.C:
+			if !al.running.Load() {
+				return nil
+			}
 		case msg, ok := <-al.bus.InboundChan():
 			if !ok {
 				return nil
@@ -352,8 +359,6 @@ func (al *AgentLoop) Run(ctx context.Context) error {
 			}
 		}
 	}
-
-	return nil
 }
 
 // drainBusToSteering consumes inbound messages and redirects messages from the
