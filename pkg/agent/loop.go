@@ -1186,7 +1186,11 @@ func (al *AgentLoop) runLLMIteration(
 	// selectCandidates evaluates routing once and the decision is sticky for
 	// all tool-follow-up iterations within the same turn so that a multi-step
 	// tool chain doesn't switch models mid-way through.
-	activeCandidates, activeModel := al.selectCandidates(agent, opts.UserMessage, messages)
+	activeCandidates, activeModel, usedLight := al.selectCandidates(agent, opts.UserMessage, messages)
+	activeProvider := agent.Provider
+	if usedLight && agent.LightProvider != nil {
+		activeProvider = agent.LightProvider
+	}
 
 	for iteration < agent.MaxIterations {
 		iteration++
@@ -1286,7 +1290,7 @@ func (al *AgentLoop) runLLMIteration(
 					ctx,
 					activeCandidates,
 					func(ctx context.Context, provider, model string) (*providers.LLMResponse, error) {
-						return agent.Provider.Chat(ctx, messages, providerToolDefs, model, llmOpts)
+						return activeProvider.Chat(ctx, messages, providerToolDefs, model, llmOpts)
 					},
 				)
 				if fbErr != nil {
@@ -1302,7 +1306,7 @@ func (al *AgentLoop) runLLMIteration(
 				}
 				return fbResult.Response, nil
 			}
-			return agent.Provider.Chat(ctx, messages, providerToolDefs, activeModel, llmOpts)
+			return activeProvider.Chat(ctx, messages, providerToolDefs, activeModel, llmOpts)
 		}
 
 		// Retry loop for context/token errors
@@ -1649,9 +1653,9 @@ func (al *AgentLoop) selectCandidates(
 	agent *AgentInstance,
 	userMsg string,
 	history []providers.Message,
-) (candidates []providers.FallbackCandidate, model string) {
+) (candidates []providers.FallbackCandidate, model string, usedLight bool) {
 	if agent.Router == nil || len(agent.LightCandidates) == 0 {
-		return agent.Candidates, resolvedCandidateModel(agent.Candidates, agent.Model)
+		return agent.Candidates, resolvedCandidateModel(agent.Candidates, agent.Model), false
 	}
 
 	_, usedLight, score := agent.Router.SelectModel(userMsg, history, agent.Model)
@@ -1662,7 +1666,7 @@ func (al *AgentLoop) selectCandidates(
 				"score":     score,
 				"threshold": agent.Router.Threshold(),
 			})
-		return agent.Candidates, resolvedCandidateModel(agent.Candidates, agent.Model)
+		return agent.Candidates, resolvedCandidateModel(agent.Candidates, agent.Model), false
 	}
 
 	logger.InfoCF("agent", "Model routing: light model selected",
@@ -1672,7 +1676,7 @@ func (al *AgentLoop) selectCandidates(
 			"score":       score,
 			"threshold":   agent.Router.Threshold(),
 		})
-	return agent.LightCandidates, resolvedCandidateModel(agent.LightCandidates, agent.Router.LightModel())
+	return agent.LightCandidates, resolvedCandidateModel(agent.LightCandidates, agent.Router.LightModel()), true
 }
 
 // maybeSummarize triggers summarization if the session history exceeds thresholds.
