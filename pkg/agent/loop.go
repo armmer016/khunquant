@@ -430,6 +430,61 @@ func (al *AgentLoop) Stop() {
 	al.running.Store(false)
 }
 
+func (al *AgentLoop) PublishResponseIfNeeded(ctx context.Context, channel, chatID, response string) {
+	if response == "" {
+		return
+	}
+
+	alreadySentToSameChat := false
+	defaultAgent := al.GetRegistry().GetDefaultAgent()
+	if defaultAgent != nil {
+		if tool, ok := defaultAgent.Tools.Get("message"); ok {
+			if mt, ok := tool.(*tools.MessageTool); ok {
+				alreadySentToSameChat = mt.HasSentTo(channel, chatID)
+			}
+		}
+	}
+
+	if alreadySentToSameChat {
+		logger.DebugCF(
+			"agent",
+			"Skipped outbound (message tool already sent to same chat)",
+			map[string]any{"channel": channel, "chat_id": chatID},
+		)
+		return
+	}
+
+	al.bus.PublishOutbound(ctx, bus.OutboundMessage{
+		Channel: channel,
+		ChatID:  chatID,
+		Content: response,
+	})
+	logger.InfoCF("agent", "Published outbound response",
+		map[string]any{
+			"channel":     channel,
+			"chat_id":     chatID,
+			"content_len": len(response),
+		})
+}
+
+func (al *AgentLoop) buildContinuationTarget(msg bus.InboundMessage) (*continuationTarget, error) {
+	if msg.Channel == "system" {
+		return nil, nil
+	}
+
+	route, _, err := al.resolveMessageRoute(msg)
+	if err != nil {
+		return nil, err
+	}
+
+	return &continuationTarget{
+		SessionKey: resolveScopeKey(route, msg.SessionKey),
+		Channel:    msg.Channel,
+		ChatID:     msg.ChatID,
+	}, nil
+}
+
+
 // Close releases resources held by agent session stores. Call after Stop.
 func (al *AgentLoop) Close() {
 	mcpManager := al.mcp.takeManager()
