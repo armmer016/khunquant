@@ -14,8 +14,9 @@ The service is structured as a monorepo containing both the backend and frontend
 
 ### Prerequisites
 
-*   Go 1.25+
-*   Node.js 20+ with pnpm
+- Go `1.25+`
+- Node.js 20.19+ or 22.13+
+- `pnpm`
 
 ### Development
 
