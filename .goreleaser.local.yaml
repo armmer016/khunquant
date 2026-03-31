@@ -1,6 +1,6 @@
 # yaml-language-server: $schema=https://goreleaser.com/static/schema.json
 # Slim release config for local machines — builds only the 5 main platforms.
-# Used by: make release-local RELEASE_TAG=v0.2.0-rc.1
+# Used by: make release-local RELEASE_TAG=v0.2.1-rc.2
 version: 2
 
 before:
