@@ -1071,6 +1071,15 @@ func LoadConfig(path string) (*Config, error) {
 		return nil, err
 	}
 
+	// Always use build-time values for BuildInfo, not whatever was persisted
+	// in the config file (which may be from an older binary version).
+	cfg.BuildInfo = BuildInfo{
+		Version:   Version,
+		GitCommit: GitCommit,
+		BuildTime: BuildTime,
+		GoVersion: GoVersion,
+	}
+
 	if err := env.Parse(cfg); err != nil {
 		return nil, err
 	}
