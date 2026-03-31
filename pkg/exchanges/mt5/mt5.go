@@ -51,9 +51,9 @@
 //
 // # MetaApi Rate Limits
 //
-//   Per application: 1,000 credits/s, 6,000/min, 18,000/hr
-//   Per account:     5,000 credits per 10 seconds
-//   Credit costs:    trading ops = 10, account/position reads = 50, symbol list = 500
+//	Per application: 1,000 credits/s, 6,000/min, 18,000/hr
+//	Per account:     5,000 credits per 10 seconds
+//	Credit costs:    trading ops = 10, account/position reads = 50, symbol list = 500
 //
 // # TODO (Phase 6)
 //
@@ -144,8 +144,8 @@ type MT5MarketDataProvider struct {
 	*MT5Exchange
 }
 
-func (p *MT5MarketDataProvider) ID() string                        { return Name }
-func (p *MT5MarketDataProvider) Category() broker.AssetCategory    { return broker.CategoryFX }
+func (p *MT5MarketDataProvider) ID() string                     { return Name }
+func (p *MT5MarketDataProvider) Category() broker.AssetCategory { return broker.CategoryFX }
 func (p *MT5MarketDataProvider) GetMarketStatus(_ context.Context, _ string) (broker.MarketStatus, error) {
 	// TODO(phase6): FX is open 24/5 (Mon 00:00 UTC – Fri 22:00 UTC)
 	// Indices/metals have specific session hours

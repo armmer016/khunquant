@@ -20,7 +20,7 @@ type portfolioItem struct {
 	AveragePrice  float64 `json:"averagePrice"`  // average cost price
 	MarketPrice   float64 `json:"marketPrice"`
 	MarketValue   float64 `json:"marketValue"`
-	Profit        float64 `json:"profit"`        // unrealized P&L
+	Profit        float64 `json:"profit"` // unrealized P&L
 	PercentProfit float64 `json:"percentProfit"`
 }
 
@@ -36,15 +36,15 @@ type portfolioResponse struct {
 // Volume is in lots (1 lot = 100 shares); converted from shares internally.
 type createOrderRequest struct {
 	PIN           string  `json:"pin"`
-	Side          string  `json:"side"`          // "Buy" | "Sell"
+	Side          string  `json:"side"` // "Buy" | "Sell"
 	Symbol        string  `json:"symbol"`
 	TrusteeIDType string  `json:"trusteeIdType"` // "Local"
-	Volume        int     `json:"volume"`         // lots
+	Volume        int     `json:"volume"`        // lots
 	QtyOpen       int     `json:"qtyOpen"`
 	Price         float64 `json:"price,omitempty"`
-	PriceType     string  `json:"priceType"`     // "Limit" | "ATO"
-	ValidityType  string  `json:"validityType"`  // "Day"
-	ClientType    string  `json:"clientType"`    // "Individual"
+	PriceType     string  `json:"priceType"`    // "Limit" | "ATO"
+	ValidityType  string  `json:"validityType"` // "Day"
+	ClientType    string  `json:"clientType"`   // "Individual"
 }
 
 type cancelOrderRequest struct {
@@ -53,11 +53,11 @@ type cancelOrderRequest struct {
 
 // changeOrderRequest matches equity.change_order() body.
 type changeOrderRequest struct {
-	PIN            string   `json:"pin"`
-	NewPrice       *float64 `json:"newPrice,omitempty"`
-	NewVolume      *int     `json:"newVolume,omitempty"` // lots
-	TrusteeIDType  string   `json:"newTrusteeIdType,omitempty"`
-	BypassWarning  *bool    `json:"bypassWarning,omitempty"`
+	PIN           string   `json:"pin"`
+	NewPrice      *float64 `json:"newPrice,omitempty"`
+	NewVolume     *int     `json:"newVolume,omitempty"` // lots
+	TrusteeIDType string   `json:"newTrusteeIdType,omitempty"`
+	BypassWarning *bool    `json:"bypassWarning,omitempty"`
 }
 
 // cancelOrdersRequest matches equity.cancel_orders() body (bulk cancel).
@@ -71,7 +71,7 @@ type settradeOrder struct {
 	Symbol    string  `json:"symbol"`
 	Side      string  `json:"side"`
 	PriceType string  `json:"priceType"`
-	Volume    float64 `json:"volume"`      // lots
+	Volume    float64 `json:"volume"` // lots
 	FilledVol float64 `json:"filledVolume"`
 	Price     float64 `json:"price"`
 	Status    string  `json:"status"`
@@ -105,7 +105,7 @@ type quoteResponse struct {
 // The API returns each field as a single-element array (batch format).
 // Intervals: '1m','3m','5m','10m','15m','30m','60m','120m','240m','1d','1w','1M'
 type candlestickBar struct {
-	Time         []int64   `json:"time"`   // Unix timestamp (seconds)
+	Time         []int64   `json:"time"` // Unix timestamp (seconds)
 	Open         []float64 `json:"open"`
 	High         []float64 `json:"high"`
 	Low          []float64 `json:"low"`

@@ -37,7 +37,7 @@ func newFullAdapter(cfg MT5Account) (*MT5FullAdapter, error) {
 
 // ---- broker.Provider ----
 
-func (a *MT5FullAdapter) ID() string              { return Name }
+func (a *MT5FullAdapter) ID() string                     { return Name }
 func (a *MT5FullAdapter) Category() broker.AssetCategory { return broker.CategoryFX }
 func (a *MT5FullAdapter) GetMarketStatus(_ context.Context, _ string) (broker.MarketStatus, error) {
 	// TODO(phase6): implement FX session calendar (24/5 for majors, specific hours for metals/indices)

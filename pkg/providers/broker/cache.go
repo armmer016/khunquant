@@ -10,10 +10,10 @@ import (
 
 // TTL constants from the non-functional requirements (section 9).
 const (
-	TickerCacheTTL  = 10 * time.Second
-	OHLCVCacheTTL1m = 60 * time.Second
-	OHLCVCacheTTL1h = 5 * time.Minute
-	OHLCVCacheTTL1d = 60 * time.Minute
+	TickerCacheTTL       = 10 * time.Second
+	OHLCVCacheTTL1m      = 60 * time.Second
+	OHLCVCacheTTL1h      = 5 * time.Minute
+	OHLCVCacheTTL1d      = 60 * time.Minute
 	OHLCVCacheTTLDefault = 5 * time.Minute
 )
 

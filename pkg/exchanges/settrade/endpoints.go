@@ -6,10 +6,10 @@ const (
 
 	// --- Equity (SEOS v3 / v4) ---
 	// fmt.Sprintf(endpoint, brokerID, accountNo[, orderNo])
-	endpointEQAccountInfo = "/api/seos/v3/%s/accounts/%s/account-info"
-	endpointEQPortfolio   = "/api/seos/v3/%s/accounts/%s/portfolios"
-	endpointEQOrders      = "/api/seos/v3/%s/accounts/%s/orders"
-	endpointEQOrder       = "/api/seos/v3/%s/accounts/%s/orders/%s"
+	endpointEQAccountInfo  = "/api/seos/v3/%s/accounts/%s/account-info"
+	endpointEQPortfolio    = "/api/seos/v3/%s/accounts/%s/portfolios"
+	endpointEQOrders       = "/api/seos/v3/%s/accounts/%s/orders"
+	endpointEQOrder        = "/api/seos/v3/%s/accounts/%s/orders/%s"
 	endpointEQOrderCancel  = "/api/seos/v3/%s/accounts/%s/orders/%s/cancel"
 	endpointEQOrderChange  = "/api/seos/v3/%s/accounts/%s/orders/%s/change"
 	endpointEQCancelOrders = "/api/seos/v3/%s/accounts/%s/cancel"
@@ -17,6 +17,6 @@ const (
 
 	// --- Market Data (separate host: marketapi.settrade.com) ---
 	// fmt.Sprintf(endpoint, brokerID, symbol)
-	endpointMarketQuote     = "/api/marketdata/v3/%s/quote/%s"
+	endpointMarketQuote       = "/api/marketdata/v3/%s/quote/%s"
 	endpointMarketCandlestick = "/api/techchart/v3/%s/candlesticks"
 )

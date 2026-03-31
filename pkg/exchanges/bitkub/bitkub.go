@@ -132,7 +132,7 @@ func (b *BitkubExchange) FetchPrice(ctx context.Context, asset, quote string) (f
 // ---- Response types ----
 
 type balancesResponse struct {
-	Error  int                    `json:"error"`
+	Error  int                     `json:"error"`
 	Result map[string]assetBalance `json:"result"`
 }
 

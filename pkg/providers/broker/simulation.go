@@ -166,15 +166,15 @@ func (s *SimulationProvider) CreateOrder(
 	}
 
 	order := ccxt.Order{
-		Id:       &id,
-		Symbol:   &symbol,
-		Type:     &orderType,
-		Side:     &side,
-		Amount:   &amount,
-		Price:    &fillPrice,
-		Filled:   &filled,
-		Cost:     &cost,
-		Status:   &status,
+		Id:        &id,
+		Symbol:    &symbol,
+		Type:      &orderType,
+		Side:      &side,
+		Amount:    &amount,
+		Price:     &fillPrice,
+		Filled:    &filled,
+		Cost:      &cost,
+		Status:    &status,
 		Datetime:  ptr(time.Now().UTC().Format(time.RFC3339)),
 		Timestamp: &nowMs,
 	}
@@ -220,9 +220,9 @@ func (s *SimulationProvider) FetchMyTrades(_ context.Context, _ string, _ *int64
 func (s *SimulationProvider) Transfer(_ context.Context, asset string, amount float64, from, to string) (ccxt.TransferEntry, error) {
 	id := fmt.Sprintf("sim-transfer-%d", time.Now().UnixMilli())
 	return ccxt.TransferEntry{
-		Id:       &id,
-		Currency: &asset,
-		Amount:   &amount,
+		Id:          &id,
+		Currency:    &asset,
+		Amount:      &amount,
 		FromAccount: &from,
 		ToAccount:   &to,
 	}, nil

@@ -10,10 +10,10 @@ import (
 )
 
 type cronUpdateRequest struct {
-	Name     *string           `json:"name,omitempty"`
-	Message  *string           `json:"message,omitempty"`
-	Enabled  *bool             `json:"enabled,omitempty"`
-	Deliver  *bool             `json:"deliver,omitempty"`
+	Name     *string            `json:"name,omitempty"`
+	Message  *string            `json:"message,omitempty"`
+	Enabled  *bool              `json:"enabled,omitempty"`
+	Deliver  *bool              `json:"deliver,omitempty"`
 	Schedule *cron.CronSchedule `json:"schedule,omitempty"`
 }
 

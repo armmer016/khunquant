@@ -16,7 +16,7 @@ import (
 
 const (
 	// codeAlphabet excludes ambiguous characters: 0/O, 1/I
-	codeAlphabet  = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+	codeAlphabet   = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
 	codeLength     = 8
 	defaultTTL     = 2 * time.Hour
 	maxPendingUser = 3

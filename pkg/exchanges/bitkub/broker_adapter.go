@@ -373,16 +373,16 @@ func tickerEntryToCCXT(symbol string, e tickerEntry) ccxt.Ticker {
 	now := time.Now().UnixMilli()
 
 	return ccxt.Ticker{
-		Symbol:     &sym,
-		Last:       &last,
-		Ask:        &ask,
-		Bid:        &bid,
-		Percentage: &pct,
-		BaseVolume: &baseVol,
+		Symbol:      &sym,
+		Last:        &last,
+		Ask:         &ask,
+		Bid:         &bid,
+		Percentage:  &pct,
+		BaseVolume:  &baseVol,
 		QuoteVolume: &quoteVol,
-		High:       &high,
-		Low:        &low,
-		Timestamp:  &now,
+		High:        &high,
+		Low:         &low,
+		Timestamp:   &now,
 	}
 }
 

@@ -14,22 +14,22 @@ type MockProvider struct {
 	category broker.AssetCategory
 
 	// Configurable responses
-	MarketStatusFn     func(symbol string) (broker.MarketStatus, error)
-	GetBalancesFn      func() ([]broker.Balance, error)
-	GetWalletBalsFn    func(walletType string) ([]broker.WalletBalance, error)
-	FetchPriceFn       func(asset, quote string) (float64, error)
-	FetchTickerFn      func(symbol string) (ccxt.Ticker, error)
-	FetchTickersFn     func(symbols []string) (map[string]ccxt.Ticker, error)
-	FetchOHLCVFn       func(symbol, timeframe string, since *int64, limit int) ([]ccxt.OHLCV, error)
-	FetchOrderBookFn   func(symbol string, depth int) (ccxt.OrderBook, error)
-	LoadMarketsFn      func() (map[string]ccxt.MarketInterface, error)
-	CreateOrderFn      func(symbol, orderType, side string, amount float64, price *float64, params map[string]interface{}) (ccxt.Order, error)
-	CancelOrderFn      func(id, symbol string) (ccxt.Order, error)
-	FetchOrderFn       func(id, symbol string) (ccxt.Order, error)
-	FetchOpenOrdersFn  func(symbol string) ([]ccxt.Order, error)
+	MarketStatusFn      func(symbol string) (broker.MarketStatus, error)
+	GetBalancesFn       func() ([]broker.Balance, error)
+	GetWalletBalsFn     func(walletType string) ([]broker.WalletBalance, error)
+	FetchPriceFn        func(asset, quote string) (float64, error)
+	FetchTickerFn       func(symbol string) (ccxt.Ticker, error)
+	FetchTickersFn      func(symbols []string) (map[string]ccxt.Ticker, error)
+	FetchOHLCVFn        func(symbol, timeframe string, since *int64, limit int) ([]ccxt.OHLCV, error)
+	FetchOrderBookFn    func(symbol string, depth int) (ccxt.OrderBook, error)
+	LoadMarketsFn       func() (map[string]ccxt.MarketInterface, error)
+	CreateOrderFn       func(symbol, orderType, side string, amount float64, price *float64, params map[string]interface{}) (ccxt.Order, error)
+	CancelOrderFn       func(id, symbol string) (ccxt.Order, error)
+	FetchOrderFn        func(id, symbol string) (ccxt.Order, error)
+	FetchOpenOrdersFn   func(symbol string) ([]ccxt.Order, error)
 	FetchClosedOrdersFn func(symbol string, since *int64, limit int) ([]ccxt.Order, error)
-	FetchMyTradesFn    func(symbol string, since *int64, limit int) ([]ccxt.Trade, error)
-	TransferFn         func(asset string, amount float64, fromAccount, toAccount string) (ccxt.TransferEntry, error)
+	FetchMyTradesFn     func(symbol string, since *int64, limit int) ([]ccxt.Trade, error)
+	TransferFn          func(asset string, amount float64, fromAccount, toAccount string) (ccxt.TransferEntry, error)
 }
 
 func NewMockProvider(id string) *MockProvider {
@@ -37,7 +37,7 @@ func NewMockProvider(id string) *MockProvider {
 }
 
 // --- broker.Provider ---
-func (m *MockProvider) ID() string                    { return m.id }
+func (m *MockProvider) ID() string                     { return m.id }
 func (m *MockProvider) Category() broker.AssetCategory { return m.category }
 func (m *MockProvider) GetMarketStatus(_ context.Context, symbol string) (broker.MarketStatus, error) {
 	if m.MarketStatusFn != nil {

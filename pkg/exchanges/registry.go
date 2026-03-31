@@ -22,9 +22,9 @@ type ExchangeFactory func(cfg *config.Config) (Exchange, error)
 type ExchangeAccountFactory func(cfg *config.Config, accountName string) (Exchange, error)
 
 var (
-	factoriesMu        sync.RWMutex
-	factories          = map[string]ExchangeFactory{}
-	accountFactories   = map[string]ExchangeAccountFactory{}
+	factoriesMu      sync.RWMutex
+	factories        = map[string]ExchangeFactory{}
+	accountFactories = map[string]ExchangeAccountFactory{}
 )
 
 // RegisterFactory registers a named exchange factory. Called from subpackage init() functions.

@@ -37,8 +37,8 @@ type TokenBucketLimiter struct {
 }
 
 type bucket struct {
-	tokens    int
-	resetAt   time.Time
+	tokens  int
+	resetAt time.Time
 }
 
 // NewTokenBucketLimiter creates a limiter that allows maxTokens per interval per provider.

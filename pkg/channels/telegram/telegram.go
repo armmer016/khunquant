@@ -678,9 +678,9 @@ func (c *TelegramChannel) handlePairingRequest(ctx context.Context, message *tel
 	}
 
 	logger.InfoCF("telegram", "Pairing request", map[string]any{
-		"user_id":  sender.PlatformID,
-		"code":     req.Code,
-		"is_new":   isNew,
+		"user_id": sender.PlatformID,
+		"code":    req.Code,
+		"is_new":  isNew,
 	})
 
 	text := fmt.Sprintf(

@@ -75,21 +75,21 @@ func (f *FlexibleStringSlice) UnmarshalText(text []byte) error {
 }
 
 type Config struct {
-	Agents    AgentsConfig    `json:"agents"`
-	Bindings  []AgentBinding  `json:"bindings,omitempty"`
-	Session   SessionConfig   `json:"session,omitempty"`
-	Channels  ChannelsConfig  `json:"channels"`
-	Providers ProvidersConfig `json:"providers,omitempty"`
-	ModelList []ModelConfig   `json:"model_list"` // New model-centric provider configuration
-	Gateway   GatewayConfig   `json:"gateway"`
+	Agents      AgentsConfig      `json:"agents"`
+	Bindings    []AgentBinding    `json:"bindings,omitempty"`
+	Session     SessionConfig     `json:"session,omitempty"`
+	Channels    ChannelsConfig    `json:"channels"`
+	Providers   ProvidersConfig   `json:"providers,omitempty"`
+	ModelList   []ModelConfig     `json:"model_list"` // New model-centric provider configuration
+	Gateway     GatewayConfig     `json:"gateway"`
 	Tools       ToolsConfig       `json:"tools"`
 	Exchanges   ExchangesConfig   `json:"exchanges"`
 	TradingRisk TradingRiskConfig `json:"trading_risk,omitempty"`
-	Heartbeat HeartbeatConfig `json:"heartbeat"`
-	Devices   DevicesConfig   `json:"devices"`
-	Voice     VoiceConfig     `json:"voice"`
+	Heartbeat   HeartbeatConfig   `json:"heartbeat"`
+	Devices     DevicesConfig     `json:"devices"`
+	Voice       VoiceConfig       `json:"voice"`
 	// BuildInfo contains build-time version information
-	BuildInfo BuildInfo `json:"build_info,omitempty"`
+	BuildInfo BuildInfo    `json:"build_info,omitempty"`
 	Update    UpdateConfig `json:"update,omitempty"`
 }
 
@@ -174,10 +174,10 @@ type OKXExchangeAccount struct {
 // APIKey = Settrade app login ID; Secret = base64-encoded PKCS#8 ECDSA P-256 private key.
 type SettradeExchangeAccount struct {
 	ExchangeAccount
-	BrokerID  string `json:"broker_id"`      // e.g. "FSSVP"
-	AppCode   string `json:"app_code"`        // e.g. "ALGO" — used in all OAM URL paths
-	AccountNo string `json:"account_no"`      // trading account number
-	PIN       string `json:"pin,omitempty"`   // trading PIN; stored in config for auto-verify
+	BrokerID  string `json:"broker_id"`     // e.g. "FSSVP"
+	AppCode   string `json:"app_code"`      // e.g. "ALGO" — used in all OAM URL paths
+	AccountNo string `json:"account_no"`    // trading account number
+	PIN       string `json:"pin,omitempty"` // trading PIN; stored in config for auto-verify
 }
 
 // SettradeExchangeConfig holds the SETTRADE exchange credentials and settings.
@@ -951,13 +951,13 @@ type ToolsConfig struct {
 	Subagent        ToolConfig         `json:"subagent"                                                 envPrefix:"KHUNQUANT_TOOLS_SUBAGENT_"`
 	WebFetch        ToolConfig         `json:"web_fetch"                                                envPrefix:"KHUNQUANT_TOOLS_WEB_FETCH_"`
 	WriteFile       ToolConfig         `json:"write_file"                                               envPrefix:"KHUNQUANT_TOOLS_WRITE_FILE_"`
-	GetAssetsList  ToolConfig         `json:"get_assets_list"                                          envPrefix:"KHUNQUANT_TOOLS_GET_ASSETS_LIST_"`
-	GetTotalValue  ToolConfig         `json:"get_total_value"                                          envPrefix:"KHUNQUANT_TOOLS_GET_TOTAL_VALUE_"`
-	ListPortfolios     ToolConfig         `json:"list_portfolios"                                          envPrefix:"KHUNQUANT_TOOLS_LIST_PORTFOLIOS_"`
-	TakeSnapshot       ToolConfig         `json:"take_snapshot"                                            envPrefix:"KHUNQUANT_TOOLS_TAKE_SNAPSHOT_"`
-	QuerySnapshots     ToolConfig         `json:"query_snapshots"                                          envPrefix:"KHUNQUANT_TOOLS_QUERY_SNAPSHOTS_"`
-	SnapshotSummary    ToolConfig         `json:"snapshot_summary"                                         envPrefix:"KHUNQUANT_TOOLS_SNAPSHOT_SUMMARY_"`
-	DeleteSnapshots    ToolConfig         `json:"delete_snapshots"                                         envPrefix:"KHUNQUANT_TOOLS_DELETE_SNAPSHOTS_"`
+	GetAssetsList   ToolConfig         `json:"get_assets_list"                                          envPrefix:"KHUNQUANT_TOOLS_GET_ASSETS_LIST_"`
+	GetTotalValue   ToolConfig         `json:"get_total_value"                                          envPrefix:"KHUNQUANT_TOOLS_GET_TOTAL_VALUE_"`
+	ListPortfolios  ToolConfig         `json:"list_portfolios"                                          envPrefix:"KHUNQUANT_TOOLS_LIST_PORTFOLIOS_"`
+	TakeSnapshot    ToolConfig         `json:"take_snapshot"                                            envPrefix:"KHUNQUANT_TOOLS_TAKE_SNAPSHOT_"`
+	QuerySnapshots  ToolConfig         `json:"query_snapshots"                                          envPrefix:"KHUNQUANT_TOOLS_QUERY_SNAPSHOTS_"`
+	SnapshotSummary ToolConfig         `json:"snapshot_summary"                                         envPrefix:"KHUNQUANT_TOOLS_SNAPSHOT_SUMMARY_"`
+	DeleteSnapshots ToolConfig         `json:"delete_snapshots"                                         envPrefix:"KHUNQUANT_TOOLS_DELETE_SNAPSHOTS_"`
 
 	// Market intelligence tools (Track A)
 	GetTicker    ToolConfig `json:"get_ticker"    envPrefix:"KHUNQUANT_TOOLS_GET_TICKER_"`
@@ -967,14 +967,14 @@ type ToolsConfig struct {
 	GetMarkets   ToolConfig `json:"get_markets"   envPrefix:"KHUNQUANT_TOOLS_GET_MARKETS_"`
 
 	// Order execution tools (Track B)
-	CreateOrder       ToolConfig `json:"create_order"         envPrefix:"KHUNQUANT_TOOLS_CREATE_ORDER_"`
-	CancelOrder       ToolConfig `json:"cancel_order"         envPrefix:"KHUNQUANT_TOOLS_CANCEL_ORDER_"`
-	GetOrder          ToolConfig `json:"get_order"            envPrefix:"KHUNQUANT_TOOLS_GET_ORDER_"`
-	GetOpenOrders     ToolConfig `json:"get_open_orders"      envPrefix:"KHUNQUANT_TOOLS_GET_OPEN_ORDERS_"`
-	GetOrderHistory   ToolConfig `json:"get_order_history"    envPrefix:"KHUNQUANT_TOOLS_GET_ORDER_HISTORY_"`
-	GetTradeHistory   ToolConfig `json:"get_trade_history"    envPrefix:"KHUNQUANT_TOOLS_GET_TRADE_HISTORY_"`
-	EmergencyStop     ToolConfig `json:"emergency_stop"       envPrefix:"KHUNQUANT_TOOLS_EMERGENCY_STOP_"`
-	PaperTrade        ToolConfig `json:"paper_trade"          envPrefix:"KHUNQUANT_TOOLS_PAPER_TRADE_"`
+	CreateOrder        ToolConfig `json:"create_order"         envPrefix:"KHUNQUANT_TOOLS_CREATE_ORDER_"`
+	CancelOrder        ToolConfig `json:"cancel_order"         envPrefix:"KHUNQUANT_TOOLS_CANCEL_ORDER_"`
+	GetOrder           ToolConfig `json:"get_order"            envPrefix:"KHUNQUANT_TOOLS_GET_ORDER_"`
+	GetOpenOrders      ToolConfig `json:"get_open_orders"      envPrefix:"KHUNQUANT_TOOLS_GET_OPEN_ORDERS_"`
+	GetOrderHistory    ToolConfig `json:"get_order_history"    envPrefix:"KHUNQUANT_TOOLS_GET_ORDER_HISTORY_"`
+	GetTradeHistory    ToolConfig `json:"get_trade_history"    envPrefix:"KHUNQUANT_TOOLS_GET_TRADE_HISTORY_"`
+	EmergencyStop      ToolConfig `json:"emergency_stop"       envPrefix:"KHUNQUANT_TOOLS_EMERGENCY_STOP_"`
+	PaperTrade         ToolConfig `json:"paper_trade"          envPrefix:"KHUNQUANT_TOOLS_PAPER_TRADE_"`
 	GetOrderRateStatus ToolConfig `json:"get_order_rate_status" envPrefix:"KHUNQUANT_TOOLS_GET_ORDER_RATE_STATUS_"`
 
 	// Technical analysis tools (Track C)
@@ -1090,7 +1090,6 @@ func LoadConfig(path string) (*Config, error) {
 
 	return cfg, nil
 }
-
 
 func (c *Config) migrateChannelConfigs() {
 	// Discord: mention_only -> group_trigger.mention_only

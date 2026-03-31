@@ -130,7 +130,6 @@ func (h *Handler) handleRunCronJob(w http.ResponseWriter, r *http.Request) {
 	proxyToGateway(w, r, base+"/api/cron/jobs/"+id+"/run")
 }
 
-
 // --- File fallback helpers (used only when gateway is offline) --------------
 
 func loadCronStore(storePath string) (*cron.CronStore, error) {

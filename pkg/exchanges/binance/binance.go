@@ -17,8 +17,8 @@ const Name = "binance"
 
 // BinanceExchange implements exchanges.WalletExchange using the CCXT Go library.
 type BinanceExchange struct {
-	spot      *ccxt.Binance     // spot / funding / cross-margin
-	usdm      *ccxt.Binanceusdm // USDT-M perpetual futures
+	spot      *ccxt.Binance      // spot / funding / cross-margin
+	usdm      *ccxt.Binanceusdm  // USDT-M perpetual futures
 	coinm     *ccxt.Binancecoinm // Coin-M futures
 	isTestnet bool
 }

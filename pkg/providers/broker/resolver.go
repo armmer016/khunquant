@@ -31,9 +31,9 @@ type symbolEntry struct {
 
 // defaultResolver is the package-level resolver implementation.
 type defaultResolver struct {
-	mu      sync.RWMutex
-	exact   map[string][]symbolEntry // exact symbol → providers
-	catchAll []string                // provider IDs that accept any symbol
+	mu       sync.RWMutex
+	exact    map[string][]symbolEntry // exact symbol → providers
+	catchAll []string                 // provider IDs that accept any symbol
 }
 
 // DefaultResolver is the global SymbolResolver used by all tools.

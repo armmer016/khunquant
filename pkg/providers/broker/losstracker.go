@@ -16,8 +16,8 @@ var GlobalLossTracker = &DailyLossTracker{}
 
 // DailyLossTracker is safe for concurrent use.
 type DailyLossTracker struct {
-	mu      sync.Mutex
-	day     string  // "2006-01-02" UTC
+	mu       sync.Mutex
+	day      string // "2006-01-02" UTC
 	totalUSD float64
 }
 

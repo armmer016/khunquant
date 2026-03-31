@@ -7,10 +7,10 @@ import "time"
 type Position struct {
 	ID         int64
 	SnapshotID int64
-	Source     string            // "binance", "tdameritrade", "interactive-brokers"
-	Account    string            // "HighRiskPort", "Roth-IRA", ""
-	Category   string            // "spot", "futures_usdt", "stock", "forex", "bond"
-	Asset      string            // "BTC", "AAPL", "EUR/USD"
+	Source     string // "binance", "tdameritrade", "interactive-brokers"
+	Account    string // "HighRiskPort", "Roth-IRA", ""
+	Category   string // "spot", "futures_usdt", "stock", "forex", "bond"
+	Asset      string // "BTC", "AAPL", "EUR/USD"
 	Quantity   float64
 	Quote      string            // quote currency for Price and Value (e.g. "USDT", "THB")
 	Price      float64           // unit price in Quote currency
@@ -53,20 +53,20 @@ type DeleteFilter struct {
 
 // Summary is the result of SnapshotSummary.
 type Summary struct {
-	Count          int
-	Earliest       time.Time
-	Latest         time.Time
-	MinValue       float64
-	MaxValue       float64
-	AvgValue       float64
-	LatestValue    float64
-	Change         float64 // latest - earliest (change from start)
-	ChangePct      float64
-	PrevValue      float64 // second-to-last snapshot value
-	PrevChange     float64 // latest - previous (change from immediate previous)
-	PrevChangePct  float64
-	Quote          string
-	Groups         []GroupSummary
+	Count         int
+	Earliest      time.Time
+	Latest        time.Time
+	MinValue      float64
+	MaxValue      float64
+	AvgValue      float64
+	LatestValue   float64
+	Change        float64 // latest - earliest (change from start)
+	ChangePct     float64
+	PrevValue     float64 // second-to-last snapshot value
+	PrevChange    float64 // latest - previous (change from immediate previous)
+	PrevChangePct float64
+	Quote         string
+	Groups        []GroupSummary
 }
 
 // GroupSummary is a single group in a Summary result.
