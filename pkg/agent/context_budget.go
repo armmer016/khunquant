@@ -90,14 +90,28 @@ func findSafeBoundary(history []providers.Message, targetIndex int) int {
 // including Content, ReasoningContent, ToolCalls arguments, ToolCallID
 // metadata, and Media items. Uses a heuristic of 2.5 characters per token.
 func estimateMessageTokens(msg providers.Message) int {
-	chars := utf8.RuneCountInString(msg.Content)
-	chars += utf8.RuneCountInString(msg.ReasoningContent)
+	contentChars := utf8.RuneCountInString(msg.Content)
 
-	// SystemParts are structured system blocks that can be substantial
-	// when using instruction-heavy agents or KV-cache-aware adapters.
-	for _, part := range msg.SystemParts {
-		chars += utf8.RuneCountInString(part.Text)
+	// SystemParts are structured system blocks used for cache-aware adapters.
+	// They carry the same content as Content, but in multiple blocks.
+	// We estimate them as an alternative representation, not additive.
+	systemPartsChars := 0
+	if len(msg.SystemParts) > 0 {
+		for _, part := range msg.SystemParts {
+			systemPartsChars += utf8.RuneCountInString(part.Text)
+		}
+		// Per-part overhead for JSON structure (type, text, cache_control).
+		const perPartOverhead = 20
+		systemPartsChars += len(msg.SystemParts) * perPartOverhead
 	}
+
+	// Use the larger of the two representations to stay conservative.
+	chars := contentChars
+	if systemPartsChars > chars {
+		chars = systemPartsChars
+	}
+
+	chars += utf8.RuneCountInString(msg.ReasoningContent)
 
 	for _, tc := range msg.ToolCalls {
 		chars += len(tc.ID) + len(tc.Type)
