@@ -10,7 +10,7 @@ const DISMISS_KEY = "update-banner-dismissed"
 type UpdateState = "idle" | "updating" | "error"
 
 export function UpdateBanner() {
-  const update = useUpdateCheck()
+  const { status: update, refetch } = useUpdateCheck()
   const [dismissed, setDismissed] = React.useState<boolean>(() => {
     try {
       return localStorage.getItem(DISMISS_KEY) !== null
@@ -21,8 +21,7 @@ export function UpdateBanner() {
   const [state, setState] = React.useState<UpdateState>("idle")
   const [errorMsg, setErrorMsg] = React.useState<string>("")
 
-  // Reset dismiss state when a new version becomes available so the banner
-  // reappears after a previously dismissed version is superseded.
+  // Reset dismiss when a newer version supersedes the previously dismissed one.
   React.useEffect(() => {
     if (!update) return
     const prev = localStorage.getItem(DISMISS_KEY)
@@ -48,16 +47,11 @@ export function UpdateBanner() {
     setErrorMsg("")
     try {
       const result = await applyUpdate()
-      // Mark dismissed so banner doesn't flicker while gateway restarts.
-      try {
-        localStorage.setItem(DISMISS_KEY, update.latest_version)
-      } catch {
-        // ignore
-      }
-      setDismissed(true)
-      toast.success(
-        `Updated to ${result.version} — gateway is restarting…`,
-      )
+      toast.success(`Updated to ${result.version} — gateway is restarting…`)
+      // Immediately refresh the update status so the banner disappears
+      // without waiting for the next polling cycle.
+      refetch()
+      setState("idle")
     } catch (err) {
       setState("error")
       setErrorMsg(err instanceof Error ? err.message : String(err))

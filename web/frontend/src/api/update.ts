@@ -24,6 +24,11 @@ export async function getVersion(): Promise<string> {
   return res.version
 }
 
+export async function getGatewayBinaryVersion(): Promise<string> {
+  const res = await request<{ version: string }>("/api/gateway/binary-version")
+  return res.version
+}
+
 export interface ApplyUpdateResult {
   success: boolean
   up_to_date?: boolean

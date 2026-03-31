@@ -2,7 +2,7 @@ import type { ReactNode } from "react"
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 
-import { getVersion } from "@/api/update"
+import { getGatewayBinaryVersion } from "@/api/update"
 
 import {
   type CoreConfigForm,
@@ -74,9 +74,15 @@ export function AgentDefaultsSection({
   const [version, setVersion] = useState<string>("")
 
   useEffect(() => {
-    getVersion()
-      .then(setVersion)
-      .catch(() => setVersion("unknown"))
+    const fetch = () => {
+      getGatewayBinaryVersion()
+        .then((v) => { if (v) setVersion(v) })
+        .catch(() => {})
+    }
+    fetch()
+    // Re-fetch every 15s so the version updates after a gateway restart.
+    const id = setInterval(fetch, 15_000)
+    return () => clearInterval(id)
   }, [])
 
   return (
