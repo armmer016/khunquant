@@ -26,7 +26,7 @@
   },
   "chat": {
     "welcome": "How can I help you today?",
-    "welcomeDesc": "Ask me about weather, settings, or any other tasks. I'm here to assist you.",
+    "welcomeDesc": "Ask me about your portfolios, market, financial, or any other tasks. I'm here to assist you.",
     "placeholder": "Start a new message...",
     "newChat": "New Chat",
     "notConnected": "Gateway is not running. Start it to chat.",

@@ -47,7 +47,7 @@ func (b *BitkubExchange) Name() string { return Name }
 
 // SupportedWalletTypes returns all wallet types this exchange supports.
 func (b *BitkubExchange) SupportedWalletTypes() []string {
-	return []string{"spot"}
+	return []string{"spot", "all"}
 }
 
 // SupportedQuotes implements exchanges.QuoteLister.
@@ -71,7 +71,7 @@ func (b *BitkubExchange) GetBalances(ctx context.Context) ([]exchanges.Balance, 
 // GetWalletBalances implements WalletExchange.
 func (b *BitkubExchange) GetWalletBalances(ctx context.Context, walletType string) ([]exchanges.WalletBalance, error) {
 	switch walletType {
-	case "spot":
+	case "spot", "all":
 		return b.getSpotBalances(ctx)
 	default:
 		return nil, fmt.Errorf("bitkub: unsupported wallet type %q (supported: %v)", walletType, b.SupportedWalletTypes())

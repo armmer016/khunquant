@@ -9,8 +9,8 @@ import {
   IconRefresh,
   IconSun,
 } from "@tabler/icons-react"
-import { Link } from "@tanstack/react-router"
 import * as React from "react"
+import { KhunquantLogo } from "@/components/khunquant-logo"
 import { useTranslation } from "react-i18next"
 
 import {
@@ -87,10 +87,8 @@ export function AppHeader() {
         <SidebarTrigger className="text-muted-foreground hover:bg-accent hover:text-foreground flex h-9 w-9 items-center justify-center rounded-lg sm:hidden [&>svg]:size-5">
           <IconMenu2 />
         </SidebarTrigger>
-        <div className="hidden w-36 shrink-0 items-center sm:flex">
-          <Link to="/">
-            <img className="w-full" src="/logo_with_text.png" alt="Logo" />
-          </Link>
+        <div className="hidden shrink-0 items-center gap-2 sm:flex">
+          <KhunquantLogo />
         </div>
       </div>
 

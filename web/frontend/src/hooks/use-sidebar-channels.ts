@@ -28,7 +28,16 @@ import { getPairingRequests } from "@/api/pairing"
 import { getChannelDisplayName } from "@/components/channels/channel-display-name"
 import { gatewayAtom } from "@/store/gateway"
 
-const DEFAULT_VISIBLE_CHANNELS = 4
+const DEFAULT_VISIBLE_CHANNEL_NAMES = new Set([
+  "telegram",
+  "pico",
+  "discord",
+  "line",
+  "slack",
+  "whatsapp",
+  "whatsapp_native",
+])
+
 const CHANNEL_IMPORTANCE_ORDER = [
   "discord",
   "feishu",
@@ -145,7 +154,8 @@ export function useSidebarChannels({ t }: UseSidebarChannelsOptions) {
   const [enabledMap, setEnabledMap] = React.useState<Record<string, boolean>>(
     {},
   )
-  const [showAllChannels, setShowAllChannels] = React.useState(false)
+  // TODO: re-enable show more/less toggle when all channels are ready
+  // const [showAllChannels, setShowAllChannels] = React.useState(false)
   const [hasPendingPairing, setHasPendingPairing] = React.useState(false)
 
   // Poll pairing requests to show the red dot badge on the Telegram channel.
@@ -223,10 +233,10 @@ export function useSidebarChannels({ t }: UseSidebarChannelsOptions) {
     return list
   }, [channels, enabledMap, t])
 
-  const hasMoreChannels = sortedChannels.length > DEFAULT_VISIBLE_CHANNELS
-  const visibleChannels = showAllChannels
-    ? sortedChannels
-    : sortedChannels.slice(0, DEFAULT_VISIBLE_CHANNELS)
+  const visibleChannels = sortedChannels.filter((c) =>
+    DEFAULT_VISIBLE_CHANNEL_NAMES.has(c.name),
+  )
+  const hasMoreChannels = false
 
   const channelItems = React.useMemo<SidebarChannelNavItem[]>(
     () =>
@@ -240,14 +250,10 @@ export function useSidebarChannels({ t }: UseSidebarChannelsOptions) {
     [t, visibleChannels, hasPendingPairing],
   )
 
-  const toggleShowAllChannels = React.useCallback(() => {
-    setShowAllChannels((prev) => !prev)
-  }, [])
-
   return {
     channelItems,
     hasMoreChannels,
-    showAllChannels,
-    toggleShowAllChannels,
+    showAllChannels: false,
+    toggleShowAllChannels: () => {},
   }
 }
