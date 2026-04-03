@@ -5,6 +5,7 @@ BINARY_NAME=khunquant
 BUILD_DIR=build
 CMD_DIR=cmd/$(BINARY_NAME)
 MAIN_GO=$(CMD_DIR)/main.go
+EXT=
 
 # Version
 VERSION?=$(shell git describe --tags --always --dirty 2>/dev/null || echo "dev")
@@ -62,9 +63,11 @@ WORKSPACE_DIR?=$(KHUNQUANT_HOME)/workspace
 WORKSPACE_SKILLS_DIR=$(WORKSPACE_DIR)/skills
 BUILTIN_SKILLS_DIR=$(CURDIR)/skills
 
+LSCMD=ls -sf
+
 # OS detection
-UNAME_S:=$(shell uname -s)
-UNAME_M:=$(shell uname -m)
+UNAME_S?=$(shell uname -s)
+UNAME_M?=$(shell uname -m)
 
 # Platform-specific settings
 ifeq ($(UNAME_S),Linux)
@@ -96,7 +99,20 @@ else ifeq ($(UNAME_S),Darwin)
 	endif
 else
 	PLATFORM=$(UNAME_S)
-	ARCH=$(UNAME_M)
+	ifeq ($(UNAME_M),x86_64)
+		ARCH?=amd64
+	else
+	    ARCH?=$(UNAME_M)
+	endif
+	# Detect Windows (Git Bash / MSYS2)
+    IS_WINDOWS:=$(if $(findstring MINGW,$(UNAME_S)),yes,$(if $(findstring MSYS,$(UNAME_S)),yes,$(if $(findstring CYGWIN,$(UNAME_S)),yes,no)))
+	ifeq ($(IS_WINDOWS),yes)
+	    EXT=.exe
+	    LSCMD=cp
+	else ifeq ($(UNAME_S),windows) // failsafe for force windows build in other OS
+		EXT=.exe
+	endif
+
 endif
 
 BINARY_PATH=$(BUILD_DIR)/$(BINARY_NAME)-$(PLATFORM)-$(ARCH)
@@ -113,11 +129,11 @@ generate:
 
 ## build: Build the khunquant binary for current platform
 build: generate
-	@echo "Building $(BINARY_NAME) for $(PLATFORM)/$(ARCH)..."
+	@echo "Building $(BINARY_NAME)$(EXT) for $(PLATFORM)/$(ARCH)..."
 	@mkdir -p $(BUILD_DIR)
-	@$(GO) build $(GOFLAGS) $(LDFLAGS) -o $(BINARY_PATH) ./$(CMD_DIR)
-	@echo "Build complete: $(BINARY_PATH)"
-	@ln -sf $(BINARY_NAME)-$(PLATFORM)-$(ARCH) $(BUILD_DIR)/$(BINARY_NAME)
+	@GOARCH=${ARCH} $(GO) build $(GOFLAGS) -ldflags "$(LDFLAGS)" -o $(BINARY_PATH)$(EXT) ./$(CMD_DIR)
+	@echo "Build complete: $(BINARY_PATH)$(EXT)"
+	@$(LSCMD) $(BINARY_NAME)-$(PLATFORM)-$(ARCH)$(EXT) $(BUILD_DIR)/$(BINARY_NAME)$(EXT)
 
 ## build-launcher: Build the khunquant-launcher (web console) binary
 build-launcher:
