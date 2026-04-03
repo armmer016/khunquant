@@ -34,7 +34,6 @@ Positive = buy; negative = sell.
 ### Step 4: Review and Confirm with User
 Present the trade plan:
 - List all proposed trades with symbols, sides, amounts, and estimated costs
-- Flag any trade exceeding 10% of portfolio value
 - Ask for explicit confirmation before executing
 
 ### Step 5: Execute Trades
