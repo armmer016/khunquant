@@ -139,6 +139,12 @@ func resolveProviderSelection(cfg *config.Config) (providerSelection, error) {
 				sel.apiBase = cfg.Providers.VLLM.APIBase
 				sel.proxy = cfg.Providers.VLLM.Proxy
 			}
+		case "llamacpp":
+			if cfg.Providers.LlamaCpp.APIBase != "" {
+				sel.apiKey = cfg.Providers.LlamaCpp.APIKey
+				sel.apiBase = cfg.Providers.LlamaCpp.APIBase
+				sel.proxy = cfg.Providers.LlamaCpp.Proxy
+			}
 		case "shengsuanyun":
 			if cfg.Providers.ShengSuanYun.APIKey != "" {
 				sel.apiKey = cfg.Providers.ShengSuanYun.APIKey
@@ -372,6 +378,10 @@ func resolveProviderSelection(cfg *config.Config) (providerSelection, error) {
 			sel.apiKey = cfg.Providers.VLLM.APIKey
 			sel.apiBase = cfg.Providers.VLLM.APIBase
 			sel.proxy = cfg.Providers.VLLM.Proxy
+		case cfg.Providers.LlamaCpp.APIBase != "":
+			sel.apiKey = cfg.Providers.LlamaCpp.APIKey
+			sel.apiBase = cfg.Providers.LlamaCpp.APIBase
+			sel.proxy = cfg.Providers.LlamaCpp.Proxy
 		default:
 			if cfg.Providers.OpenRouter.APIKey != "" {
 				sel.apiKey = cfg.Providers.OpenRouter.APIKey

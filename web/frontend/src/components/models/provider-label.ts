@@ -17,6 +17,7 @@ const PROVIDER_LABELS: Record<string, string> = {
   mistral: "Mistral AI",
   avian: "Avian",
   vllm: "VLLM (local)",
+  llamacpp: "llama.cpp (local)",
   zhipu: "Zhipu AI (智谱)",
 }
 

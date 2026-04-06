@@ -35,7 +35,7 @@ func (t *ExchangeBalanceTool) Parameters() map[string]any {
 			"exchange": map[string]any{
 				"type":        "string",
 				"description": "Exchange to query (default: \"binance\")",
-				"enum":        []string{"binance"},
+				"enum":        []string{"binance", "binanceth", "bitkub", "okx", "settrade"},
 			},
 			"account": map[string]any{
 				"type":        "string",

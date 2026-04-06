@@ -174,6 +174,23 @@ func ConvertProvidersToModelList(cfg *Config) []ModelConfig {
 			},
 		},
 		{
+			providerNames: []string{"llamacpp"},
+			protocol:      "llamacpp",
+			buildConfig: func(p ProvidersConfig) (ModelConfig, bool) {
+				if p.LlamaCpp.APIKey == "" && p.LlamaCpp.APIBase == "" {
+					return ModelConfig{}, false
+				}
+				return ModelConfig{
+					ModelName:      "llamacpp",
+					Model:          "llamacpp/auto",
+					APIKey:         p.LlamaCpp.APIKey,
+					APIBase:        p.LlamaCpp.APIBase,
+					Proxy:          p.LlamaCpp.Proxy,
+					RequestTimeout: p.LlamaCpp.RequestTimeout,
+				}, true
+			},
+		},
+		{
 			providerNames: []string{"gemini", "google"},
 			protocol:      "gemini",
 			buildConfig: func(p ProvidersConfig) (ModelConfig, bool) {

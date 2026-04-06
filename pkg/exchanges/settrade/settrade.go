@@ -425,40 +425,34 @@ func (c *SettradeClient) FetchCandlestick(ctx context.Context, symbol, interval 
 		q.Set("normalized", "true")
 	}
 
-	var raw []candlestickBar
+	// The API returns a single object where each field is an array of values.
+	var raw candlestickBar
 	if err := c.marketGet(ctx, path, q, &raw); err != nil {
 		return nil, err
 	}
 
-	// Flatten batch format: each bar has single-element arrays
-	out := make([]OHLCV, 0, len(raw))
-	for _, bar := range raw {
-		if len(bar.Time) == 0 {
-			continue
+	out := make([]OHLCV, 0, len(raw.Time))
+	for i, t := range raw.Time {
+		o := OHLCV{Time: t}
+		if i < len(raw.Open) {
+			o.Open = raw.Open[i]
 		}
-		n := len(bar.Time)
-		for i := 0; i < n; i++ {
-			o := OHLCV{Time: bar.Time[i]}
-			if i < len(bar.Open) {
-				o.Open = bar.Open[i]
-			}
-			if i < len(bar.High) {
-				o.High = bar.High[i]
-			}
-			if i < len(bar.Low) {
-				o.Low = bar.Low[i]
-			}
-			if i < len(bar.Close) {
-				o.Close = bar.Close[i]
-			}
-			if i < len(bar.Volume) {
-				o.Volume = bar.Volume[i]
-			}
-			if i < len(bar.Value) {
-				o.Value = bar.Value[i]
-			}
-			out = append(out, o)
+		if i < len(raw.High) {
+			o.High = raw.High[i]
 		}
+		if i < len(raw.Low) {
+			o.Low = raw.Low[i]
+		}
+		if i < len(raw.Close) {
+			o.Close = raw.Close[i]
+		}
+		if i < len(raw.Volume) {
+			o.Volume = raw.Volume[i]
+		}
+		if i < len(raw.Value) {
+			o.Value = raw.Value[i]
+		}
+		out = append(out, o)
 	}
 	return out, nil
 }

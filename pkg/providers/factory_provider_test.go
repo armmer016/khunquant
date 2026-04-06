@@ -119,6 +119,7 @@ func TestCreateProviderFromConfig_DefaultAPIBase(t *testing.T) {
 		{"vllm", "vllm"},
 		{"deepseek", "deepseek"},
 		{"ollama", "ollama"},
+		{"llamacpp", "llamacpp"},
 		{"longcat", "longcat"},
 		{"modelscope", "modelscope"},
 	}

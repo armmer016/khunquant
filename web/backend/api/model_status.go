@@ -18,6 +18,7 @@ var (
 	probeTCPServiceFunc            = probeTCPService
 	probeOllamaModelFunc           = probeOllamaModel
 	probeOpenAICompatibleModelFunc = probeOpenAICompatibleModel
+	probeLlamaCppHealthFunc        = probeLlamaCppHealth
 )
 
 func hasModelConfiguration(m config.ModelConfig) bool {
@@ -63,7 +64,7 @@ func requiresRuntimeProbe(m config.ModelConfig) bool {
 	switch modelProtocol(m.Model) {
 	case "claude-cli", "claudecli", "codex-cli", "codexcli", "github-copilot", "copilot":
 		return true
-	case "ollama", "vllm":
+	case "ollama", "vllm", "llamacpp":
 		apiBase := strings.TrimSpace(m.APIBase)
 		return apiBase == "" || hasLocalAPIBase(apiBase)
 	}
@@ -83,6 +84,8 @@ func probeLocalModelAvailability(m config.ModelConfig) bool {
 		return probeOllamaModelFunc(apiBase, modelID)
 	case "vllm":
 		return probeOpenAICompatibleModelFunc(apiBase, modelID)
+	case "llamacpp":
+		return probeLlamaCppHealthFunc(apiBase)
 	case "github-copilot", "copilot":
 		return probeTCPServiceFunc(apiBase)
 	case "claude-cli", "claudecli", "codex-cli", "codexcli":
@@ -105,6 +108,8 @@ func modelProbeAPIBase(m config.ModelConfig) string {
 		return "http://localhost:11434/v1"
 	case "vllm":
 		return "http://localhost:8000/v1"
+	case "llamacpp":
+		return "http://localhost:8080/v1"
 	case "github-copilot", "copilot":
 		return "localhost:4321"
 	default:
@@ -241,6 +246,21 @@ func probeOpenAICompatibleModel(apiBase, modelID string) bool {
 		}
 	}
 	return false
+}
+
+func probeLlamaCppHealth(apiBase string) bool {
+	root, err := apiRootFromAPIBase(apiBase)
+	if err != nil {
+		return false
+	}
+
+	var resp struct {
+		Status string `json:"status"`
+	}
+	if err := getJSON(root+"/health", &resp); err != nil {
+		return false
+	}
+	return resp.Status == "ok"
 }
 
 func getJSON(rawURL string, out any) error {

@@ -50,6 +50,7 @@ func statusCmd() {
 		hasQwen := cfg.Providers.Qwen.APIKey != ""
 		hasGroq := cfg.Providers.Groq.APIKey != ""
 		hasVLLM := cfg.Providers.VLLM.APIBase != ""
+		hasLlamaCpp := cfg.Providers.LlamaCpp.APIBase != ""
 		hasMoonshot := cfg.Providers.Moonshot.APIKey != ""
 		hasDeepSeek := cfg.Providers.DeepSeek.APIKey != ""
 		hasVolcEngine := cfg.Providers.VolcEngine.APIKey != ""
@@ -82,6 +83,11 @@ func statusCmd() {
 			fmt.Printf("Ollama: ✓ %s\n", cfg.Providers.Ollama.APIBase)
 		} else {
 			fmt.Println("Ollama: not set")
+		}
+		if hasLlamaCpp {
+			fmt.Printf("llama.cpp: ✓ %s\n", cfg.Providers.LlamaCpp.APIBase)
+		} else {
+			fmt.Println("llama.cpp: not set")
 		}
 
 		store, _ := auth.LoadStore()

@@ -727,6 +727,7 @@ type ProvidersConfig struct {
 	Avian         ProviderConfig       `json:"avian"`
 	Minimax       ProviderConfig       `json:"minimax"`
 	LongCat       ProviderConfig       `json:"longcat"`
+	LlamaCpp      ProviderConfig       `json:"llamacpp"`
 	ModelScope    ProviderConfig       `json:"modelscope"`
 }
 
@@ -756,7 +757,8 @@ func (p ProvidersConfig) IsEmpty() bool {
 		p.Avian.APIKey == "" && p.Avian.APIBase == "" &&
 		p.Minimax.APIKey == "" && p.Minimax.APIBase == "" &&
 		p.LongCat.APIKey == "" && p.LongCat.APIBase == "" &&
-		p.ModelScope.APIKey == "" && p.ModelScope.APIBase == ""
+		p.ModelScope.APIKey == "" && p.ModelScope.APIBase == "" &&
+		p.LlamaCpp.APIKey == "" && p.LlamaCpp.APIBase == ""
 }
 
 // MarshalJSON implements custom JSON marshaling for ProvidersConfig
@@ -1140,6 +1142,9 @@ func (c *Config) GetAPIKey() string {
 	if c.Providers.VLLM.APIKey != "" {
 		return c.Providers.VLLM.APIKey
 	}
+	if c.Providers.LlamaCpp.APIKey != "" {
+		return c.Providers.LlamaCpp.APIKey
+	}
 	if c.Providers.ShengSuanYun.APIKey != "" {
 		return c.Providers.ShengSuanYun.APIKey
 	}
@@ -1161,6 +1166,9 @@ func (c *Config) GetAPIBase() string {
 	}
 	if c.Providers.VLLM.APIKey != "" && c.Providers.VLLM.APIBase != "" {
 		return c.Providers.VLLM.APIBase
+	}
+	if c.Providers.LlamaCpp.APIKey != "" && c.Providers.LlamaCpp.APIBase != "" {
+		return c.Providers.LlamaCpp.APIBase
 	}
 	return ""
 }

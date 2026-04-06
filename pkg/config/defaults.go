@@ -386,6 +386,14 @@ func DefaultConfig() *Config {
 				APIKey:    "",
 			},
 
+			// llama.cpp (local) - http://localhost:8080
+			{
+				ModelName: "llamacpp-model",
+				Model:     "llamacpp/custom-model",
+				APIBase:   "http://localhost:8080/v1",
+				APIKey:    "",
+			},
+
 			// Azure OpenAI - https://portal.azure.com
 			// model_name is a user-friendly alias; the model field's path after "azure/" is your deployment name
 			{
