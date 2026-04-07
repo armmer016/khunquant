@@ -15,7 +15,6 @@ import {
 import {
   invalidateSocket,
   isCurrentSocket,
-  normalizeWsUrlForBrowser,
 } from "@/features/chat/websocket"
 import i18n from "@/i18n"
 import { getChatState, updateChatStore } from "@/store/chat"
@@ -131,7 +130,7 @@ export async function connectChat() {
   updateChatStore({ connectionState: "connecting" })
 
   try {
-    const { token, ws_url } = await getPicoToken()
+    const { token } = await getPicoToken()
     const sessionId = activeSessionIdRef
 
     if (generation !== connectionGeneration) {
@@ -147,8 +146,9 @@ export async function connectChat() {
       return
     }
 
-    const finalWsUrl = normalizeWsUrlForBrowser(ws_url)
-    const url = `${finalWsUrl}?session_id=${encodeURIComponent(sessionId)}`
+    const wsScheme = window.location.protocol === "https:" ? "wss:" : "ws:"
+    const wsUrl = `${wsScheme}//${window.location.host}/pico/ws`
+    const url = `${wsUrl}?session_id=${encodeURIComponent(sessionId)}`
     const socket = new WebSocket(url, [`token.${token}`])
 
     if (generation !== connectionGeneration) {
