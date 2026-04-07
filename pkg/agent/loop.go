@@ -1290,7 +1290,11 @@ func (al *AgentLoop) runLLMIteration(
 					ctx,
 					activeCandidates,
 					func(ctx context.Context, provider, model string) (*providers.LLMResponse, error) {
-						return activeProvider.Chat(ctx, messages, providerToolDefs, model, llmOpts)
+						candidateProvider := activeProvider
+						if cp, ok := agent.CandidateProviders[providers.ModelKey(provider, model)]; ok {
+							candidateProvider = cp
+						}
+						return candidateProvider.Chat(ctx, messages, providerToolDefs, model, llmOpts)
 					},
 				)
 				if fbErr != nil {
