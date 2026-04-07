@@ -3,6 +3,7 @@ package api
 import (
 	"bufio"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -145,7 +146,13 @@ func isCmdProcessAliveLocked(cmd *exec.Cmd) bool {
 		return true
 	}
 
-	return cmd.Process.Signal(syscall.Signal(0)) == nil
+	err := cmd.Process.Signal(syscall.Signal(0))
+	if err == nil {
+		return true
+	}
+	var errno syscall.Errno
+	// EPERM means the process exists but cannot be signaled by this user.
+	return errors.As(err, &errno) && errno == syscall.EPERM
 }
 
 func setGatewayRuntimeStatusLocked(status string) {
@@ -165,6 +172,13 @@ func gatewayStatusOnHealthFailureLocked() string {
 		return "error"
 	}
 	if gateway.runtimeStatus == "running" {
+		// For attached processes there is no waiter goroutine; degrade stale
+		// running state once the tracked process exits.
+		if !isCmdProcessAliveLocked(gateway.cmd) {
+			gateway.cmd = nil
+			gateway.bootDefaultModel = ""
+			return "stopped"
+		}
 		return "running"
 	}
 	if gateway.runtimeStatus == "error" {
