@@ -24,7 +24,7 @@ require (
 	github.com/larksuite/oapi-sdk-go/v3 v3.5.3
 	github.com/mdp/qrterminal/v3 v3.2.1
 	github.com/modelcontextprotocol/go-sdk v1.4.1
-	github.com/mymmrac/telego v1.7.0
+	github.com/mymmrac/telego v1.8.0
 	github.com/open-dingtalk/dingtalk-stream-sdk-go v0.9.1
 	github.com/openai/openai-go/v3 v3.22.0
 	github.com/pion/rtp v1.10.1

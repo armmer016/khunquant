@@ -229,8 +229,8 @@ github.com/modelcontextprotocol/go-sdk v1.3.1 h1:TfqtNKOIWN4Z1oqmPAiWDC2Jq7K9OdJ
 github.com/modelcontextprotocol/go-sdk v1.3.1/go.mod h1:DgVX498dMD8UJlseK1S5i1T4tFz2fkBk4xogC3D15nw=
 github.com/modelcontextprotocol/go-sdk v1.4.1 h1:M4x9GyIPj+HoIlHNGpK2hq5o3BFhC+78PkEaldQRphc=
 github.com/modelcontextprotocol/go-sdk v1.4.1/go.mod h1:Bo/mS87hPQqHSRkMv4dQq1XCu6zv4INdXnFZabkNU6s=
-github.com/mymmrac/telego v1.7.0 h1:yRO/l00tFGG4nY66ufUKb4ARqv7qx9+LsjQv/b0NEyo=
-github.com/mymmrac/telego v1.7.0/go.mod h1:pdLV346EgVuq7Xrh3kMggeBiazeHhsdEoK0RTEOPXRM=
+github.com/mymmrac/telego v1.8.0 h1:EvIprWo9Cn0MHgumvvqNXPAXO1yJj3pu2cdCCeDxbow=
+github.com/mymmrac/telego v1.8.0/go.mod h1:pdLV346EgVuq7Xrh3kMggeBiazeHhsdEoK0RTEOPXRM=
 github.com/ncruces/go-strftime v1.0.0 h1:HMFp8mLCTPp341M/ZnA4qaf7ZlsbTc+miZjCLOFAw7w=
 github.com/ncruces/go-strftime v1.0.0/go.mod h1:Fwc5htZGVVkseilnfgOVb9mKy6w1naJmn9CehxcKcls=
 github.com/nxadm/tail v1.4.4/go.mod h1:kenIhsEOeOJmVchQTgglprH7qJGnHDVpk1VPCcaMI8A=
