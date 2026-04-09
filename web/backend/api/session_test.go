@@ -13,6 +13,7 @@ import (
 	"github.com/khunquant/khunquant/pkg/memory"
 	"github.com/khunquant/khunquant/pkg/providers"
 	"github.com/khunquant/khunquant/pkg/session"
+	"github.com/khunquant/khunquant/pkg/utils"
 )
 
 func sessionsTestDir(t *testing.T, configPath string) string {
@@ -475,6 +476,82 @@ func TestHandleGetSession_PreservesToolSummaryAndAssistantContent(t *testing.T) 
 	}
 	if resp.Messages[2].Role != "assistant" || resp.Messages[2].Content != "model final reply" {
 		t.Fatalf("assistant message = %#v, want model final reply", resp.Messages[2])
+	}
+}
+
+func TestHandleGetSession_UsesConfiguredToolFeedbackMaxArgsLength(t *testing.T) {
+	configPath, cleanup := setupOAuthTestEnv(t)
+	defer cleanup()
+
+	cfg, err := config.LoadConfig(configPath)
+	if err != nil {
+		t.Fatalf("LoadConfig() error = %v", err)
+	}
+	cfg.Agents.Defaults.ToolFeedback.MaxArgsLength = 20
+	err = config.SaveConfig(configPath, cfg)
+	if err != nil {
+		t.Fatalf("SaveConfig() error = %v", err)
+	}
+
+	dir := sessionsTestDir(t, configPath)
+	store, err := memory.NewJSONLStore(dir)
+	if err != nil {
+		t.Fatalf("NewJSONLStore() error = %v", err)
+	}
+
+	argsJSON := `{"path":"README.md","start_line":1,"end_line":10,"extra":"abcdefghijklmnopqrstuvwxyz"}`
+	sessionKey := picoSessionPrefix + "detail-tool-summary-max-args"
+	err = store.AddFullMessage(nil, sessionKey, providers.Message{Role: "user", Content: "check file"})
+	if err != nil {
+		t.Fatalf("AddFullMessage(user) error = %v", err)
+	}
+	err = store.AddFullMessage(nil, sessionKey, providers.Message{
+		Role: "assistant",
+		ToolCalls: []providers.ToolCall{{
+			ID:   "call_1",
+			Type: "function",
+			Function: &providers.FunctionCall{
+				Name:      "read_file",
+				Arguments: argsJSON,
+			},
+		}},
+	})
+	if err != nil {
+		t.Fatalf("AddFullMessage(assistant) error = %v", err)
+	}
+
+	h := NewHandler(configPath)
+	mux := http.NewServeMux()
+	h.RegisterRoutes(mux)
+
+	rec := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "/api/sessions/detail-tool-summary-max-args", nil)
+	mux.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want %d, body=%s", rec.Code, http.StatusOK, rec.Body.String())
+	}
+
+	var resp struct {
+		Messages []struct {
+			Role    string `json:"role"`
+			Content string `json:"content"`
+		} `json:"messages"`
+	}
+	err = json.Unmarshal(rec.Body.Bytes(), &resp)
+	if err != nil {
+		t.Fatalf("Unmarshal() error = %v", err)
+	}
+	if len(resp.Messages) < 2 {
+		t.Fatalf("len(resp.Messages) = %d, want at least 2", len(resp.Messages))
+	}
+
+	wantPreview := utils.Truncate(argsJSON, 20)
+	if !strings.Contains(resp.Messages[1].Content, wantPreview) {
+		t.Fatalf("tool summary = %q, want preview %q", resp.Messages[1].Content, wantPreview)
+	}
+	if strings.Contains(resp.Messages[1].Content, argsJSON) {
+		t.Fatalf("tool summary = %q, expected configured truncation", resp.Messages[1].Content)
 	}
 }
 
