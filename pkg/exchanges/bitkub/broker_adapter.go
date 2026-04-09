@@ -194,8 +194,8 @@ func (a *BitkubBrokerAdapter) LoadMarkets(ctx context.Context) (map[string]ccxt.
 // --- broker.TradingProvider ---
 
 // CreateOrder places a limit or market order on Bitkub.
-// For buy orders, amount is in base currency (e.g. BTC) and is converted to THB
-// using the provided price. For market buys, pass price=nil and amount in THB directly.
+// amount is always in base currency (e.g. BTC). For buy orders, it is converted
+// to THB using the provided price, or the current market price for market orders.
 func (a *BitkubBrokerAdapter) CreateOrder(ctx context.Context, symbol, orderType, side string, amount float64, price *float64, _ map[string]interface{}) (ccxt.Order, error) {
 	sym := normalizeSymbol(symbol)
 
@@ -209,13 +209,24 @@ func (a *BitkubBrokerAdapter) CreateOrder(ctx context.Context, symbol, orderType
 
 	switch strings.ToLower(side) {
 	case "buy":
-		// Bitkub place-bid: amt = THB to spend
+		// Bitkub place-bid: amt = THB to spend, rat = price per unit
 		var thbAmount float64
-		if orderType == "market" || price == nil {
-			// For market buy, amount is treated as THB to spend
-			thbAmount = amount
-		} else {
+		if price != nil {
+			// Limit buy: convert base amount to THB
 			thbAmount = amount * rat
+		} else {
+			// Market buy: fetch current price to convert base amount → THB
+			parts := strings.SplitN(symbol, "/", 2)
+			base, quote := parts[0], "THB"
+			if len(parts) == 2 {
+				quote = parts[1]
+			}
+			currentPrice, tickErr := a.FetchPrice(ctx, base, quote)
+			if tickErr != nil || currentPrice <= 0 {
+				return ccxt.Order{}, fmt.Errorf("bitkub: market buy: could not fetch price for %s: %w", symbol, tickErr)
+			}
+			thbAmount = amount * currentPrice
+			// rat stays 0 for market order (as Bitkub requires)
 		}
 		o, err = a.placeBid(ctx, sym, thbAmount, rat, orderType)
 	case "sell":
@@ -230,30 +241,27 @@ func (a *BitkubBrokerAdapter) CreateOrder(ctx context.Context, symbol, orderType
 	return a.orderToCCXT(o), nil
 }
 
-// CancelOrder cancels an open order. The symbol is required; the side is inferred
-// from the order ID prefix if not embedded — callers should store side alongside IDs.
-// To cancel with explicit side, pass it in params["sd"] (not yet exposed here).
-// We attempt "buy" first, then "sell" if that fails.
+// CancelOrder cancels an open order. The symbol is required.
+// Bitkub requires the order side (buy/sell) to cancel; we try "buy" first,
+// then "sell" if that fails with an API error.
 func (a *BitkubBrokerAdapter) CancelOrder(ctx context.Context, id, symbol string) (ccxt.Order, error) {
 	sym := normalizeSymbol(symbol)
 
-	// Try to fetch the order to determine its side first.
-	orderInfo, _, infoErr := a.fetchOrderInfo(ctx, sym, id, "buy")
-	if infoErr != nil {
-		// Try sell side
-		orderInfo, _, infoErr = a.fetchOrderInfo(ctx, sym, id, "sell")
-		if infoErr != nil {
-			return ccxt.Order{}, fmt.Errorf("bitkub: CancelOrder: could not determine order side for %s: %w", id, infoErr)
+	for _, side := range []string{"buy", "sell"} {
+		err := a.cancelBitkubOrder(ctx, sym, id, side)
+		if err == nil {
+			// Fetch the order state to return accurate info.
+			orderInfo, _, fetchErr := a.fetchOrderInfo(ctx, sym, id, side)
+			if fetchErr != nil {
+				// Return a minimal order on fetch failure — cancel succeeded.
+				return ccxt.Order{Id: &id}, nil
+			}
+			orderInfo.St = "cancelled"
+			return a.orderToCCXT(orderInfo), nil
 		}
 	}
 
-	side := orderInfo.Sd
-	if err := a.cancelBitkubOrder(ctx, sym, id, side); err != nil {
-		return ccxt.Order{}, err
-	}
-
-	orderInfo.St = "cancelled"
-	return a.orderToCCXT(orderInfo), nil
+	return ccxt.Order{}, fmt.Errorf("bitkub: CancelOrder: failed to cancel order %s on %s", id, sym)
 }
 
 // FetchOrder returns a single order's details. Side must be supplied via
@@ -324,10 +332,10 @@ func (a *BitkubBrokerAdapter) FetchMyTrades(ctx context.Context, symbol string, 
 
 	out := make([]ccxt.Trade, 0, len(orders))
 	for _, o := range orders {
-		price, _ := strconv.ParseFloat(o.Rat, 64)
-		rec, _ := strconv.ParseFloat(o.Rec, 64)
-		feeAmt, _ := strconv.ParseFloat(o.Fee, 64)
-		tsMs := o.Ts // already Unix milliseconds
+		price, _ := strconv.ParseFloat(string(o.Rat), 64)
+		rec, _ := strconv.ParseFloat(string(o.Rec), 64)
+		feeAmt, _ := strconv.ParseFloat(string(o.Fee), 64)
+		tsMs := int64(o.Ts) // already Unix milliseconds
 
 		id := o.ID
 		ccxtSym := strings.ReplaceAll(strings.ToUpper(o.Sym), "_", "/")

@@ -177,20 +177,67 @@ type symbolsResponse struct {
 	Result []symbolEntry `json:"result"`
 }
 
+// numericString handles JSON fields that may be either a quoted string or a bare number.
+type numericString string
+
+func (n *numericString) UnmarshalJSON(b []byte) error {
+	if len(b) > 0 && b[0] == '"' {
+		var s string
+		if err := json.Unmarshal(b, &s); err != nil {
+			return err
+		}
+		*n = numericString(s)
+		return nil
+	}
+	// bare number — store as string representation
+	*n = numericString(string(b))
+	return nil
+}
+
+func (n numericString) String() string { return string(n) }
+
+// flexInt64 handles JSON fields that may be either a bare number or a quoted string containing a number.
+type flexInt64 int64
+
+func (f *flexInt64) UnmarshalJSON(b []byte) error {
+	if len(b) > 0 && b[0] == '"' {
+		var s string
+		if err := json.Unmarshal(b, &s); err != nil {
+			return err
+		}
+		if s == "" {
+			*f = 0
+			return nil
+		}
+		v, err := strconv.ParseInt(s, 10, 64)
+		if err != nil {
+			return err
+		}
+		*f = flexInt64(v)
+		return nil
+	}
+	var v int64
+	if err := json.Unmarshal(b, &v); err != nil {
+		return err
+	}
+	*f = flexInt64(v)
+	return nil
+}
+
 // bitkubOrder is the unified order shape returned by open-orders, order-history, order-info,
 // place-bid, place-ask. Field names match Bitkub's compact API keys.
 type bitkubOrder struct {
-	ID  string `json:"id"`
-	Sym string `json:"sym"`
-	Sd  string `json:"sd"`  // "buy" | "sell"
-	Typ string `json:"typ"` // "limit" | "market"
-	Rat string `json:"rat"` // limit price
-	Amt string `json:"amt"` // amount remaining (THB for buy, base for sell)
-	Rec string `json:"rec"` // received (base for buy, THB for sell)
-	Fee string `json:"fee"`
-	Ts  int64  `json:"ts"` // Unix milliseconds
-	St  string `json:"st"` // "open" | "filled" | "cancelled" (only in order-info)
-	Ci  string `json:"ci"` // client_id
+	ID  string        `json:"id"`
+	Sym string        `json:"sym"`
+	Sd  string        `json:"sd"`  // "buy" | "sell"
+	Typ string        `json:"typ"` // "limit" | "market"
+	Rat numericString `json:"rat"` // limit price
+	Amt numericString `json:"amt"` // amount remaining (THB for buy, base for sell)
+	Rec numericString `json:"rec"` // received (base for buy, THB for sell)
+	Fee numericString `json:"fee"`
+	Ts  flexInt64     `json:"ts"` // Unix milliseconds
+	St  string        `json:"st"` // "open" | "filled" | "cancelled" (only in order-info)
+	Ci  string        `json:"ci"` // client_id
 }
 
 type bitkubFill struct {
@@ -378,11 +425,11 @@ func (b *BitkubExchange) fetchMyOpenOrders(ctx context.Context, sym string) ([]b
 			Sym: sym,
 			Sd:  o.Side,
 			Typ: o.Type,
-			Rat: o.Rate,
-			Amt: o.Amount,
-			Rec: o.Receive,
-			Fee: o.Fee,
-			Ts:  o.Ts,
+			Rat: numericString(o.Rate),
+			Amt: numericString(o.Amount),
+			Rec: numericString(o.Receive),
+			Fee: numericString(o.Fee),
+			Ts:  flexInt64(o.Ts),
 			St:  "open",
 		}
 	}
@@ -427,13 +474,19 @@ func (b *BitkubExchange) fetchOrderInfo(ctx context.Context, sym, id, side strin
 	return resp.Result.bitkubOrder, resp.Result.History, nil
 }
 
+// bitkubFloat formats a float for Bitkub: fixed-point, no trailing zeros, no scientific notation.
+// Bitkub rejects values with trailing zeros (e.g. 1000.00) or scientific notation.
+func bitkubFloat(f float64) json.Number {
+	return json.Number(strconv.FormatFloat(f, 'f', -1, 64))
+}
+
 // placeBid submits a buy order. amt is in THB (quote currency), rat is the price.
 // For market orders pass rat=0.
 func (b *BitkubExchange) placeBid(ctx context.Context, sym string, amt, rat float64, orderType string) (bitkubOrder, error) {
 	payload := map[string]interface{}{
 		"sym": strings.ToLower(sym),
-		"amt": amt,
-		"rat": rat,
+		"amt": bitkubFloat(amt),
+		"rat": bitkubFloat(rat),
 		"typ": orderType,
 	}
 	body, err := json.Marshal(payload)
@@ -457,8 +510,8 @@ func (b *BitkubExchange) placeBid(ctx context.Context, sym string, amt, rat floa
 func (b *BitkubExchange) placeAsk(ctx context.Context, sym string, amt, rat float64, orderType string) (bitkubOrder, error) {
 	payload := map[string]interface{}{
 		"sym": strings.ToLower(sym),
-		"amt": amt,
-		"rat": rat,
+		"amt": bitkubFloat(amt),
+		"rat": bitkubFloat(rat),
 		"typ": orderType,
 	}
 	body, err := json.Marshal(payload)
@@ -510,12 +563,12 @@ func (b *BitkubExchange) orderToCCXT(o bitkubOrder) ccxt.Order {
 	side := o.Sd
 	typ := o.Typ
 
-	rat, _ := strconv.ParseFloat(o.Rat, 64)
-	amt, _ := strconv.ParseFloat(o.Amt, 64)
-	rec, _ := strconv.ParseFloat(o.Rec, 64)
-	feeAmt, _ := strconv.ParseFloat(o.Fee, 64)
+	rat, _ := strconv.ParseFloat(string(o.Rat), 64)
+	amt, _ := strconv.ParseFloat(string(o.Amt), 64)
+	rec, _ := strconv.ParseFloat(string(o.Rec), 64)
+	feeAmt, _ := strconv.ParseFloat(string(o.Fee), 64)
 
-	tsMs := o.Ts // already Unix milliseconds
+	tsMs := int64(o.Ts) // already Unix milliseconds
 
 	var amount, filled float64
 	if side == "buy" {
