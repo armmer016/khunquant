@@ -60,6 +60,8 @@ type processOptions struct {
 	SessionKey              string              // Session identifier for history/context
 	Channel                 string              // Target channel for tool execution
 	ChatID                  string              // Target chat ID for tool execution
+	MessageID               string              // Current inbound platform message ID
+	ReplyToMessageID        string              // Current inbound reply target message ID
 	SenderID                string              // Current sender ID for dynamic context
 	SenderDisplayName       string              // Current sender display name for dynamic context
 	UserMessage             string              // User message content (may include prefix)
@@ -70,6 +72,7 @@ type processOptions struct {
 	DefaultResponse         string              // Response when LLM returns empty
 	EnableSummary           bool                // Whether to trigger summarization
 	SendResponse            bool                // Whether to send response via bus
+	AllowInterimPicoPublish bool                // Whether pico tool-call interim text can be published when SendResponse is false
 	SuppressToolFeedback    bool                // Whether to suppress inline tool feedback messages
 	NoHistory               bool                // If true, don't load session history (for heartbeat)
 	SkipInitialSteeringPoll bool                // If true, skip the steering poll at loop start (used by Continue)
@@ -86,11 +89,12 @@ const (
 	defaultResponse           = "The model returned an empty response. This may indicate a provider error or token limit."
 	toolLimitResponse         = "I've reached `max_tool_iterations` without a final response. Increase `max_tool_iterations` in config.json if this task needs more tool steps."
 	sessionKeyAgentPrefix     = "agent:"
-	metadataKeyAccountID      = "account_id"
-	metadataKeyGuildID        = "guild_id"
-	metadataKeyTeamID         = "team_id"
-	metadataKeyParentPeerKind = "parent_peer_kind"
-	metadataKeyParentPeerID   = "parent_peer_id"
+	metadataKeyAccountID       = "account_id"
+	metadataKeyGuildID         = "guild_id"
+	metadataKeyTeamID          = "team_id"
+	metadataKeyParentPeerKind  = "parent_peer_kind"
+	metadataKeyParentPeerID    = "parent_peer_id"
+	metadataKeyReplyToMessage  = "reply_to_message_id"
 )
 
 func NewAgentLoop(
@@ -839,14 +843,19 @@ func (al *AgentLoop) processMessage(ctx context.Context, msg bus.InboundMessage)
 		})
 
 	opts := processOptions{
-		SessionKey:      sessionKey,
-		Channel:         msg.Channel,
-		ChatID:          msg.ChatID,
-		UserMessage:     msg.Content,
-		Media:           msg.Media,
-		DefaultResponse: defaultResponse,
-		EnableSummary:   true,
-		SendResponse:    false,
+		SessionKey:              sessionKey,
+		Channel:                 msg.Channel,
+		ChatID:                  msg.ChatID,
+		MessageID:               msg.MessageID,
+		ReplyToMessageID:        inboundMetadata(msg, metadataKeyReplyToMessage),
+		SenderID:                msg.SenderID,
+		SenderDisplayName:       msg.Sender.DisplayName,
+		UserMessage:             msg.Content,
+		Media:                   msg.Media,
+		DefaultResponse:         defaultResponse,
+		EnableSummary:           true,
+		SendResponse:            false,
+		AllowInterimPicoPublish: true,
 	}
 
 	// context-dependent commands check their own Runtime fields and report
@@ -1415,6 +1424,27 @@ func (al *AgentLoop) runLLMIteration(
 				"target_channel": al.targetReasoningChannelID(opts.Channel),
 				"channel":        opts.Channel,
 			})
+
+		if al.bus != nil && opts.Channel == "pico" && len(response.ToolCalls) > 0 && opts.AllowInterimPicoPublish {
+			if strings.TrimSpace(response.Content) != "" {
+				outCtx, outCancel := context.WithTimeout(ctx, 3*time.Second)
+				err := al.bus.PublishOutbound(outCtx, bus.OutboundMessage{
+					Channel: opts.Channel,
+					ChatID:  opts.ChatID,
+					Content: response.Content,
+				})
+				outCancel()
+				if err != nil {
+					logger.WarnCF("agent", "Failed to publish pico interim tool-call content", map[string]any{
+						"error":     err.Error(),
+						"channel":   opts.Channel,
+						"chat_id":   opts.ChatID,
+						"iteration": iteration,
+					})
+				}
+			}
+		}
+
 		// Check if no tool calls - then check reasoning content if any
 		if len(response.ToolCalls) == 0 {
 			finalContent = response.Content

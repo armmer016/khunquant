@@ -1844,6 +1844,55 @@ func TestProcessMessage_PublishesToolFeedbackWhenEnabled(t *testing.T) {
 }
 
 
+func TestRunAgentLoop_PicoSkipsInterimPublishWhenNotAllowed(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	cfg := &config.Config{
+		Agents: config.AgentsConfig{
+			Defaults: config.AgentDefaults{
+				Workspace:         tmpDir,
+				ModelName:         "test-model",
+				MaxTokens:         4096,
+				MaxToolIterations: 10,
+			},
+		},
+	}
+
+	msgBus := bus.NewMessageBus()
+	provider := &picoInterleavedContentProvider{}
+	al := NewAgentLoop(cfg, msgBus, provider)
+
+	agent := al.GetRegistry().GetDefaultAgent()
+	if agent == nil {
+		t.Fatal("expected default agent")
+	}
+	agent.Tools.Register(&toolLimitTestTool{})
+
+	response, err := al.runAgentLoop(context.Background(), agent, processOptions{
+		SessionKey:              "agent:main:pico:session-1",
+		Channel:                 "pico",
+		ChatID:                  "session-1",
+		UserMessage:             "run with tools",
+		DefaultResponse:         defaultResponse,
+		EnableSummary:           false,
+		SendResponse:            false,
+		AllowInterimPicoPublish: false,
+		SuppressToolFeedback:    true,
+	})
+	if err != nil {
+		t.Fatalf("runAgentLoop() error = %v", err)
+	}
+	if response != "final model text" {
+		t.Fatalf("runAgentLoop() response = %q, want %q", response, "final model text")
+	}
+
+	select {
+	case outbound := <-msgBus.OutboundChan():
+		t.Fatalf("unexpected outbound message when interim publish disabled: %+v", outbound)
+	case <-time.After(200 * time.Millisecond):
+	}
+}
+
 func TestResolveMediaRefs_ResolvesToBase64(t *testing.T) {
 	store := media.NewFileMediaStore()
 	dir := t.TempDir()
