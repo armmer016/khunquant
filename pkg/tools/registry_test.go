@@ -358,3 +358,107 @@ func TestToolRegistry_ConcurrentAccess(t *testing.T) {
 		t.Error("expected tools to be registered after concurrent access")
 	}
 }
+
+func TestToolRegistry_RegisterHidden_NotReturnedByGet(t *testing.T) {
+	r := NewToolRegistry()
+	r.RegisterHidden(newMockTool("hidden_tool", "hidden"))
+
+	_, ok := r.Get("hidden_tool")
+	if ok {
+		t.Error("hidden tool with TTL=0 should not be returned by Get")
+	}
+}
+
+func TestToolRegistry_PromoteTools_MakesHiddenRetrievable(t *testing.T) {
+	r := NewToolRegistry()
+	r.RegisterHidden(newMockTool("promoted_tool", "will be promoted"))
+
+	r.PromoteTools([]string{"promoted_tool"}, 5)
+
+	tool, ok := r.Get("promoted_tool")
+	if !ok {
+		t.Fatal("expected promoted tool to be retrievable")
+	}
+	if tool.Name() != "promoted_tool" {
+		t.Errorf("want promoted_tool, got %q", tool.Name())
+	}
+}
+
+func TestToolRegistry_TickTTL_EvictsExpiredHiddenTool(t *testing.T) {
+	r := NewToolRegistry()
+	r.RegisterHidden(newMockTool("expiring", "expires soon"))
+	r.PromoteTools([]string{"expiring"}, 2)
+
+	// After 2 ticks the TTL reaches 0.
+	r.TickTTL()
+	r.TickTTL()
+
+	_, ok := r.Get("expiring")
+	if ok {
+		t.Error("expected expired hidden tool to be inaccessible after TTL ticks")
+	}
+}
+
+func TestToolRegistry_TickTTL_CoreToolsNotEvicted(t *testing.T) {
+	r := NewToolRegistry()
+	r.Register(newMockTool("core", "always present"))
+
+	for range 100 {
+		r.TickTTL()
+	}
+
+	_, ok := r.Get("core")
+	if !ok {
+		t.Error("core tool should never be evicted by TickTTL")
+	}
+}
+
+func TestToolRegistry_SnapshotHiddenTools_ContainsHiddenOnly(t *testing.T) {
+	r := NewToolRegistry()
+	r.Register(newMockTool("visible", "core tool"))
+	r.RegisterHidden(newMockTool("secret", "hidden tool"))
+
+	snap := r.SnapshotHiddenTools()
+
+	for _, doc := range snap.Docs {
+		if doc.Name == "visible" {
+			t.Error("SnapshotHiddenTools must not include core tools")
+		}
+	}
+
+	found := false
+	for _, doc := range snap.Docs {
+		if doc.Name == "secret" {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Error("SnapshotHiddenTools must include hidden tools")
+	}
+}
+
+func TestToolRegistry_Version_IncrementsOnRegister(t *testing.T) {
+	r := NewToolRegistry()
+	v0 := r.Version()
+	r.Register(newMockTool("v1", ""))
+	v1 := r.Version()
+	r.Register(newMockTool("v2", ""))
+	v2 := r.Version()
+
+	if v1 <= v0 {
+		t.Errorf("version should increase after Register: %d → %d", v0, v1)
+	}
+	if v2 <= v1 {
+		t.Errorf("version should increase after second Register: %d → %d", v1, v2)
+	}
+}
+
+func TestToolRegistry_Version_IncrementsOnRegisterHidden(t *testing.T) {
+	r := NewToolRegistry()
+	v0 := r.Version()
+	r.RegisterHidden(newMockTool("h1", ""))
+	if r.Version() <= v0 {
+		t.Error("version should increase after RegisterHidden")
+	}
+}
