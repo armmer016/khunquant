@@ -120,12 +120,12 @@ func newTurnState(ctx context.Context, id string, parent *turnState) *turnState 
 	// (spawnSubTurn) already creates one. The turnState stores the context and
 	// cancelFunc provided by the caller to avoid redundant context wrapping.
 	return &turnState{
-		ctx:            ctx,
-		cancelFunc:     nil, // Will be set by the caller
-		turnID:         id,
-		parentTurnID:   parent.turnID,
-		depth:          parent.depth + 1,
-		session:        newEphemeralSession(parent.session),
+		ctx:             ctx,
+		cancelFunc:      nil, // Will be set by the caller
+		turnID:          id,
+		parentTurnID:    parent.turnID,
+		depth:           parent.depth + 1,
+		session:         newEphemeralSession(parent.session),
 		parentTurnState: parent, // Store reference to parent for IsParentEnded() checks
 		// NOTE: In this PoC, I use a fixed-size channel (16).
 		// Under high concurrency or long-running sub-turns, this might fill up and cause

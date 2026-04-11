@@ -531,7 +531,6 @@ var protocolProviderMapping = map[string]func(p ProvidersConfig) ProviderConfig{
 	"minimax":        func(p ProvidersConfig) ProviderConfig { return p.Minimax },
 	"longcat":        func(p ProvidersConfig) ProviderConfig { return p.LongCat },
 	"modelscope":     func(p ProvidersConfig) ProviderConfig { return p.ModelScope },
-	"novita":         func(p ProvidersConfig) ProviderConfig { return p.Novita },
 }
 
 // InheritProviderCredentials fills in missing api_key, api_base, proxy, and

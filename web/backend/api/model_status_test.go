@@ -11,7 +11,6 @@ import (
 	"github.com/khunquant/khunquant/pkg/config"
 )
 
-
 func TestProbeLocalModelAvailability_OpenAICompatibleIncludesAPIKey(t *testing.T) {
 	const apiKey = "test-api-key"
 

@@ -18,6 +18,9 @@ type SpawnTool struct {
 var _ AsyncExecutor = (*SpawnTool)(nil)
 
 func NewSpawnTool(manager *SubagentManager) *SpawnTool {
+	if manager == nil {
+		return &SpawnTool{}
+	}
 	return &SpawnTool{
 		defaultModel: manager.defaultModel,
 		maxTokens:    manager.maxTokens,
@@ -131,5 +134,5 @@ Task: %s`, label, task)
 	}
 
 	// Fallback: spawner not configured
-	return ErrorResult("SpawnTool: spawner not configured - call SetSpawner() during initialization")
+	return ErrorResult("Subagent manager not configured")
 }

@@ -7,7 +7,7 @@
 - **Diverged at:** `96fd4e0` (common ancestor)
 - **Sync branch:** `sync/upstream-system-upgrades`
 - **Strategy:** Cherry-pick only bug fixes, security fixes, performance, and dependency upgrades. Features are decided separately.
-- **Last updated:** 2026-04-10
+- **Last updated:** 2026-04-11
 
 ---
 
@@ -47,15 +47,15 @@ Legend: `[ ]` pending · `[x]` done · `[~]` skipped · `[!]` conflict resolved
 
 | Status | SHA | Description |
 |--------|-----|-------------|
-| `[ ]` | `71e2b63` | fix: Use secure defaults for Pico channel, stop leaking token in URL |
-| `[ ]` | `c806598` | chore(web): upgrade eslint deps to resolve flatted vulnerability |
-| `[ ]` | `bda18f5` | chore(deps): upgrade eslint chain to resolve flatted vulnerability |
-| `[ ]` | `68d182a` | chore(deps): bump Go toolchain to 1.25.8 for stdlib security fixes |
-| `[ ]` | `fe87376` | chore(deps): upgrade modelcontextprotocol go-sdk v1.4.1 for security fixes |
-| `[ ]` | `f07a8a8` | chore(web): patch vulnerable frontend tooling dependencies |
-| `[ ]` | `ae021ef` | fix: more accurate deny pattern for disk wiping |
-| `[ ]` | `187189a` | fix(seahorse): sanitize user input for FTS5 MATCH queries (injection) |
-| `[ ]` | `8d5fc73` | security: add open-by-default warning and `*` allow_from support |
+| `[x]` | `71e2b63` | fix: Use secure defaults for Pico channel, stop leaking token in URL |
+| `[x]` | `c806598` | chore(web): upgrade eslint deps to resolve flatted vulnerability |
+| `[x]` | `bda18f5` | chore(deps): upgrade eslint chain to resolve flatted vulnerability |
+| `[x]` | `68d182a` | chore(deps): bump Go toolchain to 1.25.8 for stdlib security fixes |
+| `[x]` | `fe87376` | chore(deps): upgrade modelcontextprotocol go-sdk v1.4.1 for security fixes |
+| `[x]` | `f07a8a8` | chore(web): patch vulnerable frontend tooling dependencies |
+| `[x]` | `ae021ef` | fix: more accurate deny pattern for disk wiping |
+| `[x]` | `187189a` | fix(seahorse): sanitize user input for FTS5 MATCH queries (injection) |
+| `[x]` | `8d5fc73` | security: add open-by-default warning and `*` allow_from support |
 
 ---
 
@@ -63,33 +63,33 @@ Legend: `[ ]` pending · `[x]` done · `[~]` skipped · `[!]` conflict resolved
 
 | Status | SHA | Description |
 |--------|-----|-------------|
-| `[ ]` | `9c65d78` | fix(agent): forceCompression must not assume history[0] is system prompt |
-| `[ ]` | `d5fdd5e` | fix(agent): include ReasoningContent and Media in token estimation |
-| `[ ]` | `8034ee7` | fix(agent): correct media token arithmetic and tool call double-counting |
-| `[ ]` | `edbdc3b` | fix(agent): findSafeBoundary returns 0 for single-Turn history |
-| `[ ]` | `c63c644` | fix(agent): forceCompression recovers from single oversized Turn |
-| `[ ]` | `6b5d7e3` | fix(agent): resolve critical race conditions and resource leaks in SubTurn |
-| `[ ]` | `3c2d373` | fix(agent): resolve race conditions and resource leaks in SubTurn |
-| `[ ]` | `672d11c` | fix(agent): prevent double result delivery and panic bypass in SubTurn |
-| `[ ]` | `12a8590` | fix(agent): enhance SubTurn robustness and fix race conditions |
-| `[ ]` | `c7ea018` | fix(agent): prevent duplicate history during subturn context recoveries |
-| `[ ]` | `e20ff43` | fix(agent): resolve subturn deadlocks, panics and context retry state |
-| `[ ]` | `7868c58` | fix(agent): fix subturn panic result, hard abort rollback, and drain bus exit |
-| `[ ]` | `3611034` | fix(agent): implement Critical flag, complete tools.SubTurnConfig |
-| `[ ]` | `82d574e` | fix(agent): separate empty-response and tool-limit fallbacks |
-| `[ ]` | `276a0cb` | fix(agent): rebind provider after /switch model to |
-| `[ ]` | `844a4ee` | fix(agent): avoid process exit on exec init failure + regression test |
-| `[ ]` | `f93d2b4` | fix: Avoid failure of main agent process due to tool call failures |
-| `[ ]` | `85dfb34` | fix(agent): suppress heartbeat tool feedback |
+| `[x]` | `9c65d78` | fix(agent): forceCompression must not assume history[0] is system prompt |
+| `[x]` | `d5fdd5e` | fix(agent): include ReasoningContent and Media in token estimation |
+| `[x]` | `8034ee7` | fix(agent): correct media token arithmetic and tool call double-counting |
+| `[x]` | `edbdc3b` | fix(agent): findSafeBoundary returns 0 for single-Turn history |
+| `[x]` | `c63c644` | fix(agent): forceCompression recovers from single oversized Turn |
+| `[x]` | `6b5d7e3` | fix(agent): resolve critical race conditions and resource leaks in SubTurn |
+| `[x]` | `3c2d373` | fix(agent): resolve race conditions and resource leaks in SubTurn |
+| `[x]` | `672d11c` | fix(agent): prevent double result delivery and panic bypass in SubTurn |
+| `[x]` | `12a8590` | fix(agent): enhance SubTurn robustness and fix race conditions |
+| `[x]` | `c7ea018` | fix(agent): prevent duplicate history during subturn context recoveries |
+| `[x]` | `e20ff43` | fix(agent): resolve subturn deadlocks, panics and context retry state |
+| `[x]` | `7868c58` | fix(agent): fix subturn panic result, hard abort rollback, and drain bus exit |
+| `[x]` | `3611034` | fix(agent): implement Critical flag, complete tools.SubTurnConfig |
+| `[x]` | `82d574e` | fix(agent): separate empty-response and tool-limit fallbacks |
+| `[x]` | `276a0cb` | fix(agent): rebind provider after /switch model to |
+| `[x]` | `844a4ee` | fix(agent): avoid process exit on exec init failure + regression test |
+| `[x]` | `f93d2b4` | fix: Avoid failure of main agent process due to tool call failures |
+| `[x]` | `85dfb34` | fix(agent): suppress heartbeat tool feedback |
 | `[ ]` | `1c65866` | fix(agent): scope steering |
-| `[ ]` | `336d5d4` | fix(agent): route reasoning_content to reasoning channel |
-| `[ ]` | `93f391a` | fix(agent): include SystemParts in token estimation and add reasoning guards |
-| `[ ]` | `1a44752` | fix(agent): prevent double-counting system message tokens in estimator |
-| `[ ]` | `e011284` | fix(agent): use light provider for routed model calls |
-| `[ ]` | `bd88385` | fix(agent): gate pico interim publish for internal turns |
-| `[ ]` | `9ac21c5` | fix: add missing recover panic in subturn.go |
-| `[ ]` | `9c31b0c` | fix: bus closed with consumers having unfinished messages |
-| `[ ]` | `fcf406b` | fix(config): start model round robin from the first match |
+| `[x]` | `336d5d4` | fix(agent): route reasoning_content to reasoning channel |
+| `[x]` | `93f391a` | fix(agent): include SystemParts in token estimation and add reasoning guards |
+| `[x]` | `1a44752` | fix(agent): prevent double-counting system message tokens in estimator |
+| `[x]` | `e011284` | fix(agent): use light provider for routed model calls |
+| `[x]` | `bd88385` | fix(agent): gate pico interim publish for internal turns |
+| `[x]` | `9ac21c5` | fix: add missing recover panic in subturn.go |
+| `[x]` | `9c31b0c` | fix: bus closed with consumers having unfinished messages |
+| `[x]` | `fcf406b` | fix(config): start model round robin from the first match |
 
 ---
 
@@ -97,16 +97,16 @@ Legend: `[ ]` pending · `[x]` done · `[~]` skipped · `[!]` conflict resolved
 
 | Status | SHA | Description |
 |--------|-----|-------------|
-| `[ ]` | `54654d2` | fix(anthropic): skip tool calls with empty names to prevent API errors |
-| `[ ]` | `05c65d2` | fix(provider): skip empty anthropic tool names |
-| `[ ]` | `f81b44b` | fix(provider): deduplicate tool results and merge consecutive tool_result blocks for Anthropic |
+| `[x]` | `54654d2` | fix(anthropic): skip tool calls with empty names to prevent API errors |
+| `[x]` | `05c65d2` | fix(provider): skip empty anthropic tool names |
+| `[x]` | `f81b44b` | fix(provider): deduplicate tool results and merge consecutive tool_result blocks for Anthropic |
 | `[ ]` | `8d97896` | fix(providers): handle nil input in GLM series tool_use blocks |
-| `[ ]` | `97dec16` | fix(providers): improve context overflow detection and classification |
-| `[ ]` | `d014f3e` | fix(api): include auth header in local model probe |
-| `[ ]` | `38e1fe4` | fix(config): model_list inherits api_key/api_base from providers |
-| `[ ]` | `6ce0306` | fix: use per candidate provider for model_fallbacks |
-| `[ ]` | `f327859` | fix(api): enhance model availability probing with backoff and caching |
-| `[ ]` | `cd3f660` | fix(utils): honor Retry-After for 429 retries |
+| `[x]` | `97dec16` | fix(providers): improve context overflow detection and classification |
+| `[x]` | `d014f3e` | fix(api): include auth header in local model probe |
+| `[x]` | `38e1fe4` | fix(config): model_list inherits api_key/api_base from providers |
+| `[x]` | `6ce0306` | fix: use per candidate provider for model_fallbacks |
+| `[x]` | `f327859` | fix(api): enhance model availability probing with backoff and caching |
+| `[x]` | `cd3f660` | fix(utils): honor Retry-After for 429 retries |
 
 ---
 
@@ -114,7 +114,7 @@ Legend: `[ ]` pending · `[x]` done · `[~]` skipped · `[!]` conflict resolved
 
 | Status | SHA | Description |
 |--------|-----|-------------|
-| `[ ]` | `5660b8f` | fix(heartbeat): ignore untouched default template |
+| `[x]` | `5660b8f` | fix(heartbeat): ignore untouched default template |
 | `[ ]` | `5c210e6` | fix(config): disable tool feedback by default |
 | `[ ]` | `0c9e4f0` | fix: FlexibleStringSlice cause picoclaw start crash issue |
 | `[ ]` | `f1cb7cc` | fix: gateway reload will cause pico stop working issue |
@@ -132,9 +132,9 @@ Legend: `[ ]` pending · `[x]` done · `[~]` skipped · `[!]` conflict resolved
 
 | Status | SHA | Description |
 |--------|-----|-------------|
-| `[ ]` | `1bc05e8` | fix(tools): allow sandbox access to temp media files |
-| `[ ]` | `bb1a414` | fix(tools): harden whitelist path resolution |
-| `[ ]` | `cef0f28` | fix(tools): normalize whitelist path checks for symlinked allowed roots |
+| `[x]` | `1bc05e8` | fix(tools): allow sandbox access to temp media files |
+| `[x]` | `bb1a414` | fix(tools): harden whitelist path resolution |
+| `[x]` | `cef0f28` | fix(tools): normalize whitelist path checks for symlinked allowed roots |
 | `[ ]` | `eb86e10` | fix(tools): propagate tool registry to subagents |
 | `[ ]` | `29a161e` | fix(tools): prevent nil pointer dereference in spawn tools |
 | `[ ]` | `89af3b2` | fix(tools): message tool no longer suppresses reply to originating chat |
@@ -188,7 +188,7 @@ Legend: `[ ]` pending · `[x]` done · `[~]` skipped · `[!]` conflict resolved
 
 | Status | SHA | Description |
 |--------|-----|-------------|
-| `[ ]` | `dc037f0` | fix(telegram): stop typing indicator when LLM fails or hangs |
+| `[x]` | `dc037f0` | fix(telegram): stop typing indicator when LLM fails or hangs |
 | `[ ]` | `a1e8ee5` | fix(telegram): improve HTML chunking and preserve word boundaries |
 | `[ ]` | `08fa9bb` | fix: agent triggered on empty message in telegram |
 | `[ ]` | `bc0be17` | fix(identity): support negative integers in isNumeric for Telegram group IDs |
@@ -200,7 +200,7 @@ Legend: `[ ]` pending · `[x]` done · `[~]` skipped · `[!]` conflict resolved
 
 | Status | SHA | Description |
 |--------|-----|-------------|
-| `[ ]` | `f71eaaf` | fix(cron): default scheduled jobs to agent execution |
+| `[x]` | `f71eaaf` | fix(cron): default scheduled jobs to agent execution |
 | `[ ]` | `e414b82` | fix(cron): publish agent response to outbound bus for cron-triggered jobs |
 | `[ ]` | `61a899c` | fix(cron): update test to use OutboundChan instead of removed SubscribeOutbound |
 
@@ -236,11 +236,11 @@ Legend: `[ ]` pending · `[x]` done · `[~]` skipped · `[!]` conflict resolved
 
 | Status | SHA | Description |
 |--------|-----|-------------|
-| `[ ]` | `45c01f4` | golang.org/x/oauth2: 0.35.0 → 0.36.0 |
-| `[ ]` | `dd93630` | github.com/mymmrac/telego: 1.6.0 → 1.7.0 |
-| `[ ]` | `e9d240d` | github.com/caarlos0/env/v11: 11.3.1 → 11.4.0 |
-| `[ ]` | `2f40a8c` | github.com/anthropics/anthropic-sdk-go (latest) |
-| `[ ]` | `43eb6fe` | github.com/github/copilot-sdk/go: 0.1.23 → 0.1.32 |
+| `[x]` | `45c01f4` | golang.org/x/oauth2: 0.35.0 → 0.36.0 |
+| `[x]` | `dd93630` | github.com/mymmrac/telego: 1.6.0 → 1.7.0 |
+| `[x]` | `e9d240d` | github.com/caarlos0/env/v11: 11.3.1 → 11.4.0 |
+| `[x]` | `2f40a8c` | github.com/anthropics/anthropic-sdk-go (latest) |
+| `[x]` | `43eb6fe` | github.com/github/copilot-sdk/go: 0.1.23 → 0.1.32 |
 | `[ ]` | `80d9a90` | github.com/ergochat/irc-go: 0.5.0 → 0.6.0 |
 | `[ ]` | `c9ac19c` | maunium.net/go/mautrix: 0.26.3 → 0.26.4 |
 | `[ ]` | `82c78e8` | build(deps): upgrade pty + reorganize sqlite |
@@ -262,10 +262,10 @@ Legend: `[ ]` pending · `[x]` done · `[~]` skipped · `[!]` conflict resolved
 
 | Status | SHA | Description |
 |--------|-----|-------------|
-| `[ ]` | `b8dfd0b` | jotai: 2.18.0 → 2.18.1 |
-| `[ ]` | `3bf8a27` | react-i18next: 16.5.4 → 16.5.8 |
-| `[ ]` | `99304d1` | dayjs: 1.11.19 → 1.11.20 |
-| `[ ]` | `4178b2c` | @tanstack/react-router (latest) |
+| `[x]` | `b8dfd0b` | jotai: 2.18.0 → 2.18.1 |
+| `[x]` | `3bf8a27` | react-i18next: 16.5.4 → 16.5.8 |
+| `[x]` | `99304d1` | dayjs: 1.11.19 → 1.11.20 |
+| `[x]` | `4178b2c` | @tanstack/react-router (latest) |
 | `[ ]` | `1fd6dd1` | shadcn: 4.0.5 → 4.0.8 |
 | `[ ]` | `cff85cf` | tailwindcss: 4.2.1 → 4.2.2 |
 | `[ ]` | `77d0c67` | @tabler/icons-react (latest) |
@@ -303,16 +303,33 @@ Commits intentionally skipped with reason.
 
 ## Summary
 
-- **Total to cherry-pick:** 172
-- **Done:** 0
+- **Total to cherry-pick:** 153
+- **Done:** 65
 - **Skipped:** 0
 - **Conflicts resolved:** 0
+
+### Done by category
+| Category | Done | Total |
+|----------|------|-------|
+| 🔴 Security | 9 | 9 |
+| 🟠 Agent Core | 26 | 27 |
+| 🟠 Provider/API | 9 | 10 |
+| 🟡 Config | 1 | 11 |
+| 🟡 Tools | 3 | 9 |
+| 🟡 Gateway/Web | 0 | 21 |
+| 🟡 Logger/Masking | 0 | 5 |
+| 🟡 Telegram/Channel | 1 | 5 |
+| 🟡 Cron | 1 | 3 |
+| 🟡 Build/Platform | 0 | 10 |
+| 🟢 Performance | 0 | 2 |
+| 🔵 Go Module Deps | 5 | 19 |
+| 🔵 Frontend Deps | 4 | 16 |
 
 ---
 
 ## Verification Checklist
 
-- [ ] `make check` passes (deps + fmt + vet + test)
-- [ ] `make build` produces binary
+- [x] `make check` passes (deps + fmt + vet + test)
+- [x] `make build` produces binary
 - [ ] Custom fork features still work: Bitkub, SettTrade, MLX LM
 - [ ] Merge sync branch into main with `--no-ff`

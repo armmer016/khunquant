@@ -381,4 +381,3 @@ func (r *ToolRegistry) GetAll() []Tool {
 	}
 	return tools
 }
-

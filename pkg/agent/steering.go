@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"strings"
 	"sync"
+	"time"
 
+	"github.com/khunquant/khunquant/pkg/bus"
 	"github.com/khunquant/khunquant/pkg/logger"
 	"github.com/khunquant/khunquant/pkg/providers"
 	"github.com/khunquant/khunquant/pkg/tools"
@@ -246,7 +248,7 @@ func (al *AgentLoop) HardAbort(sessionKey string) error {
 	// IMPORTANT: Trigger cascading cancellation FIRST to stop all child SubTurns
 	// from adding more messages to the session. This prevents race conditions
 	// where rollback happens while children are still writing.
-	ts.Finish()
+	ts.Finish(true)
 
 	// Rollback session history to the state before this turn started.
 	// This must happen AFTER Finish() to ensure no child turns are still writing.
@@ -315,4 +317,51 @@ func (al *AgentLoop) InterruptHard(sessionKey string) error {
 // It injects a steering message into the currently running agent loop.
 func (al *AgentLoop) InjectSteering(msg providers.Message) error {
 	return al.Steer(msg)
+}
+
+// enqueueSteeringMessage enqueues a message into the steering queue for the given scope.
+// Our fork uses a single global steering queue (no scope sharding), so the scope
+// argument is ignored; messages always go into the shared queue.
+func (al *AgentLoop) enqueueSteeringMessage(scope, _ string, msg providers.Message) error {
+	if al.steering == nil {
+		return fmt.Errorf("steering queue is not initialized")
+	}
+	if err := al.steering.push(msg); err != nil {
+		logger.WarnCF("agent", "Failed to enqueue steering message", map[string]any{
+			"error": err.Error(),
+			"role":  msg.Role,
+			"scope": scope,
+		})
+		return err
+	}
+	return nil
+}
+
+// resolveSteeringTarget determines the scope and agent for an inbound message.
+// Returns (scopeKey, agentID, ok). Returns ok=false for system messages or
+// messages that cannot be routed.
+func (al *AgentLoop) resolveSteeringTarget(msg bus.InboundMessage) (string, string, bool) {
+	if msg.Channel == "system" {
+		return "", "", false
+	}
+	route, agent, err := al.resolveMessageRoute(msg)
+	if err != nil || agent == nil {
+		return "", "", false
+	}
+	return resolveScopeKey(route, msg.SessionKey), agent.ID, true
+}
+
+// requeueInboundMessage publishes an inbound message back to the outbound bus
+// so it can be processed in a later turn.
+func (al *AgentLoop) requeueInboundMessage(msg bus.InboundMessage) error {
+	if al.bus == nil {
+		return nil
+	}
+	pubCtx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	return al.bus.PublishOutbound(pubCtx, bus.OutboundMessage{
+		Channel: msg.Channel,
+		ChatID:  msg.ChatID,
+		Content: msg.Content,
+	})
 }

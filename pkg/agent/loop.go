@@ -89,12 +89,12 @@ const (
 	defaultResponse           = "The model returned an empty response. This may indicate a provider error or token limit."
 	toolLimitResponse         = "I've reached `max_tool_iterations` without a final response. Increase `max_tool_iterations` in config.json if this task needs more tool steps."
 	sessionKeyAgentPrefix     = "agent:"
-	metadataKeyAccountID       = "account_id"
-	metadataKeyGuildID         = "guild_id"
-	metadataKeyTeamID          = "team_id"
-	metadataKeyParentPeerKind  = "parent_peer_kind"
-	metadataKeyParentPeerID    = "parent_peer_id"
-	metadataKeyReplyToMessage  = "reply_to_message_id"
+	metadataKeyAccountID      = "account_id"
+	metadataKeyGuildID        = "guild_id"
+	metadataKeyTeamID         = "team_id"
+	metadataKeyParentPeerKind = "parent_peer_kind"
+	metadataKeyParentPeerID   = "parent_peer_id"
+	metadataKeyReplyToMessage = "reply_to_message_id"
 )
 
 func NewAgentLoop(
@@ -103,9 +103,6 @@ func NewAgentLoop(
 	provider providers.LLMProvider,
 ) *AgentLoop {
 	registry := NewAgentRegistry(cfg, provider)
-
-	// Register shared tools to all agents
-	registerSharedTools(cfg, msgBus, registry, provider)
 
 	// Set up shared fallback chain
 	cooldown := providers.NewCooldownTracker()
@@ -126,13 +123,18 @@ func NewAgentLoop(
 		summarizing: sync.Map{},
 		fallback:    fallbackChain,
 		cmdRegistry: commands.NewRegistry(commands.BuiltinDefinitions()),
+		steering:    newSteeringQueue(SteeringOneAtATime),
 	}
+
+	// Register shared tools to all agents (needs al for SubTurnSpawner)
+	registerSharedTools(al, cfg, msgBus, registry, provider)
 
 	return al
 }
 
 // registerSharedTools registers tools that are shared across all agents (web, message, spawn).
 func registerSharedTools(
+	al *AgentLoop,
 	cfg *config.Config,
 	msgBus *bus.MessageBus,
 	registry *AgentRegistry,
@@ -506,7 +508,7 @@ func (al *AgentLoop) ReloadProviderAndConfig(
 	}
 
 	// Ensure shared tools are re-registered on the new registry
-	registerSharedTools(cfg, al.bus, registry, provider)
+	registerSharedTools(al, cfg, al.bus, registry, provider)
 
 	// Atomically swap the config and registry under write lock
 	// This ensures readers see a consistent pair
@@ -1181,6 +1183,7 @@ func (al *AgentLoop) runLLMIteration(
 ) (string, int, error) {
 	iteration := 0
 	var finalContent string
+	var pendingMessages []providers.Message
 
 	// Determine effective model tier for this conversation turn.
 	// selectCandidates evaluates routing once and the decision is sticky for

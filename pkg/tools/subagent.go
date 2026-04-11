@@ -17,15 +17,15 @@ type SubTurnSpawner interface {
 
 // SubTurnConfig holds configuration for spawning a sub-turn.
 type SubTurnConfig struct {
-	Model        string
-	Tools        []Tool
-	SystemPrompt string
-	MaxTokens    int
-	Temperature  float64
-	Async        bool          // true for async (spawn), false for sync (subagent)
-	Critical     bool          // continue running after parent finishes gracefully
-	Timeout      time.Duration // 0 = use default (5 minutes)
-	MaxContextRunes int        // 0 = auto, -1 = no limit, >0 = explicit limit
+	Model           string
+	Tools           []Tool
+	SystemPrompt    string
+	MaxTokens       int
+	Temperature     float64
+	Async           bool          // true for async (spawn), false for sync (subagent)
+	Critical        bool          // continue running after parent finishes gracefully
+	Timeout         time.Duration // 0 = use default (5 minutes)
+	MaxContextRunes int           // 0 = auto, -1 = no limit, >0 = explicit limit
 }
 
 type SubagentTask struct {
@@ -231,6 +231,68 @@ After completing the task, provide a clear summary of what was done.`
 	}
 }
 
+// runSyncTask runs a subagent task synchronously using the manager's provider.
+// Used by SubagentTool as a fallback when no SubTurnSpawner is configured.
+func (sm *SubagentManager) runSyncTask(ctx context.Context, label, task string) *ToolResult {
+	systemPrompt := `You are a subagent. Complete the given task independently and provide a clear, concise result.
+You have access to tools - use them as needed to complete your task.`
+
+	messages := []providers.Message{
+		{Role: "system", Content: systemPrompt},
+		{Role: "user", Content: task},
+	}
+
+	sm.mu.RLock()
+	tools := sm.tools
+	maxIter := sm.maxIterations
+	maxTokens := sm.maxTokens
+	temperature := sm.temperature
+	hasMaxTokens := sm.hasMaxTokens
+	hasTemperature := sm.hasTemperature
+	sm.mu.RUnlock()
+
+	var llmOptions map[string]any
+	if hasMaxTokens || hasTemperature {
+		llmOptions = map[string]any{}
+		if hasMaxTokens {
+			llmOptions["max_tokens"] = maxTokens
+		}
+		if hasTemperature {
+			llmOptions["temperature"] = temperature
+		}
+	}
+
+	loopResult, err := RunToolLoop(ctx, ToolLoopConfig{
+		Provider:      sm.provider,
+		Model:         sm.defaultModel,
+		Tools:         tools,
+		MaxIterations: maxIter,
+		LLMOptions:    llmOptions,
+	}, messages, "", "")
+
+	if err != nil {
+		return ErrorResult(fmt.Sprintf("Subagent execution failed: %v", err)).WithError(err)
+	}
+
+	labelStr := label
+	if labelStr == "" {
+		labelStr = "(unnamed)"
+	}
+
+	forUser := "Task completed: " + loopResult.Content
+	maxUserLen := 500
+	if len(forUser) > maxUserLen {
+		forUser = forUser[:maxUserLen] + "..."
+	}
+
+	return &ToolResult{
+		ForLLM:  fmt.Sprintf("Subagent task completed:\nLabel: %s\nResult: %s", labelStr, loopResult.Content),
+		ForUser: forUser,
+		IsError: false,
+		Async:   false,
+	}
+}
+
 func (sm *SubagentManager) GetTask(taskID string) (*SubagentTask, bool) {
 	sm.mu.RLock()
 	defer sm.mu.RUnlock()
@@ -253,13 +315,18 @@ func (sm *SubagentManager) ListTasks() []*SubagentTask {
 // It directly calls SubTurnSpawner with Async=false for synchronous execution.
 type SubagentTool struct {
 	spawner      SubTurnSpawner
+	manager      *SubagentManager // fallback for direct execution when spawner is not set
 	defaultModel string
 	maxTokens    int
 	temperature  float64
 }
 
 func NewSubagentTool(manager *SubagentManager) *SubagentTool {
+	if manager == nil {
+		return &SubagentTool{}
+	}
 	return &SubagentTool{
+		manager:      manager,
 		defaultModel: manager.defaultModel,
 		maxTokens:    manager.maxTokens,
 		temperature:  manager.temperature,
@@ -356,6 +423,10 @@ Task: %s`, label, task)
 		}
 	}
 
-	// Fallback: spawner not configured
-	return ErrorResult("SubagentTool: spawner not configured - call SetSpawner() during initialization").WithError(fmt.Errorf("spawner not set"))
+	// Fallback: use manager's provider directly for synchronous execution
+	if t.manager != nil {
+		return t.manager.runSyncTask(ctx, label, task)
+	}
+
+	return ErrorResult("Subagent manager not configured").WithError(fmt.Errorf("spawner not set"))
 }

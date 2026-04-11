@@ -11,7 +11,7 @@ import (
 // mockExchange is a minimal Exchange implementation for testing the registry.
 type mockExchange struct{ name string }
 
-func (m *mockExchange) Name() string                                     { return m.name }
+func (m *mockExchange) Name() string                                               { return m.name }
 func (m *mockExchange) GetBalances(_ context.Context) ([]exchanges.Balance, error) { return nil, nil }
 
 func TestRegisterFactory_Roundtrip(t *testing.T) {

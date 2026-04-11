@@ -100,7 +100,7 @@ func TestListExchangeAccounts_MultipleExchanges(t *testing.T) {
 // baseExchange is a minimal Exchange with no QuoteLister implementation.
 type baseExchange struct{}
 
-func (b *baseExchange) Name() string                                          { return "base" }
+func (b *baseExchange) Name() string                                               { return "base" }
 func (b *baseExchange) GetBalances(_ context.Context) ([]exchanges.Balance, error) { return nil, nil }
 
 // quotedExchange implements QuoteLister on top of a basic exchange.

@@ -441,7 +441,6 @@ func TestNewAgentInstance_CandidateProvidersPopulatedForCrossProviderFallbacks(t
 	}
 }
 
-
 func TestNewAgentInstance_InvalidExecConfigDoesNotExit(t *testing.T) {
 	workspace := t.TempDir()
 

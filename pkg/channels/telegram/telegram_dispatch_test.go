@@ -8,6 +8,7 @@ import (
 
 	"github.com/khunquant/khunquant/pkg/bus"
 	"github.com/khunquant/khunquant/pkg/channels"
+	"github.com/khunquant/khunquant/pkg/config"
 )
 
 func TestHandleMessage_DoesNotConsumeGenericCommandsLocally(t *testing.T) {
@@ -16,6 +17,7 @@ func TestHandleMessage_DoesNotConsumeGenericCommandsLocally(t *testing.T) {
 		BaseChannel: channels.NewBaseChannel("telegram", nil, messageBus, nil),
 		chatIDs:     make(map[string]int64),
 		ctx:         context.Background(),
+		config:      &config.Config{},
 	}
 
 	msg := &telego.Message{

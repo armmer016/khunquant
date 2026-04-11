@@ -81,7 +81,6 @@ type orderResponse struct {
 	Data settradeOrder `json:"data"`
 }
 
-
 // --- Market Data (marketapi.settrade.com, flat response) ---
 
 // quoteResponse maps /api/marketdata/v3/{broker}/quote/{symbol}.

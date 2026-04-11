@@ -135,5 +135,3 @@ func TestCachedMarketDataProvider_FetchOHLCV_DifferentTimeframesSeparate(t *test
 		t.Errorf("expected 2 inner calls for different timeframes, got %d", got)
 	}
 }
-
-
