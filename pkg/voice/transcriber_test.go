@@ -47,8 +47,8 @@ func TestDetectTranscriber(t *testing.T) {
 			name: "groq via model list",
 			cfg: &config.Config{
 				ModelList: []config.ModelConfig{
-					{Model: "openai/gpt-4o", APIKey: "sk-openai"},
-					{Model: "groq/llama-3.3-70b", APIKey: "sk-groq-model"},
+					{Model: "openai/gpt-4o", APIKey: *config.NewSecureString("sk-openai")},
+					{Model: "groq/llama-3.3-70b", APIKey: *config.NewSecureString("sk-groq-model")},
 				},
 			},
 			wantName: "groq",
@@ -57,7 +57,7 @@ func TestDetectTranscriber(t *testing.T) {
 			name: "groq model list entry without key is skipped",
 			cfg: &config.Config{
 				ModelList: []config.ModelConfig{
-					{Model: "groq/llama-3.3-70b", APIKey: ""},
+					{Model: "groq/llama-3.3-70b", APIKey: *config.NewSecureString("")},
 				},
 			},
 			wantNil: true,
@@ -69,7 +69,7 @@ func TestDetectTranscriber(t *testing.T) {
 					Groq: config.ProviderConfig{APIKey: "sk-groq-direct"},
 				},
 				ModelList: []config.ModelConfig{
-					{Model: "groq/llama-3.3-70b", APIKey: "sk-groq-model"},
+					{Model: "groq/llama-3.3-70b", APIKey: *config.NewSecureString("sk-groq-model")},
 				},
 			},
 			wantName: "groq",

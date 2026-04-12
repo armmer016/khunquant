@@ -85,7 +85,7 @@ func (s *modelProbeCacheState) resetForTest() {
 
 func hasModelConfiguration(m config.ModelConfig) bool {
 	authMethod := strings.ToLower(strings.TrimSpace(m.AuthMethod))
-	apiKey := strings.TrimSpace(m.APIKey)
+	apiKey := strings.TrimSpace(m.APIKey.String())
 
 	if authMethod == "oauth" || authMethod == "token" {
 		if provider, ok := oauthProviderForModel(m.Model); ok {
@@ -180,7 +180,7 @@ func runLocalModelProbe(m config.ModelConfig) bool {
 	case "ollama":
 		return probeOllamaModelFunc(apiBase, modelID)
 	case "vllm", "lmstudio":
-		return probeOpenAICompatibleModelFunc(apiBase, modelID, m.APIKey)
+		return probeOpenAICompatibleModelFunc(apiBase, modelID, m.APIKey.String())
 	case "llamacpp":
 		return probeLlamaCppHealthFunc(apiBase)
 	case "mlx_lm":
@@ -191,7 +191,7 @@ func runLocalModelProbe(m config.ModelConfig) bool {
 		return true
 	default:
 		if hasLocalAPIBase(apiBase) {
-			return probeOpenAICompatibleModelFunc(apiBase, modelID, m.APIKey)
+			return probeOpenAICompatibleModelFunc(apiBase, modelID, m.APIKey.String())
 		}
 		return false
 	}
@@ -202,7 +202,7 @@ func modelProbeCacheKey(m config.ModelConfig) string {
 
 	apiBaseRaw := modelProbeAPIBase(m)
 	apiBase := strings.ToLower(strings.TrimRight(strings.TrimSpace(apiBaseRaw), "/"))
-	apiKeyFingerprint := modelProbeAPIKeyFingerprint(m.APIKey)
+	apiKeyFingerprint := modelProbeAPIKeyFingerprint(m.APIKey.String())
 
 	var b strings.Builder
 	b.Grow(len(protocol) + len(modelID) + len(apiBase) + len(apiKeyFingerprint) + 8)

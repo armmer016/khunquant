@@ -190,7 +190,6 @@ func DefaultConfig() *Config {
 				ModelName: "glm-4.7",
 				Model:     "zhipu/glm-4.7",
 				APIBase:   "https://open.bigmodel.cn/api/paas/v4",
-				APIKey:    "",
 			},
 
 			// OpenAI - https://platform.openai.com/api-keys
@@ -198,7 +197,6 @@ func DefaultConfig() *Config {
 				ModelName: "gpt-5.4",
 				Model:     "openai/gpt-5.4",
 				APIBase:   "https://api.openai.com/v1",
-				APIKey:    "",
 			},
 
 			// Anthropic Claude - https://console.anthropic.com/settings/keys
@@ -206,7 +204,6 @@ func DefaultConfig() *Config {
 				ModelName: "claude-sonnet-4.6",
 				Model:     "anthropic/claude-sonnet-4.6",
 				APIBase:   "https://api.anthropic.com/v1",
-				APIKey:    "",
 			},
 
 			// DeepSeek - https://platform.deepseek.com/
@@ -214,7 +211,6 @@ func DefaultConfig() *Config {
 				ModelName: "deepseek-chat",
 				Model:     "deepseek/deepseek-chat",
 				APIBase:   "https://api.deepseek.com/v1",
-				APIKey:    "",
 			},
 
 			// Google Gemini - https://ai.google.dev/
@@ -222,7 +218,6 @@ func DefaultConfig() *Config {
 				ModelName: "gemini-2.0-flash",
 				Model:     "gemini/gemini-2.0-flash-exp",
 				APIBase:   "https://generativelanguage.googleapis.com/v1beta",
-				APIKey:    "",
 			},
 
 			// Qwen (通义千问) - https://dashscope.console.aliyun.com/apiKey
@@ -230,7 +225,6 @@ func DefaultConfig() *Config {
 				ModelName: "qwen-plus",
 				Model:     "qwen/qwen-plus",
 				APIBase:   "https://dashscope.aliyuncs.com/compatible-mode/v1",
-				APIKey:    "",
 			},
 
 			// Moonshot (月之暗面) - https://platform.moonshot.cn/console/api-keys
@@ -238,7 +232,6 @@ func DefaultConfig() *Config {
 				ModelName: "moonshot-v1-8k",
 				Model:     "moonshot/moonshot-v1-8k",
 				APIBase:   "https://api.moonshot.cn/v1",
-				APIKey:    "",
 			},
 
 			// Groq - https://console.groq.com/keys
@@ -246,7 +239,6 @@ func DefaultConfig() *Config {
 				ModelName: "llama-3.3-70b",
 				Model:     "groq/llama-3.3-70b-versatile",
 				APIBase:   "https://api.groq.com/openai/v1",
-				APIKey:    "",
 			},
 
 			// OpenRouter (100+ models) - https://openrouter.ai/keys
@@ -254,13 +246,11 @@ func DefaultConfig() *Config {
 				ModelName: "openrouter-auto",
 				Model:     "openrouter/auto",
 				APIBase:   "https://openrouter.ai/api/v1",
-				APIKey:    "",
 			},
 			{
 				ModelName: "openrouter-gpt-5.4",
 				Model:     "openrouter/openai/gpt-5.4",
 				APIBase:   "https://openrouter.ai/api/v1",
-				APIKey:    "",
 			},
 
 			// NVIDIA - https://build.nvidia.com/
@@ -268,7 +258,6 @@ func DefaultConfig() *Config {
 				ModelName: "nemotron-4-340b",
 				Model:     "nvidia/nemotron-4-340b-instruct",
 				APIBase:   "https://integrate.api.nvidia.com/v1",
-				APIKey:    "",
 			},
 
 			// Cerebras - https://inference.cerebras.ai/
@@ -276,7 +265,6 @@ func DefaultConfig() *Config {
 				ModelName: "cerebras-llama-3.3-70b",
 				Model:     "cerebras/llama-3.3-70b",
 				APIBase:   "https://api.cerebras.ai/v1",
-				APIKey:    "",
 			},
 
 			// Vivgrid - https://vivgrid.com
@@ -284,7 +272,6 @@ func DefaultConfig() *Config {
 				ModelName: "vivgrid-auto",
 				Model:     "vivgrid/auto",
 				APIBase:   "https://api.vivgrid.com/v1",
-				APIKey:    "",
 			},
 
 			// Volcengine (火山引擎) - https://console.volcengine.com/ark
@@ -292,13 +279,11 @@ func DefaultConfig() *Config {
 				ModelName: "ark-code-latest",
 				Model:     "volcengine/ark-code-latest",
 				APIBase:   "https://ark.cn-beijing.volces.com/api/v3",
-				APIKey:    "",
 			},
 			{
 				ModelName: "doubao-pro",
 				Model:     "volcengine/doubao-pro-32k",
 				APIBase:   "https://ark.cn-beijing.volces.com/api/v3",
-				APIKey:    "",
 			},
 
 			// ShengsuanYun (神算云)
@@ -306,7 +291,6 @@ func DefaultConfig() *Config {
 				ModelName: "deepseek-v3",
 				Model:     "shengsuanyun/deepseek-v3",
 				APIBase:   "https://api.shengsuanyun.com/v1",
-				APIKey:    "",
 			},
 
 			// Antigravity (Google Cloud Code Assist) - OAuth only
@@ -329,7 +313,7 @@ func DefaultConfig() *Config {
 				ModelName: "llama3",
 				Model:     "ollama/llama3",
 				APIBase:   "http://localhost:11434/v1",
-				APIKey:    "ollama",
+				APIKey:    *NewSecureString("ollama"),
 			},
 
 			// Mistral AI - https://console.mistral.ai/api-keys
@@ -337,7 +321,6 @@ func DefaultConfig() *Config {
 				ModelName: "mistral-small",
 				Model:     "mistral/mistral-small-latest",
 				APIBase:   "https://api.mistral.ai/v1",
-				APIKey:    "",
 			},
 
 			// Avian - https://avian.io
@@ -345,13 +328,11 @@ func DefaultConfig() *Config {
 				ModelName: "deepseek-v3.2",
 				Model:     "avian/deepseek/deepseek-v3.2",
 				APIBase:   "https://api.avian.io/v1",
-				APIKey:    "",
 			},
 			{
 				ModelName: "kimi-k2.5",
 				Model:     "avian/moonshotai/kimi-k2.5",
 				APIBase:   "https://api.avian.io/v1",
-				APIKey:    "",
 			},
 
 			// Minimax - https://api.minimaxi.com/
@@ -359,7 +340,6 @@ func DefaultConfig() *Config {
 				ModelName: "MiniMax-M2.5",
 				Model:     "minimax/MiniMax-M2.5",
 				APIBase:   "https://api.minimaxi.com/v1",
-				APIKey:    "",
 			},
 
 			// LongCat - https://longcat.chat/platform
@@ -367,7 +347,6 @@ func DefaultConfig() *Config {
 				ModelName: "LongCat-Flash-Thinking",
 				Model:     "longcat/LongCat-Flash-Thinking",
 				APIBase:   "https://api.longcat.chat/openai",
-				APIKey:    "",
 			},
 
 			// ModelScope (魔搭社区) - https://modelscope.cn/my/tokens
@@ -375,7 +354,6 @@ func DefaultConfig() *Config {
 				ModelName: "modelscope-qwen",
 				Model:     "modelscope/Qwen/Qwen3-235B-A22B-Instruct-2507",
 				APIBase:   "https://api-inference.modelscope.cn/v1",
-				APIKey:    "",
 			},
 
 			// VLLM (local) - http://localhost:8000
@@ -383,7 +361,6 @@ func DefaultConfig() *Config {
 				ModelName: "local-model",
 				Model:     "vllm/custom-model",
 				APIBase:   "http://localhost:8000/v1",
-				APIKey:    "",
 			},
 
 			// llama.cpp (local) - http://localhost:8080
@@ -391,7 +368,6 @@ func DefaultConfig() *Config {
 				ModelName: "llamacpp-model",
 				Model:     "llamacpp/custom-model",
 				APIBase:   "http://localhost:8080/v1",
-				APIKey:    "",
 			},
 
 			// Azure OpenAI - https://portal.azure.com
@@ -400,7 +376,6 @@ func DefaultConfig() *Config {
 				ModelName: "azure-gpt5",
 				Model:     "azure/my-gpt5-deployment",
 				APIBase:   "https://your-resource.openai.azure.com",
-				APIKey:    "",
 			},
 		},
 		Gateway: GatewayConfig{
@@ -423,13 +398,11 @@ func DefaultConfig() *Config {
 				FetchLimitBytes: 10 * 1024 * 1024, // 10MB by default
 				Brave: BraveConfig{
 					Enabled:    false,
-					APIKey:     "",
 					APIKeys:    nil,
 					MaxResults: 5,
 				},
 				Tavily: TavilyConfig{
 					Enabled:    false,
-					APIKey:     "",
 					APIKeys:    nil,
 					MaxResults: 5,
 				},
@@ -439,7 +412,6 @@ func DefaultConfig() *Config {
 				},
 				Perplexity: PerplexityConfig{
 					Enabled:    false,
-					APIKey:     "",
 					APIKeys:    nil,
 					MaxResults: 5,
 				},
@@ -450,7 +422,6 @@ func DefaultConfig() *Config {
 				},
 				GLMSearch: GLMSearchConfig{
 					Enabled:      false,
-					APIKey:       "",
 					BaseURL:      "https://open.bigmodel.cn/api/paas/v4/web_search",
 					SearchEngine: "search_std",
 					MaxResults:   5,

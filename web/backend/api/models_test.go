@@ -87,7 +87,7 @@ func TestHandleListModels_ConfiguredStatusUsesRuntimeProbesForLocalModels(t *tes
 			ModelName: "vllm-remote",
 			Model:     "vllm/custom-model",
 			APIBase:   "https://models.example.com/v1",
-			APIKey:    "remote-key",
+			APIKey:    *config.NewSecureString("remote-key"),
 		},
 		{
 			ModelName:  "copilot-gpt-5.4",

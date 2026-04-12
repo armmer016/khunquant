@@ -236,7 +236,7 @@ func setupOAuthTestEnv(t *testing.T) (string, func()) {
 	cfg.ModelList = []config.ModelConfig{{
 		ModelName: "custom-default",
 		Model:     "openai/gpt-4o",
-		APIKey:    "sk-default",
+		APIKey:    *config.NewSecureString("sk-default"),
 	}}
 	cfg.Agents.Defaults.ModelName = "custom-default"
 

@@ -31,7 +31,7 @@ func TestProbeLocalModelAvailability_OpenAICompatibleIncludesAPIKey(t *testing.T
 	model := config.ModelConfig{
 		Model:   "openai/custom-model",
 		APIBase: srv.URL + "/v1",
-		APIKey:  apiKey,
+		APIKey:  *config.NewSecureString(apiKey),
 	}
 
 	if !probeLocalModelAvailability(model) {
@@ -99,9 +99,9 @@ func TestModelProbeCacheKey_DifferentAPIKeysProduceDifferentKeys(t *testing.T) {
 	}
 
 	m1 := base
-	m1.APIKey = "key-a"
+	m1.APIKey = *config.NewSecureString("key-a")
 	m2 := base
-	m2.APIKey = "key-b"
+	m2.APIKey = *config.NewSecureString("key-b")
 
 	k1 := modelProbeCacheKey(m1)
 	k2 := modelProbeCacheKey(m2)

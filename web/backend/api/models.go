@@ -72,7 +72,7 @@ func (h *Handler) handleListModels(w http.ResponseWriter, r *http.Request) {
 			ModelName:      m.ModelName,
 			Model:          m.Model,
 			APIBase:        m.APIBase,
-			APIKey:         maskAPIKey(m.APIKey),
+			APIKey:         maskAPIKey(m.APIKey.String()),
 			Proxy:          m.Proxy,
 			AuthMethod:     m.AuthMethod,
 			ConnectMode:    m.ConnectMode,
@@ -188,7 +188,7 @@ func (h *Handler) handleUpdateModel(w http.ResponseWriter, r *http.Request) {
 	if mc.APIKey == "" {
 		mc.ModelConfig.APIKey = cfg.ModelList[idx].APIKey
 	} else {
-		mc.ModelConfig.APIKey = mc.APIKey
+		mc.ModelConfig.APIKey = *config.NewSecureString(mc.APIKey)
 	}
 
 	cfg.ModelList[idx] = mc.ModelConfig

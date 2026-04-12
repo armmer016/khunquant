@@ -69,8 +69,8 @@ type sessionMetaFile struct {
 const (
 	picoSessionPrefix          = "agent:main:pico:direct:pico:"
 	sanitizedPicoSessionPrefix = "agent_main_pico_direct_pico_"
-	maxSessionJSONLLineSize = 10 * 1024 * 1024 // 10 MB
-	maxSessionTitleRunes    = 60
+	maxSessionJSONLLineSize    = 10 * 1024 * 1024 // 10 MB
+	maxSessionTitleRunes       = 60
 
 	handledToolResponseSummaryText = "Requested output delivered via tool attachment."
 )

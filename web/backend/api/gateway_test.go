@@ -114,7 +114,7 @@ func TestGatewayStartReady_ValidDefaultModel(t *testing.T) {
 	configPath := filepath.Join(t.TempDir(), "config.json")
 	cfg := config.DefaultConfig()
 	cfg.Agents.Defaults.ModelName = cfg.ModelList[0].ModelName
-	cfg.ModelList[0].APIKey = "test-key"
+	cfg.ModelList[0].APIKey = *config.NewSecureString("test-key")
 	err := config.SaveConfig(configPath, cfg)
 	if err != nil {
 		t.Fatalf("SaveConfig() error = %v", err)
@@ -134,7 +134,7 @@ func TestGatewayStartReady_DefaultModelWithoutCredential(t *testing.T) {
 	configPath := filepath.Join(t.TempDir(), "config.json")
 	cfg := config.DefaultConfig()
 	cfg.Agents.Defaults.ModelName = cfg.ModelList[0].ModelName
-	cfg.ModelList[0].APIKey = ""
+	cfg.ModelList[0].APIKey = *config.NewSecureString("")
 	cfg.ModelList[0].AuthMethod = ""
 	err := config.SaveConfig(configPath, cfg)
 	if err != nil {
@@ -243,7 +243,7 @@ func TestGatewayStartReady_RemoteVLLMWithAPIKeyDoesNotProbe(t *testing.T) {
 		ModelName: "remote-vllm",
 		Model:     "vllm/custom-model",
 		APIBase:   "https://models.example.com/v1",
-		APIKey:    "remote-key",
+		APIKey:    *config.NewSecureString("remote-key"),
 	}}
 	cfg.Agents.Defaults.ModelName = "remote-vllm"
 	err = config.SaveConfig(configPath, cfg)
@@ -500,7 +500,7 @@ func TestGatewayStatusIncludesRestartRequiredWhenModelsDiffer(t *testing.T) {
 	configPath := filepath.Join(t.TempDir(), "config.json")
 	cfg := config.DefaultConfig()
 	cfg.Agents.Defaults.ModelName = cfg.ModelList[0].ModelName
-	cfg.ModelList[0].APIKey = "test-key"
+	cfg.ModelList[0].APIKey = *config.NewSecureString("test-key")
 	if err := config.SaveConfig(configPath, cfg); err != nil {
 		t.Fatalf("SaveConfig() error = %v", err)
 	}
@@ -552,7 +552,7 @@ func TestGatewayRestartKeepsRunningProcessWhenPreconditionsFail(t *testing.T) {
 	configPath := filepath.Join(t.TempDir(), "config.json")
 	cfg := config.DefaultConfig()
 	cfg.Agents.Defaults.ModelName = cfg.ModelList[0].ModelName
-	cfg.ModelList[0].APIKey = ""
+	cfg.ModelList[0].APIKey = *config.NewSecureString("")
 	cfg.ModelList[0].AuthMethod = ""
 	if err := config.SaveConfig(configPath, cfg); err != nil {
 		t.Fatalf("SaveConfig() error = %v", err)
@@ -605,7 +605,7 @@ func TestGatewayRestartKeepsOldProcessWhenItDoesNotExitInTime(t *testing.T) {
 	configPath := filepath.Join(t.TempDir(), "config.json")
 	cfg := config.DefaultConfig()
 	cfg.Agents.Defaults.ModelName = cfg.ModelList[0].ModelName
-	cfg.ModelList[0].APIKey = "test-key"
+	cfg.ModelList[0].APIKey = *config.NewSecureString("test-key")
 	if err := config.SaveConfig(configPath, cfg); err != nil {
 		t.Fatalf("SaveConfig() error = %v", err)
 	}
@@ -666,7 +666,7 @@ func TestGatewayRestartReturnsErrorStatusWhenReplacementFailsToStart(t *testing.
 	configPath := filepath.Join(t.TempDir(), "config.json")
 	cfg := config.DefaultConfig()
 	cfg.Agents.Defaults.ModelName = cfg.ModelList[0].ModelName
-	cfg.ModelList[0].APIKey = "test-key"
+	cfg.ModelList[0].APIKey = *config.NewSecureString("test-key")
 	if err := config.SaveConfig(configPath, cfg); err != nil {
 		t.Fatalf("SaveConfig() error = %v", err)
 	}

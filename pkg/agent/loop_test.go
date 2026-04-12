@@ -640,7 +640,6 @@ func (m *toolFeedbackProvider) GetDefaultModel() string {
 	return "heartbeat-tool-feedback-model"
 }
 
-
 type toolLimitOnlyProvider struct{}
 
 func (m *toolLimitOnlyProvider) Chat(
@@ -1058,13 +1057,13 @@ func TestProcessMessage_SwitchModelShowModelConsistency(t *testing.T) {
 			{
 				ModelName: "local",
 				Model:     "openai/local-model",
-				APIKey:    "test-key",
+				APIKey:    *config.NewSecureString("test-key"),
 				APIBase:   "https://local.example.invalid/v1",
 			},
 			{
 				ModelName: "deepseek",
 				Model:     "openrouter/deepseek/deepseek-v3.2",
-				APIKey:    "test-key",
+				APIKey:    *config.NewSecureString("test-key"),
 				APIBase:   "https://openrouter.ai/api/v1",
 			},
 		},
@@ -1129,7 +1128,7 @@ func TestProcessMessage_SwitchModelRejectsUnknownAlias(t *testing.T) {
 			{
 				ModelName: "local",
 				Model:     "openai/local-model",
-				APIKey:    "test-key",
+				APIKey:    *config.NewSecureString("test-key"),
 				APIBase:   "https://local.example.invalid/v1",
 			},
 		},
@@ -1204,13 +1203,13 @@ func TestProcessMessage_SwitchModelRoutesSubsequentRequestsToSelectedProvider(t 
 			{
 				ModelName: "local",
 				Model:     "openai/Qwen3.5-35B-A3B",
-				APIKey:    "local-key",
+				APIKey:    *config.NewSecureString("local-key"),
 				APIBase:   localServer.URL,
 			},
 			{
 				ModelName: "deepseek",
 				Model:     "openrouter/deepseek/deepseek-v3.2",
-				APIKey:    "remote-key",
+				APIKey:    *config.NewSecureString("remote-key"),
 				APIBase:   remoteServer.URL,
 			},
 		},
@@ -1335,13 +1334,13 @@ func TestProcessMessage_ModelRoutingUsesLightProvider(t *testing.T) {
 				ModelName: "gemini-main",
 				Model:     "gemini/gemini-2.5-flash",
 				APIBase:   heavyServer.URL,
-				APIKey:    "heavy-key",
+				APIKey:    *config.NewSecureString("heavy-key"),
 			},
 			{
 				ModelName: "qwen-light",
 				Model:     "ollama/qwen2.5:0.5b",
 				APIBase:   lightServer.URL,
-				APIKey:    "light-key",
+				APIKey:    *config.NewSecureString("light-key"),
 			},
 		},
 	}
@@ -1418,14 +1417,14 @@ func TestProcessMessage_FallbackUsesPerCandidateProvider(t *testing.T) {
 				ModelName: "mistral-primary",
 				Model:     "openrouter/mistralai/mistral-small-3.1",
 				APIBase:   primaryServer.URL,
-				APIKey:    "primary-key",
+				APIKey:    *config.NewSecureString("primary-key"),
 				Workspace: workspace,
 			},
 			{
 				ModelName: "gemma-fallback",
 				Model:     "gemini/gemma-3-27b-it",
 				APIBase:   fallbackServer.URL,
-				APIKey:    "fallback-key",
+				APIKey:    *config.NewSecureString("fallback-key"),
 				Workspace: workspace,
 			},
 		},
@@ -1502,7 +1501,7 @@ func _TestProcessMessage_FallbackUsesActiveProviderWhenCandidateNotRegistered(t 
 				ModelName: "primary-model",
 				Model:     "openrouter/primary-model",
 				APIBase:   primaryServer.URL,
-				APIKey:    "primary-key",
+				APIKey:    *config.NewSecureString("primary-key"),
 				Workspace: workspace,
 			},
 		},

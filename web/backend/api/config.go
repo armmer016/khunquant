@@ -48,6 +48,11 @@ func (h *Handler) handleUpdateConfig(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, fmt.Sprintf("Invalid JSON: %v", err), http.StatusBadRequest)
 		return
 	}
+	// Restore secrets that the UI sent back as "[NOT_HERE]" from .security.yml.
+	if err := cfg.SecurityCopyFrom(h.configPath); err != nil {
+		http.Error(w, fmt.Sprintf("Failed to load security config: %v", err), http.StatusInternalServerError)
+		return
+	}
 	if execAllowRemoteOmitted(body) {
 		cfg.Tools.Exec.AllowRemote = config.DefaultConfig().Tools.Exec.AllowRemote
 	}
@@ -136,6 +141,11 @@ func (h *Handler) handlePatchConfig(w http.ResponseWriter, r *http.Request) {
 	var newCfg config.Config
 	if err := json.Unmarshal(merged, &newCfg); err != nil {
 		http.Error(w, fmt.Sprintf("Merged config is invalid: %v", err), http.StatusBadRequest)
+		return
+	}
+	// Restore secrets that round-tripped through JSON as "[NOT_HERE]".
+	if err := newCfg.SecurityCopyFrom(h.configPath); err != nil {
+		http.Error(w, fmt.Sprintf("Failed to load security config: %v", err), http.StatusInternalServerError)
 		return
 	}
 

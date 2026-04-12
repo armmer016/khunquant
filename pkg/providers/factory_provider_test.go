@@ -89,7 +89,7 @@ func TestCreateProviderFromConfig_OpenAI(t *testing.T) {
 	cfg := &config.ModelConfig{
 		ModelName: "test-openai",
 		Model:     "openai/gpt-4o",
-		APIKey:    "test-key",
+		APIKey:    *config.NewSecureString("test-key"),
 		APIBase:   "https://api.example.com/v1",
 	}
 
@@ -129,7 +129,7 @@ func TestCreateProviderFromConfig_DefaultAPIBase(t *testing.T) {
 			cfg := &config.ModelConfig{
 				ModelName: "test-" + tt.protocol,
 				Model:     tt.protocol + "/test-model",
-				APIKey:    "test-key",
+				APIKey:    *config.NewSecureString("test-key"),
 			}
 
 			provider, _, err := CreateProviderFromConfig(cfg)
@@ -155,7 +155,7 @@ func TestCreateProviderFromConfig_LiteLLM(t *testing.T) {
 	cfg := &config.ModelConfig{
 		ModelName: "test-litellm",
 		Model:     "litellm/my-proxy-alias",
-		APIKey:    "test-key",
+		APIKey:    *config.NewSecureString("test-key"),
 		APIBase:   "http://localhost:4000/v1",
 	}
 
@@ -175,7 +175,7 @@ func TestCreateProviderFromConfig_LongCat(t *testing.T) {
 	cfg := &config.ModelConfig{
 		ModelName: "test-longcat",
 		Model:     "longcat/LongCat-Flash-Thinking",
-		APIKey:    "test-key",
+		APIKey:    *config.NewSecureString("test-key"),
 		APIBase:   "https://api.longcat.chat/openai",
 	}
 
@@ -198,7 +198,7 @@ func TestCreateProviderFromConfig_ModelScope(t *testing.T) {
 	cfg := &config.ModelConfig{
 		ModelName: "test-modelscope",
 		Model:     "modelscope/Qwen/Qwen3-235B-A22B-Instruct-2507",
-		APIKey:    "test-key",
+		APIKey:    *config.NewSecureString("test-key"),
 		APIBase:   "https://api-inference.modelscope.cn/v1",
 	}
 
@@ -227,7 +227,7 @@ func TestCreateProviderFromConfig_Anthropic(t *testing.T) {
 	cfg := &config.ModelConfig{
 		ModelName: "test-anthropic",
 		Model:     "anthropic/claude-sonnet-4.6",
-		APIKey:    "test-key",
+		APIKey:    *config.NewSecureString("test-key"),
 	}
 
 	provider, modelID, err := CreateProviderFromConfig(cfg)
@@ -312,7 +312,7 @@ func TestCreateProviderFromConfig_UnknownProtocol(t *testing.T) {
 	cfg := &config.ModelConfig{
 		ModelName: "test-unknown",
 		Model:     "unknown-protocol/model",
-		APIKey:    "test-key",
+		APIKey:    *config.NewSecureString("test-key"),
 	}
 
 	_, _, err := CreateProviderFromConfig(cfg)
@@ -383,7 +383,7 @@ func TestCreateProviderFromConfig_Azure(t *testing.T) {
 	cfg := &config.ModelConfig{
 		ModelName: "azure-gpt5",
 		Model:     "azure/my-gpt5-deployment",
-		APIKey:    "test-azure-key",
+		APIKey:    *config.NewSecureString("test-azure-key"),
 		APIBase:   "https://my-resource.openai.azure.com",
 	}
 
@@ -403,7 +403,7 @@ func TestCreateProviderFromConfig_AzureOpenAIAlias(t *testing.T) {
 	cfg := &config.ModelConfig{
 		ModelName: "azure-gpt4",
 		Model:     "azure-openai/my-deployment",
-		APIKey:    "test-azure-key",
+		APIKey:    *config.NewSecureString("test-azure-key"),
 		APIBase:   "https://my-resource.openai.azure.com",
 	}
 
@@ -436,7 +436,7 @@ func TestCreateProviderFromConfig_AzureMissingAPIBase(t *testing.T) {
 	cfg := &config.ModelConfig{
 		ModelName: "azure-gpt5",
 		Model:     "azure/my-gpt5-deployment",
-		APIKey:    "test-azure-key",
+		APIKey:    *config.NewSecureString("test-azure-key"),
 	}
 
 	_, _, err := CreateProviderFromConfig(cfg)

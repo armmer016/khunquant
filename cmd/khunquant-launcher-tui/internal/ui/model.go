@@ -131,8 +131,8 @@ func (s *appState) modelForm(index int) tview.Primitive {
 			refreshModelMenuFromState(menu, s)
 		}
 	})
-	addInput(form, "API Key", model.APIKey, func(value string) {
-		model.APIKey = value
+	addInput(form, "API Key", model.APIKey.String(), func(value string) {
+		model.APIKey = *khunquantconfig.NewSecureString(value)
 		s.dirty = true
 		refreshMainMenuIfPresent(s)
 		if menu, ok := s.menus["model"]; ok {
@@ -301,7 +301,7 @@ func refreshModelMenuFromState(menu *Menu, s *appState) {
 }
 
 func isModelValid(model khunquantconfig.ModelConfig) bool {
-	hasKey := strings.TrimSpace(model.APIKey) != "" ||
+	hasKey := strings.TrimSpace(model.APIKey.String()) != "" ||
 		strings.TrimSpace(model.AuthMethod) == "oauth"
 	hasModel := strings.TrimSpace(model.Model) != ""
 	return hasKey && hasModel
@@ -343,7 +343,7 @@ func (s *appState) testModel(model *khunquantconfig.ModelConfig) {
 	if model == nil {
 		return
 	}
-	if strings.TrimSpace(model.APIKey) == "" {
+	if strings.TrimSpace(model.APIKey.String()) == "" {
 		s.showMessage("Missing API Key", "Set api_key before testing")
 		return
 	}
@@ -375,7 +375,7 @@ func (s *appState) testModel(model *khunquantconfig.ModelConfig) {
 		return
 	}
 	request.Header.Set("Content-Type", "application/json")
-	request.Header.Set("Authorization", "Bearer "+strings.TrimSpace(model.APIKey))
+	request.Header.Set("Authorization", "Bearer "+strings.TrimSpace(model.APIKey.String()))
 
 	resp, err := client.Do(request)
 	if err != nil {

@@ -981,7 +981,7 @@ func (c *KhunQuantConfig) ToStandardConfig() *config.Config {
 			ModelName: m.ModelName,
 			Model:     m.Model,
 			APIBase:   m.APIBase,
-			APIKey:    m.APIKey,
+			APIKey:    *config.NewSecureString(m.APIKey),
 			Proxy:     m.Proxy,
 		})
 	}

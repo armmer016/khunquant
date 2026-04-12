@@ -430,7 +430,7 @@ func (s *appState) isActiveModelValid() bool {
 	if err != nil {
 		return false
 	}
-	hasKey := strings.TrimSpace(cfg.APIKey) != "" || strings.TrimSpace(cfg.AuthMethod) == "oauth"
+	hasKey := strings.TrimSpace(cfg.APIKey.String()) != "" || strings.TrimSpace(cfg.AuthMethod) == "oauth"
 	hasModel := strings.TrimSpace(cfg.Model) != ""
 	return hasKey && hasModel
 }

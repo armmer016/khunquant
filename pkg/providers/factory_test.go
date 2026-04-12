@@ -253,7 +253,7 @@ func TestCreateProviderReturnsHTTPProviderForOpenRouter(t *testing.T) {
 		{
 			ModelName: "test-openrouter",
 			Model:     "openrouter/auto",
-			APIKey:    "sk-or-test",
+			APIKey:    *config.NewSecureString("sk-or-test"),
 			APIBase:   "https://openrouter.ai/api/v1",
 		},
 	}

@@ -489,7 +489,6 @@ func (al *AgentLoop) buildContinuationTarget(msg bus.InboundMessage) (*continuat
 	}, nil
 }
 
-
 // Close releases resources held by agent session stores. Call after Stop.
 func (al *AgentLoop) Close() {
 	mcpManager := al.mcp.takeManager()

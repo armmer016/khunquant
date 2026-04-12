@@ -267,7 +267,7 @@ func TestPopulateCandidateProviders_SkipsExistingKeys(t *testing.T) {
 
 	cfg := &config.Config{
 		ModelList: []config.ModelConfig{
-			{ModelName: "my-gpt", Model: "openai/gpt-4o", APIKey: "test-key"},
+			{ModelName: "my-gpt", Model: "openai/gpt-4o", APIKey: *config.NewSecureString("test-key")},
 		},
 	}
 	populateCandidateProvidersFromNames(cfg, t.TempDir(), []string{"my-gpt"}, out)
@@ -309,7 +309,7 @@ func TestPopulateCandidateProviders_ResolvesProtocolPrefix(t *testing.T) {
 			{
 				ModelName: "gemma",
 				Model:     "gemini/gemma-3-27b-it",
-				APIKey:    "gemini-test-key",
+				APIKey:    *config.NewSecureString("gemini-test-key"),
 				Workspace: workspace,
 			},
 		},
@@ -328,7 +328,7 @@ func TestPopulateCandidateProviders_EmptyNamesIsNoop(t *testing.T) {
 	out := map[string]providers.LLMProvider{}
 	cfg := &config.Config{
 		ModelList: []config.ModelConfig{
-			{ModelName: "my-gpt", Model: "openai/gpt-4o", APIKey: "key"},
+			{ModelName: "my-gpt", Model: "openai/gpt-4o", APIKey: *config.NewSecureString("key")},
 		},
 	}
 	populateCandidateProvidersFromNames(cfg, t.TempDir(), nil, out)
@@ -355,7 +355,7 @@ func TestPopulateCandidateProviders_UnmatchedNameIsSkipped(t *testing.T) {
 	out := map[string]providers.LLMProvider{}
 	cfg := &config.Config{
 		ModelList: []config.ModelConfig{
-			{ModelName: "my-gpt", Model: "openai/gpt-4o", APIKey: "key"},
+			{ModelName: "my-gpt", Model: "openai/gpt-4o", APIKey: *config.NewSecureString("key")},
 		},
 	}
 	populateCandidateProvidersFromNames(cfg, t.TempDir(), []string{"nonexistent-model"}, out)
@@ -385,19 +385,19 @@ func TestNewAgentInstance_CandidateProvidersPopulatedForCrossProviderFallbacks(t
 				ModelName: "mistral-small-3.1",
 				Model:     "openrouter/mistralai/mistral-small-3.1-24b-instruct:free",
 				APIBase:   "https://openrouter.ai/api/v1",
-				APIKey:    "sk-or-test",
+				APIKey:    *config.NewSecureString("sk-or-test"),
 				Workspace: workspace,
 			},
 			{
 				ModelName: "gemma-3-27b",
 				Model:     "gemini/gemma-3-27b-it",
-				APIKey:    "AIzaSy-test",
+				APIKey:    *config.NewSecureString("AIzaSy-test"),
 				Workspace: workspace,
 			},
 			{
 				ModelName: "gemini-images",
 				Model:     "gemini/gemini-2.5-flash-lite",
-				APIKey:    "AIzaSy-test",
+				APIKey:    *config.NewSecureString("AIzaSy-test"),
 				Workspace: workspace,
 			},
 		},

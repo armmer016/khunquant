@@ -102,7 +102,7 @@ type Config struct {
 	Session     SessionConfig     `json:"session,omitempty"`
 	Channels    ChannelsConfig    `json:"channels"`
 	Providers   ProvidersConfig   `json:"providers,omitempty"`
-	ModelList   []ModelConfig     `json:"model_list"` // New model-centric provider configuration
+	ModelList   SecureModelList   `json:"model_list"` // New model-centric provider configuration
 	Gateway     GatewayConfig     `json:"gateway"`
 	Tools       ToolsConfig       `json:"tools"`
 	Exchanges   ExchangesConfig   `json:"exchanges"`
@@ -113,6 +113,9 @@ type Config struct {
 	// BuildInfo contains build-time version information
 	BuildInfo BuildInfo    `json:"build_info,omitempty"`
 	Update    UpdateConfig `json:"update,omitempty"`
+
+	// sensitiveCache caches the strings.Replacer for filtering sensitive data from logs/LLM output.
+	sensitiveCache *SensitiveDataCache
 }
 
 // UpdateConfig controls the automatic update-check behaviour.
@@ -835,9 +838,9 @@ type ModelConfig struct {
 	Model     string `json:"model"`      // Protocol/model-identifier (e.g., "openai/gpt-4o", "anthropic/claude-sonnet-4.6")
 
 	// HTTP-based providers
-	APIBase string `json:"api_base,omitempty"` // API endpoint URL
-	APIKey  string `json:"api_key"`            // API authentication key
-	Proxy   string `json:"proxy,omitempty"`    // HTTP proxy URL
+	APIBase string       `json:"api_base,omitempty"` // API endpoint URL
+	APIKey  SecureString `json:"api_key"`            // API authentication key
+	Proxy   string       `json:"proxy,omitempty"`    // HTTP proxy URL
 
 	// Special providers (CLI-based, OAuth, etc.)
 	AuthMethod  string `json:"auth_method,omitempty"`  // Authentication method: oauth, token
@@ -1108,7 +1111,18 @@ func LoadConfig(path string) (*Config, error) {
 		cfg.ModelList = nil
 	}
 
+	// Set up credential resolver so SecureString.UnmarshalYAML can resolve
+	// file:// and enc:// references relative to the config directory.
+	updateResolver(path)
+
 	if err := json.Unmarshal(data, cfg); err != nil {
+		return nil, err
+	}
+
+	// Overlay sensitive fields from .security.yml (0o600) onto cfg.
+	// This runs after JSON unmarshal so that [NOT_HERE] placeholders are
+	// replaced with real values from the security file.
+	if err := loadSecurityConfig(cfg, securityPath(path)); err != nil {
 		return nil, err
 	}
 
@@ -1155,6 +1169,12 @@ func (c *Config) migrateChannelConfigs() {
 }
 
 func SaveConfig(path string, cfg *Config) error {
+	// Save sensitive fields (SecureString values) to .security.yml before
+	// marshaling config.json, so JSON only ever writes "[NOT_HERE]".
+	if err := saveSecurityConfig(securityPath(path), cfg); err != nil {
+		return err
+	}
+
 	data, err := json.MarshalIndent(cfg, "", "  ")
 	if err != nil {
 		return err

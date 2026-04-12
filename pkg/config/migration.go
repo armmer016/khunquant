@@ -62,7 +62,7 @@ func ConvertProvidersToModelList(cfg *Config) []ModelConfig {
 				return ModelConfig{
 					ModelName:      "openai",
 					Model:          "openai/gpt-5.4",
-					APIKey:         p.OpenAI.APIKey,
+					APIKey:         *NewSecureString(p.OpenAI.APIKey),
 					APIBase:        p.OpenAI.APIBase,
 					Proxy:          p.OpenAI.Proxy,
 					RequestTimeout: p.OpenAI.RequestTimeout,
@@ -80,7 +80,7 @@ func ConvertProvidersToModelList(cfg *Config) []ModelConfig {
 				return ModelConfig{
 					ModelName:      "anthropic",
 					Model:          "anthropic/claude-sonnet-4.6",
-					APIKey:         p.Anthropic.APIKey,
+					APIKey:         *NewSecureString(p.Anthropic.APIKey),
 					APIBase:        p.Anthropic.APIBase,
 					Proxy:          p.Anthropic.Proxy,
 					RequestTimeout: p.Anthropic.RequestTimeout,
@@ -98,7 +98,7 @@ func ConvertProvidersToModelList(cfg *Config) []ModelConfig {
 				return ModelConfig{
 					ModelName:      "litellm",
 					Model:          "litellm/auto",
-					APIKey:         p.LiteLLM.APIKey,
+					APIKey:         *NewSecureString(p.LiteLLM.APIKey),
 					APIBase:        p.LiteLLM.APIBase,
 					Proxy:          p.LiteLLM.Proxy,
 					RequestTimeout: p.LiteLLM.RequestTimeout,
@@ -115,7 +115,7 @@ func ConvertProvidersToModelList(cfg *Config) []ModelConfig {
 				return ModelConfig{
 					ModelName:      "openrouter",
 					Model:          "openrouter/auto",
-					APIKey:         p.OpenRouter.APIKey,
+					APIKey:         *NewSecureString(p.OpenRouter.APIKey),
 					APIBase:        p.OpenRouter.APIBase,
 					Proxy:          p.OpenRouter.Proxy,
 					RequestTimeout: p.OpenRouter.RequestTimeout,
@@ -132,7 +132,7 @@ func ConvertProvidersToModelList(cfg *Config) []ModelConfig {
 				return ModelConfig{
 					ModelName:      "groq",
 					Model:          "groq/llama-3.1-70b-versatile",
-					APIKey:         p.Groq.APIKey,
+					APIKey:         *NewSecureString(p.Groq.APIKey),
 					APIBase:        p.Groq.APIBase,
 					Proxy:          p.Groq.Proxy,
 					RequestTimeout: p.Groq.RequestTimeout,
@@ -149,7 +149,7 @@ func ConvertProvidersToModelList(cfg *Config) []ModelConfig {
 				return ModelConfig{
 					ModelName:      "zhipu",
 					Model:          "zhipu/glm-4",
-					APIKey:         p.Zhipu.APIKey,
+					APIKey:         *NewSecureString(p.Zhipu.APIKey),
 					APIBase:        p.Zhipu.APIBase,
 					Proxy:          p.Zhipu.Proxy,
 					RequestTimeout: p.Zhipu.RequestTimeout,
@@ -166,7 +166,7 @@ func ConvertProvidersToModelList(cfg *Config) []ModelConfig {
 				return ModelConfig{
 					ModelName:      "vllm",
 					Model:          "vllm/auto",
-					APIKey:         p.VLLM.APIKey,
+					APIKey:         *NewSecureString(p.VLLM.APIKey),
 					APIBase:        p.VLLM.APIBase,
 					Proxy:          p.VLLM.Proxy,
 					RequestTimeout: p.VLLM.RequestTimeout,
@@ -183,7 +183,7 @@ func ConvertProvidersToModelList(cfg *Config) []ModelConfig {
 				return ModelConfig{
 					ModelName:      "llamacpp",
 					Model:          "llamacpp/auto",
-					APIKey:         p.LlamaCpp.APIKey,
+					APIKey:         *NewSecureString(p.LlamaCpp.APIKey),
 					APIBase:        p.LlamaCpp.APIBase,
 					Proxy:          p.LlamaCpp.Proxy,
 					RequestTimeout: p.LlamaCpp.RequestTimeout,
@@ -200,7 +200,7 @@ func ConvertProvidersToModelList(cfg *Config) []ModelConfig {
 				return ModelConfig{
 					ModelName:      "mlx_lm",
 					Model:          "mlx_lm/auto",
-					APIKey:         p.MLXLM.APIKey,
+					APIKey:         *NewSecureString(p.MLXLM.APIKey),
 					APIBase:        p.MLXLM.APIBase,
 					Proxy:          p.MLXLM.Proxy,
 					RequestTimeout: p.MLXLM.RequestTimeout,
@@ -217,7 +217,7 @@ func ConvertProvidersToModelList(cfg *Config) []ModelConfig {
 				return ModelConfig{
 					ModelName:      "gemini",
 					Model:          "gemini/gemini-pro",
-					APIKey:         p.Gemini.APIKey,
+					APIKey:         *NewSecureString(p.Gemini.APIKey),
 					APIBase:        p.Gemini.APIBase,
 					Proxy:          p.Gemini.Proxy,
 					RequestTimeout: p.Gemini.RequestTimeout,
@@ -234,7 +234,7 @@ func ConvertProvidersToModelList(cfg *Config) []ModelConfig {
 				return ModelConfig{
 					ModelName:      "nvidia",
 					Model:          "nvidia/meta/llama-3.1-8b-instruct",
-					APIKey:         p.Nvidia.APIKey,
+					APIKey:         *NewSecureString(p.Nvidia.APIKey),
 					APIBase:        p.Nvidia.APIBase,
 					Proxy:          p.Nvidia.Proxy,
 					RequestTimeout: p.Nvidia.RequestTimeout,
@@ -251,7 +251,7 @@ func ConvertProvidersToModelList(cfg *Config) []ModelConfig {
 				return ModelConfig{
 					ModelName:      "ollama",
 					Model:          "ollama/llama3",
-					APIKey:         p.Ollama.APIKey,
+					APIKey:         *NewSecureString(p.Ollama.APIKey),
 					APIBase:        p.Ollama.APIBase,
 					Proxy:          p.Ollama.Proxy,
 					RequestTimeout: p.Ollama.RequestTimeout,
@@ -268,7 +268,7 @@ func ConvertProvidersToModelList(cfg *Config) []ModelConfig {
 				return ModelConfig{
 					ModelName:      "moonshot",
 					Model:          "moonshot/kimi",
-					APIKey:         p.Moonshot.APIKey,
+					APIKey:         *NewSecureString(p.Moonshot.APIKey),
 					APIBase:        p.Moonshot.APIBase,
 					Proxy:          p.Moonshot.Proxy,
 					RequestTimeout: p.Moonshot.RequestTimeout,
@@ -285,7 +285,7 @@ func ConvertProvidersToModelList(cfg *Config) []ModelConfig {
 				return ModelConfig{
 					ModelName:      "shengsuanyun",
 					Model:          "shengsuanyun/auto",
-					APIKey:         p.ShengSuanYun.APIKey,
+					APIKey:         *NewSecureString(p.ShengSuanYun.APIKey),
 					APIBase:        p.ShengSuanYun.APIBase,
 					Proxy:          p.ShengSuanYun.Proxy,
 					RequestTimeout: p.ShengSuanYun.RequestTimeout,
@@ -302,7 +302,7 @@ func ConvertProvidersToModelList(cfg *Config) []ModelConfig {
 				return ModelConfig{
 					ModelName:      "deepseek",
 					Model:          "deepseek/deepseek-chat",
-					APIKey:         p.DeepSeek.APIKey,
+					APIKey:         *NewSecureString(p.DeepSeek.APIKey),
 					APIBase:        p.DeepSeek.APIBase,
 					Proxy:          p.DeepSeek.Proxy,
 					RequestTimeout: p.DeepSeek.RequestTimeout,
@@ -319,7 +319,7 @@ func ConvertProvidersToModelList(cfg *Config) []ModelConfig {
 				return ModelConfig{
 					ModelName:      "cerebras",
 					Model:          "cerebras/llama-3.3-70b",
-					APIKey:         p.Cerebras.APIKey,
+					APIKey:         *NewSecureString(p.Cerebras.APIKey),
 					APIBase:        p.Cerebras.APIBase,
 					Proxy:          p.Cerebras.Proxy,
 					RequestTimeout: p.Cerebras.RequestTimeout,
@@ -336,7 +336,7 @@ func ConvertProvidersToModelList(cfg *Config) []ModelConfig {
 				return ModelConfig{
 					ModelName:      "vivgrid",
 					Model:          "vivgrid/auto",
-					APIKey:         p.Vivgrid.APIKey,
+					APIKey:         *NewSecureString(p.Vivgrid.APIKey),
 					APIBase:        p.Vivgrid.APIBase,
 					Proxy:          p.Vivgrid.Proxy,
 					RequestTimeout: p.Vivgrid.RequestTimeout,
@@ -353,7 +353,7 @@ func ConvertProvidersToModelList(cfg *Config) []ModelConfig {
 				return ModelConfig{
 					ModelName:      "volcengine",
 					Model:          "volcengine/doubao-pro",
-					APIKey:         p.VolcEngine.APIKey,
+					APIKey:         *NewSecureString(p.VolcEngine.APIKey),
 					APIBase:        p.VolcEngine.APIBase,
 					Proxy:          p.VolcEngine.Proxy,
 					RequestTimeout: p.VolcEngine.RequestTimeout,
@@ -385,7 +385,7 @@ func ConvertProvidersToModelList(cfg *Config) []ModelConfig {
 				return ModelConfig{
 					ModelName:  "antigravity",
 					Model:      "antigravity/gemini-2.0-flash",
-					APIKey:     p.Antigravity.APIKey,
+					APIKey:     *NewSecureString(p.Antigravity.APIKey),
 					AuthMethod: p.Antigravity.AuthMethod,
 				}, true
 			},
@@ -400,7 +400,7 @@ func ConvertProvidersToModelList(cfg *Config) []ModelConfig {
 				return ModelConfig{
 					ModelName:      "qwen",
 					Model:          "qwen/qwen-max",
-					APIKey:         p.Qwen.APIKey,
+					APIKey:         *NewSecureString(p.Qwen.APIKey),
 					APIBase:        p.Qwen.APIBase,
 					Proxy:          p.Qwen.Proxy,
 					RequestTimeout: p.Qwen.RequestTimeout,
@@ -417,7 +417,7 @@ func ConvertProvidersToModelList(cfg *Config) []ModelConfig {
 				return ModelConfig{
 					ModelName:      "mistral",
 					Model:          "mistral/mistral-small-latest",
-					APIKey:         p.Mistral.APIKey,
+					APIKey:         *NewSecureString(p.Mistral.APIKey),
 					APIBase:        p.Mistral.APIBase,
 					Proxy:          p.Mistral.Proxy,
 					RequestTimeout: p.Mistral.RequestTimeout,
@@ -434,7 +434,7 @@ func ConvertProvidersToModelList(cfg *Config) []ModelConfig {
 				return ModelConfig{
 					ModelName:      "avian",
 					Model:          "avian/deepseek/deepseek-v3.2",
-					APIKey:         p.Avian.APIKey,
+					APIKey:         *NewSecureString(p.Avian.APIKey),
 					APIBase:        p.Avian.APIBase,
 					Proxy:          p.Avian.Proxy,
 					RequestTimeout: p.Avian.RequestTimeout,
@@ -451,7 +451,7 @@ func ConvertProvidersToModelList(cfg *Config) []ModelConfig {
 				return ModelConfig{
 					ModelName:      "longcat",
 					Model:          "longcat/LongCat-Flash-Thinking",
-					APIKey:         p.LongCat.APIKey,
+					APIKey:         *NewSecureString(p.LongCat.APIKey),
 					APIBase:        p.LongCat.APIBase,
 					Proxy:          p.LongCat.Proxy,
 					RequestTimeout: p.LongCat.RequestTimeout,
@@ -468,7 +468,7 @@ func ConvertProvidersToModelList(cfg *Config) []ModelConfig {
 				return ModelConfig{
 					ModelName:      "modelscope",
 					Model:          "modelscope/Qwen/Qwen3-235B-A22B-Instruct-2507",
-					APIKey:         p.ModelScope.APIKey,
+					APIKey:         *NewSecureString(p.ModelScope.APIKey),
 					APIBase:        p.ModelScope.APIBase,
 					Proxy:          p.ModelScope.Proxy,
 					RequestTimeout: p.ModelScope.RequestTimeout,
@@ -568,8 +568,8 @@ func InheritProviderCredentials(models []ModelConfig, providers ProvidersConfig)
 		pc := getProvider(providers)
 
 		// Only fill empty fields — explicit model_list values win
-		if m.APIKey == "" && pc.APIKey != "" {
-			m.APIKey = pc.APIKey
+		if m.APIKey.String() == "" && pc.APIKey != "" {
+			m.APIKey = *NewSecureString(pc.APIKey)
 		}
 		if m.APIBase == "" && pc.APIBase != "" {
 			m.APIBase = pc.APIBase
