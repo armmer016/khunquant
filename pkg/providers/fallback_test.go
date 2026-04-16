@@ -306,6 +306,42 @@ func TestFallback_NetworkErrorFallsBack(t *testing.T) {
 	}
 }
 
+func TestFallback_TimeoutErrorFallsBack(t *testing.T) {
+	ct := NewCooldownTracker()
+	fc := NewFallbackChain(ct, nil)
+
+	candidates := []FallbackCandidate{
+		makeCandidate("openai", "gpt-4"),
+		makeCandidate("anthropic", "claude"),
+	}
+
+	attempt := 0
+	run := func(ctx context.Context, provider, model string) (*LLMResponse, error) {
+		attempt++
+		if attempt == 1 {
+			return nil, errors.New("failed to send request: Post \"https://example.com\": i/o timeout")
+		}
+		return &LLMResponse{Content: "timeout fallback ok", FinishReason: "stop"}, nil
+	}
+
+	result, err := fc.Execute(context.Background(), candidates, run)
+	if err != nil {
+		t.Fatalf("expected fallback success, got error: %v", err)
+	}
+	if attempt != 2 {
+		t.Fatalf("attempt = %d, want 2", attempt)
+	}
+	if result.Provider != "anthropic" || result.Model != "claude" {
+		t.Fatalf("result = %s/%s, want anthropic/claude", result.Provider, result.Model)
+	}
+	if len(result.Attempts) != 1 {
+		t.Fatalf("attempts = %d, want 1 failed attempt recorded", len(result.Attempts))
+	}
+	if result.Attempts[0].Reason != FailoverTimeout {
+		t.Fatalf("attempt reason = %q, want timeout", result.Attempts[0].Reason)
+	}
+}
+
 func TestFallback_SuccessResetsCooldown(t *testing.T) {
 	ct := NewCooldownTracker()
 	fc := NewFallbackChain(ct)
