@@ -268,6 +268,44 @@ func TestFallback_UnclassifiedError(t *testing.T) {
 	}
 }
 
+func TestFallback_NetworkErrorFallsBack(t *testing.T) {
+	ct := NewCooldownTracker()
+	fc := NewFallbackChain(ct, nil)
+
+	candidates := []FallbackCandidate{
+		makeCandidate("minimax", "minimax-m2.7"),
+		makeCandidate("anthropic", "claude"),
+	}
+
+	attempt := 0
+	run := func(ctx context.Context, provider, model string) (*LLMResponse, error) {
+		attempt++
+		if attempt == 1 {
+			return nil, errors.New(
+				`failed to send request: Post "https://opencode.ai/zen/go/v1/chat/completions": tls: bad record MAC`,
+			)
+		}
+		return &LLMResponse{Content: "fallback ok", FinishReason: "stop"}, nil
+	}
+
+	result, err := fc.Execute(context.Background(), candidates, run)
+	if err != nil {
+		t.Fatalf("expected fallback success, got error: %v", err)
+	}
+	if attempt != 2 {
+		t.Fatalf("attempt = %d, want 2", attempt)
+	}
+	if result.Provider != "anthropic" || result.Model != "claude" {
+		t.Fatalf("result = %s/%s, want anthropic/claude", result.Provider, result.Model)
+	}
+	if len(result.Attempts) != 1 {
+		t.Fatalf("attempts = %d, want 1 failed attempt recorded", len(result.Attempts))
+	}
+	if result.Attempts[0].Reason != FailoverNetwork {
+		t.Fatalf("attempt reason = %q, want network", result.Attempts[0].Reason)
+	}
+}
+
 func TestFallback_SuccessResetsCooldown(t *testing.T) {
 	ct := NewCooldownTracker()
 	fc := NewFallbackChain(ct)
