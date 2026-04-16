@@ -467,6 +467,8 @@ func (p *PerplexitySearchProvider) Search(ctx context.Context, query string, cou
 
 type SearXNGSearchProvider struct {
 	baseURL string
+	proxy   string
+	client  *http.Client
 }
 
 func (p *SearXNGSearchProvider) Search(ctx context.Context, query string, count int) (string, error) {
@@ -479,7 +481,10 @@ func (p *SearXNGSearchProvider) Search(ctx context.Context, query string, count 
 		return "", fmt.Errorf("failed to create request: %w", err)
 	}
 
-	client := &http.Client{Timeout: 10 * time.Second}
+	client := p.client
+	if client == nil {
+		client = &http.Client{Timeout: searchTimeout}
+	}
 	resp, err := client.Do(req)
 	if err != nil {
 		return "", fmt.Errorf("request failed: %w", err)
@@ -665,7 +670,11 @@ func NewWebSearchTool(opts WebSearchToolOptions) (*WebSearchTool, error) {
 			maxResults = opts.BraveMaxResults
 		}
 	} else if opts.SearXNGEnabled && opts.SearXNGBaseURL != "" {
-		provider = &SearXNGSearchProvider{baseURL: opts.SearXNGBaseURL}
+		client, err := utils.CreateHTTPClient(opts.Proxy, searchTimeout)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create HTTP client for SearXNG: %w", err)
+		}
+		provider = &SearXNGSearchProvider{baseURL: opts.SearXNGBaseURL, proxy: opts.Proxy, client: client}
 		if opts.SearXNGMaxResults > 0 {
 			maxResults = opts.SearXNGMaxResults
 		}
@@ -779,6 +788,13 @@ type WebFetchTool struct {
 	fetchLimitBytes int64
 }
 
+type privateHostWhitelist struct {
+	exact map[string]struct{}
+	cidrs []*net.IPNet
+}
+
+type webFetchAllowedFirstHopHostKey struct{}
+
 func NewWebFetchTool(maxChars int, fetchLimitBytes int64) (*WebFetchTool, error) {
 	// createHTTPClient cannot fail with an empty proxy string.
 	return NewWebFetchToolWithProxy(maxChars, "", fetchLimitBytes)
@@ -810,6 +826,7 @@ func NewWebFetchToolWithProxy(maxChars int, proxy string, fetchLimitBytes int64)
 		if isObviousPrivateHost(req.URL.Hostname()) {
 			return fmt.Errorf("redirect target is private or local network host")
 		}
+		allowConfiguredProxyFirstHop(req, client.Transport)
 		return nil
 	}
 	if fetchLimitBytes <= 0 {
@@ -886,6 +903,7 @@ func (t *WebFetchTool) Execute(ctx context.Context, args map[string]any) *ToolRe
 	if err != nil {
 		return ErrorResult(fmt.Sprintf("failed to create request: %v", err))
 	}
+	allowConfiguredProxyFirstHop(req, t.client.Transport)
 
 	req.Header.Set("User-Agent", userAgent)
 	resp, err := t.client.Do(req)
@@ -994,6 +1012,9 @@ func newSafeDialContext(dialer *net.Dialer) func(context.Context, string, string
 		if host == "" {
 			return nil, fmt.Errorf("empty target host")
 		}
+		if isAllowedFirstHopHost(ctx, host) {
+			return dialer.DialContext(ctx, network, address)
+		}
 
 		if ip := net.ParseIP(host); ip != nil {
 			if isPrivateOrRestrictedIP(ip) {
@@ -1030,6 +1051,109 @@ func newSafeDialContext(dialer *net.Dialer) func(context.Context, string, string
 		return nil, fmt.Errorf("failed connecting to public addresses for %s", host)
 	}
 }
+
+func allowConfiguredProxyFirstHop(req *http.Request, rt http.RoundTripper) {
+	if req == nil {
+		return
+	}
+
+	transport, ok := rt.(*http.Transport)
+	if !ok || transport.Proxy == nil {
+		return
+	}
+
+	proxyURL, err := transport.Proxy(req)
+	if err != nil || proxyURL == nil {
+		return
+	}
+
+	host := normalizeAllowedFirstHopHost(proxyURL.Hostname())
+	if host == "" {
+		return
+	}
+
+	*req = *req.WithContext(context.WithValue(
+		req.Context(),
+		webFetchAllowedFirstHopHostKey{},
+		host,
+	))
+}
+
+func isAllowedFirstHopHost(ctx context.Context, host string) bool {
+	allowed, _ := ctx.Value(webFetchAllowedFirstHopHostKey{}).(string)
+	if allowed == "" {
+		return false
+	}
+	return allowed == normalizeAllowedFirstHopHost(host)
+}
+
+func normalizeAllowedFirstHopHost(host string) string {
+	host = strings.ToLower(strings.TrimSpace(host))
+	return strings.TrimSuffix(host, ".")
+}
+
+func newPrivateHostWhitelist(entries []string) (*privateHostWhitelist, error) {
+	if len(entries) == 0 {
+		return nil, nil
+	}
+
+	whitelist := &privateHostWhitelist{
+		exact: make(map[string]struct{}),
+		cidrs: make([]*net.IPNet, 0, len(entries)),
+	}
+	for _, entry := range entries {
+		entry = strings.TrimSpace(entry)
+		if entry == "" {
+			continue
+		}
+		if ip := net.ParseIP(entry); ip != nil {
+			whitelist.exact[normalizeWhitelistIP(ip).String()] = struct{}{}
+			continue
+		}
+		_, network, err := net.ParseCIDR(entry)
+		if err != nil {
+			return nil, fmt.Errorf("invalid entry %q: expected IP or CIDR", entry)
+		}
+		whitelist.cidrs = append(whitelist.cidrs, network)
+	}
+
+	if len(whitelist.exact) == 0 && len(whitelist.cidrs) == 0 {
+		return nil, nil
+	}
+	return whitelist, nil
+}
+
+func (w *privateHostWhitelist) Contains(ip net.IP) bool {
+	if w == nil || ip == nil {
+		return false
+	}
+
+	normalized := normalizeWhitelistIP(ip)
+	if _, ok := w.exact[normalized.String()]; ok {
+		return true
+	}
+	for _, network := range w.cidrs {
+		if network.Contains(normalized) {
+			return true
+		}
+	}
+	return false
+}
+
+func normalizeWhitelistIP(ip net.IP) net.IP {
+	if ip == nil {
+		return nil
+	}
+	if ip4 := ip.To4(); ip4 != nil {
+		return ip4
+	}
+	return ip
+}
+
+func shouldBlockPrivateIP(ip net.IP, whitelist *privateHostWhitelist) bool {
+	return isPrivateOrRestrictedIP(ip) && !whitelist.Contains(ip)
+}
+
 
 // isObviousPrivateHost performs a lightweight, no-DNS check for obviously private hosts.
 // It catches localhost, literal private IPs, and empty hosts. It does NOT resolve DNS —
