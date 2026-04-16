@@ -20,7 +20,7 @@ func newLoginCommand() *cobra.Command {
 	}
 
 	cmd.Flags().StringVarP(
-		&provider, "provider", "p", "", "Provider to login with (openai, anthropic, google-antigravity)",
+		&provider, "provider", "p", "", "Provider to login with (openai, anthropic, google-antigravity, antigravity)",
 	)
 	cmd.Flags().BoolVar(&useDeviceCode, "device-code", false, "Use device code flow (for headless environments)")
 	cmd.Flags().BoolVar(&noBrowser, "no-browser", false, "Do not auto-open a browser during OAuth login")

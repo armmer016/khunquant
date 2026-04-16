@@ -375,22 +375,16 @@ func TestParseDeviceCodeResponseInvalidInterval(t *testing.T) {
 	}
 }
 
-func TestLoginBrowserWithOptionsSkipsAutoOpenWhenDisabled(t *testing.T) {
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/oauth/token" {
-			http.Error(w, "not found", http.StatusNotFound)
-			return
-		}
-
-		resp := map[string]any{
-			"access_token":  "mock-access-token",
-			"refresh_token": "mock-refresh-token",
-			"expires_in":    3600,
-		}
-		_ = json.NewEncoder(w).Encode(resp)
-	}))
+func TestLoginBrowserWithOptionsNoBrowserDoesNotRequireCallbackPort(t *testing.T) {
+	server := newMockOAuthTokenServer()
 	defer server.Close()
+	reservedListener, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatalf("net.Listen() error: %v", err)
+	}
+	defer reservedListener.Close()
 
+	reservedPort := reservedListener.Addr().(*net.TCPAddr).Port
 	origOpenBrowserFunc := openBrowserFunc
 	origBrowserLoginInput := browserLoginInput
 	t.Cleanup(func() {
@@ -409,7 +403,7 @@ func TestLoginBrowserWithOptionsSkipsAutoOpenWhenDisabled(t *testing.T) {
 		Issuer:   server.URL,
 		ClientID: "test-client",
 		Scopes:   "openid",
-		Port:     freeLocalPort(t),
+		Port:     reservedPort,
 	}
 
 	cred, err := LoginBrowserWithOptions(cfg, LoginBrowserOptions{NoBrowser: true})
@@ -426,7 +420,62 @@ func TestLoginBrowserWithOptionsSkipsAutoOpenWhenDisabled(t *testing.T) {
 }
 
 func TestLoginBrowserWithOptionsAutoOpensByDefault(t *testing.T) {
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server := newMockOAuthTokenServer()
+	defer server.Close()
+
+	origOpenBrowserFunc := openBrowserFunc
+	origBrowserLoginInput := browserLoginInput
+	t.Cleanup(func() {
+		openBrowserFunc = origOpenBrowserFunc
+		browserLoginInput = origBrowserLoginInput
+	})
+
+	var (
+		openCalls  int
+		browserURL string
+	)
+	openBrowserFunc = func(url string) error {
+		openCalls++
+		browserURL = url
+		return nil
+	}
+	browserLoginInput = strings.NewReader("manual-code\n")
+
+	cfg := OAuthProviderConfig{
+		Issuer:   server.URL,
+		ClientID: "test-client",
+		Scopes:   "openid",
+		Port:     0,
+	}
+
+	_, err := LoginBrowserWithOptions(cfg, LoginBrowserOptions{})
+	if err != nil {
+		t.Fatalf("LoginBrowserWithOptions() error: %v", err)
+	}
+
+	if openCalls != 1 {
+		t.Fatalf("openBrowserFunc call count = %d, want 1", openCalls)
+	}
+
+	parsedBrowserURL, err := url.Parse(browserURL)
+	if err != nil {
+		t.Fatalf("url.Parse(browserURL) error: %v", err)
+	}
+
+	redirectURI, err := url.Parse(parsedBrowserURL.Query().Get("redirect_uri"))
+	if err != nil {
+		t.Fatalf("url.Parse(redirectURI) error: %v", err)
+	}
+	if redirectURI.Port() == "" {
+		t.Fatal("redirectURI port is empty")
+	}
+	if redirectURI.Port() == "0" {
+		t.Fatalf("redirectURI port = %q, want dynamically assigned port", redirectURI.Port())
+	}
+}
+
+func newMockOAuthTokenServer() *httptest.Server {
+	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/oauth/token" {
 			http.Error(w, "not found", http.StatusNotFound)
 			return
@@ -439,52 +488,4 @@ func TestLoginBrowserWithOptionsAutoOpensByDefault(t *testing.T) {
 		}
 		_ = json.NewEncoder(w).Encode(resp)
 	}))
-	defer server.Close()
-
-	origOpenBrowserFunc := openBrowserFunc
-	origBrowserLoginInput := browserLoginInput
-	t.Cleanup(func() {
-		openBrowserFunc = origOpenBrowserFunc
-		browserLoginInput = origBrowserLoginInput
-	})
-
-	var openCalls int
-	openBrowserFunc = func(string) error {
-		openCalls++
-		return nil
-	}
-	browserLoginInput = strings.NewReader("manual-code\n")
-
-	cfg := OAuthProviderConfig{
-		Issuer:   server.URL,
-		ClientID: "test-client",
-		Scopes:   "openid",
-		Port:     freeLocalPort(t),
-	}
-
-	_, err := LoginBrowserWithOptions(cfg, LoginBrowserOptions{})
-	if err != nil {
-		t.Fatalf("LoginBrowserWithOptions() error: %v", err)
-	}
-
-	if openCalls != 1 {
-		t.Fatalf("openBrowserFunc call count = %d, want 1", openCalls)
-	}
-}
-
-func freeLocalPort(t *testing.T) int {
-	t.Helper()
-
-	listener, err := net.Listen("tcp", "127.0.0.1:0")
-	if err != nil {
-		t.Fatalf("net.Listen() error: %v", err)
-	}
-	defer listener.Close()
-
-	addr, ok := listener.Addr().(*net.TCPAddr)
-	if !ok {
-		t.Fatalf("listener addr type = %T, want *net.TCPAddr", listener.Addr())
-	}
-
-	return addr.Port
 }

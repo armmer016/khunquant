@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	supportedProvidersMsg = "supported providers: openai, anthropic, google-antigravity"
+	supportedProvidersMsg = "supported providers: openai, anthropic, google-antigravity, antigravity"
 	defaultAnthropicModel = "claude-sonnet-4.6"
 )
 
