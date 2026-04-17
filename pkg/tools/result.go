@@ -6,8 +6,8 @@ import (
 )
 
 const (
-	handledToolLLMNote   = "The requested output has already been delivered to the user in the current chat. Do not call send_file or any other delivery tool again. If you reply, provide only a brief confirmation."
-	artifactPathsLLMNote = "Use `send_file` with one of these paths to send it to the user, or use file/exec tools to save it inside the workspace if requested."
+	HandledToolLLMNote   = "The requested output has already been delivered to the user in the current chat. Do not call send_file or any other delivery tool again. If you reply, provide only a brief confirmation."
+	ArtifactPathsLLMNote = "Use `send_file` with one of these paths to send it to the user, or use file/exec tools to save it inside the workspace if requested."
 )
 
 // ToolResult represents the structured return value from tool execution.
@@ -66,14 +66,14 @@ func (tr *ToolResult) ContentForLLM() string {
 	}
 	if tr.ResponseHandled {
 		if content == "" {
-			return handledToolLLMNote
+			return HandledToolLLMNote
 		}
-		if !strings.Contains(content, handledToolLLMNote) {
-			content += "\n" + handledToolLLMNote
+		if !strings.Contains(content, HandledToolLLMNote) {
+			content += "\n" + HandledToolLLMNote
 		}
 	}
 	if len(tr.ArtifactTags) > 0 {
-		artifactNote := "Local artifact paths: " + strings.Join(tr.ArtifactTags, " ") + "\n" + artifactPathsLLMNote
+		artifactNote := "Local artifact paths: " + strings.Join(tr.ArtifactTags, " ") + "\n" + ArtifactPathsLLMNote
 		if content == "" {
 			content = artifactNote
 		} else if !strings.Contains(content, artifactNote) {
