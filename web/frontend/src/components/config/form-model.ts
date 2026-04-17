@@ -8,12 +8,30 @@ export interface CoreConfigForm {
   maxToolIterations: string
   summarizeMessageThreshold: string
   summarizeTokenPercent: string
+  contextManager: string
   dmScope: string
   heartbeatEnabled: boolean
   heartbeatInterval: string
   devicesEnabled: boolean
   monitorUSB: boolean
 }
+
+export const CONTEXT_MANAGER_OPTIONS = [
+  {
+    value: "legacy",
+    labelKey: "pages.config.context_manager_legacy",
+    labelDefault: "Legacy (Summarization)",
+    descKey: "pages.config.context_manager_legacy_desc",
+    descDefault: "Summarizes old messages when context is full.",
+  },
+  {
+    value: "seahorse",
+    labelKey: "pages.config.context_manager_seahorse",
+    labelDefault: "Seahorse (SQLite DAG)",
+    descKey: "pages.config.context_manager_seahorse_desc",
+    descDefault: "Budget-aware SQLite-backed memory with lossless compression.",
+  },
+] as const
 
 export interface LauncherForm {
   port: string
@@ -60,6 +78,7 @@ export const EMPTY_FORM: CoreConfigForm = {
   maxToolIterations: "50",
   summarizeMessageThreshold: "20",
   summarizeTokenPercent: "75",
+  contextManager: "seahorse",
   dmScope: "per-channel-peer",
   heartbeatEnabled: true,
   heartbeatInterval: "30",
@@ -130,6 +149,8 @@ export function buildFormFromConfig(config: unknown): CoreConfigForm {
       defaults.summarize_token_percent,
       EMPTY_FORM.summarizeTokenPercent,
     ),
+    contextManager:
+      asString(defaults.context_manager) || EMPTY_FORM.contextManager,
     dmScope: asString(session.dm_scope) || EMPTY_FORM.dmScope,
     heartbeatEnabled:
       heartbeat.enabled === undefined

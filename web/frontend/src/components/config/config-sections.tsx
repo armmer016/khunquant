@@ -2,6 +2,7 @@ import type { ReactNode } from "react"
 import { useTranslation } from "react-i18next"
 
 import {
+  CONTEXT_MANAGER_OPTIONS,
   type CoreConfigForm,
   DM_SCOPE_OPTIONS,
   type LauncherForm,
@@ -156,6 +157,40 @@ export function AgentDefaultsSection({
             onFieldChange("summarizeTokenPercent", e.target.value)
           }
         />
+      </Field>
+
+      <Field
+        label={t("pages.config.context_manager")}
+        hint={t("pages.config.context_manager_hint")}
+        layout="setting-row"
+      >
+        <Select
+          value={form.contextManager}
+          onValueChange={(value) => onFieldChange("contextManager", value)}
+        >
+          <SelectTrigger className="w-full">
+            <SelectValue>
+              {(() => {
+                const opt = CONTEXT_MANAGER_OPTIONS.find(
+                  (o) => o.value === form.contextManager,
+                )
+                return opt ? t(opt.labelKey, opt.labelDefault) : form.contextManager
+              })()}
+            </SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            {CONTEXT_MANAGER_OPTIONS.map((opt) => (
+              <SelectItem key={opt.value} value={opt.value}>
+                <div className="flex flex-col gap-0.5">
+                  <span className="font-medium">{t(opt.labelKey, opt.labelDefault)}</span>
+                  <span className="text-muted-foreground text-xs">
+                    {t(opt.descKey, opt.descDefault)}
+                  </span>
+                </div>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </Field>
     </ConfigSectionCard>
   )

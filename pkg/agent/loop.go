@@ -139,7 +139,7 @@ func NewAgentLoop(
 func (al *AgentLoop) resolveContextManager() ContextManager {
 	name := al.cfg.Agents.Defaults.ContextManager
 	if name == "" {
-		name = "legacy"
+		name = "seahorse"
 	}
 
 	factory, ok := lookupContextManager(name)

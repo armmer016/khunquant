@@ -174,6 +174,7 @@ export function ConfigPage() {
               max_tool_iterations: maxToolIterations,
               summarize_message_threshold: summarizeMessageThreshold,
               summarize_token_percent: summarizeTokenPercent,
+              context_manager: form.contextManager || "legacy",
             },
           },
           session: {
