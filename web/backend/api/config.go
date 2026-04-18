@@ -184,23 +184,23 @@ func validateConfig(cfg *config.Config) []string {
 	}
 
 	// Pico channel: token required when enabled
-	if cfg.Channels.Pico.Enabled && cfg.Channels.Pico.Token == "" {
+	if cfg.Channels.Pico.Enabled && cfg.Channels.Pico.Token.String() == "" {
 		errs = append(errs, "channels.pico.token is required when pico channel is enabled")
 	}
 
 	// Telegram: token required when enabled
-	if cfg.Channels.Telegram.Enabled && cfg.Channels.Telegram.Token == "" {
+	if cfg.Channels.Telegram.Enabled && cfg.Channels.Telegram.Token.String() == "" {
 		errs = append(errs, "channels.telegram.token is required when telegram channel is enabled")
 	}
 
 	// Discord: token required when enabled
-	if cfg.Channels.Discord.Enabled && cfg.Channels.Discord.Token == "" {
+	if cfg.Channels.Discord.Enabled && cfg.Channels.Discord.Token.String() == "" {
 		errs = append(errs, "channels.discord.token is required when discord channel is enabled")
 	}
 
 	// Binance: at least one account required when enabled
 	if cfg.Exchanges.Binance.Enabled {
-		if acc, ok := cfg.Exchanges.Binance.ResolveAccount(""); !ok || acc.APIKey == "" || acc.Secret == "" {
+		if acc, ok := cfg.Exchanges.Binance.ResolveAccount(""); !ok || acc.APIKey.String() == "" || acc.Secret.String() == "" {
 			errs = append(errs, "exchanges.binance: at least one account with api_key and secret is required when Binance is enabled")
 		}
 	}

@@ -212,16 +212,16 @@ func (s *appState) genericAccountMenu(
 func (s *appState) binanceAccountForm(index int) tview.Primitive {
 	acc := &s.config.Exchanges.Binance.Accounts[index]
 	form := baseExchangeAccountForm("Binance", acc.Name)
-	addInput(form, "API Key", acc.APIKey, func(v string) {
-		acc.APIKey = v
+	addInput(form, "API Key", acc.APIKey.String(), func(v string) {
+		acc.APIKey.Set(v)
 		s.dirty = true
 		refreshMainMenuIfPresent(s)
 		if menu, ok := s.menus["exchange"]; ok {
 			refreshExchangeMenuFromState(menu, s)
 		}
 	})
-	addInput(form, "Secret", acc.Secret, func(v string) {
-		acc.Secret = v
+	addInput(form, "Secret", acc.Secret.String(), func(v string) {
+		acc.Secret.Set(v)
 		s.dirty = true
 	})
 	addExchangeDeleteButton(form, s, func() {
@@ -236,13 +236,13 @@ func (s *appState) binanceAccountForm(index int) tview.Primitive {
 func (s *appState) binancethAccountForm(index int) tview.Primitive {
 	acc := &s.config.Exchanges.BinanceTH.Accounts[index]
 	form := baseExchangeAccountForm("Binance TH", acc.Name)
-	addInput(form, "API Key", acc.APIKey, func(v string) {
-		acc.APIKey = v
+	addInput(form, "API Key", acc.APIKey.String(), func(v string) {
+		acc.APIKey.Set(v)
 		s.dirty = true
 		refreshMainMenuIfPresent(s)
 	})
-	addInput(form, "Secret", acc.Secret, func(v string) {
-		acc.Secret = v
+	addInput(form, "Secret", acc.Secret.String(), func(v string) {
+		acc.Secret.Set(v)
 		s.dirty = true
 	})
 	addExchangeDeleteButton(form, s, func() {
@@ -257,13 +257,13 @@ func (s *appState) binancethAccountForm(index int) tview.Primitive {
 func (s *appState) bitkubAccountForm(index int) tview.Primitive {
 	acc := &s.config.Exchanges.Bitkub.Accounts[index]
 	form := baseExchangeAccountForm("Bitkub", acc.Name)
-	addInput(form, "API Key", acc.APIKey, func(v string) {
-		acc.APIKey = v
+	addInput(form, "API Key", acc.APIKey.String(), func(v string) {
+		acc.APIKey.Set(v)
 		s.dirty = true
 		refreshMainMenuIfPresent(s)
 	})
-	addInput(form, "Secret", acc.Secret, func(v string) {
-		acc.Secret = v
+	addInput(form, "Secret", acc.Secret.String(), func(v string) {
+		acc.Secret.Set(v)
 		s.dirty = true
 	})
 	addExchangeDeleteButton(form, s, func() {
@@ -278,17 +278,17 @@ func (s *appState) bitkubAccountForm(index int) tview.Primitive {
 func (s *appState) okxAccountForm(index int) tview.Primitive {
 	acc := &s.config.Exchanges.OKX.Accounts[index]
 	form := baseExchangeAccountForm("OKX", acc.Name)
-	addInput(form, "API Key", acc.APIKey, func(v string) {
-		acc.APIKey = v
+	addInput(form, "API Key", acc.APIKey.String(), func(v string) {
+		acc.APIKey.Set(v)
 		s.dirty = true
 		refreshMainMenuIfPresent(s)
 	})
-	addInput(form, "Secret", acc.Secret, func(v string) {
-		acc.Secret = v
+	addInput(form, "Secret", acc.Secret.String(), func(v string) {
+		acc.Secret.Set(v)
 		s.dirty = true
 	})
-	addInput(form, "Passphrase", acc.Passphrase, func(v string) {
-		acc.Passphrase = v
+	addInput(form, "Passphrase", acc.Passphrase.String(), func(v string) {
+		acc.Passphrase.Set(v)
 		s.dirty = true
 	})
 	addExchangeDeleteButton(form, s, func() {
@@ -303,13 +303,13 @@ func (s *appState) okxAccountForm(index int) tview.Primitive {
 func (s *appState) settradeAccountForm(index int) tview.Primitive {
 	acc := &s.config.Exchanges.Settrade.Accounts[index]
 	form := baseExchangeAccountForm("Settrade", acc.Name)
-	addInput(form, "API Key (login ID)", acc.APIKey, func(v string) {
-		acc.APIKey = v
+	addInput(form, "API Key (login ID)", acc.APIKey.String(), func(v string) {
+		acc.APIKey.Set(v)
 		s.dirty = true
 		refreshMainMenuIfPresent(s)
 	})
-	addInput(form, "Secret (PKCS#8 private key, base64)", acc.Secret, func(v string) {
-		acc.Secret = v
+	addInput(form, "Secret (PKCS#8 private key, base64)", acc.Secret.String(), func(v string) {
+		acc.Secret.Set(v)
 		s.dirty = true
 	})
 	addInput(form, "Broker ID (e.g. FSSVP)", acc.BrokerID, func(v string) {
@@ -324,8 +324,8 @@ func (s *appState) settradeAccountForm(index int) tview.Primitive {
 		acc.AccountNo = v
 		s.dirty = true
 	})
-	addInput(form, "PIN (optional)", acc.PIN, func(v string) {
-		acc.PIN = v
+	addInput(form, "PIN (optional)", acc.PIN.String(), func(v string) {
+		acc.PIN.Set(v)
 		s.dirty = true
 	})
 	addExchangeDeleteButton(form, s, func() {

@@ -12,8 +12,8 @@ func TestNewWeComAIBotChannel(t *testing.T) {
 	t.Run("success with valid config", func(t *testing.T) {
 		cfg := config.WeComAIBotConfig{
 			Enabled:        true,
-			Token:          "test_token",
-			EncodingAESKey: "testkey1234567890123456789012345678901234567",
+			Token:          *config.NewSecureString("test_token"),
+			EncodingAESKey: *config.NewSecureString("testkey1234567890123456789012345678901234567"),
 			WebhookPath:    "/webhook/test",
 		}
 
@@ -35,7 +35,7 @@ func TestNewWeComAIBotChannel(t *testing.T) {
 	t.Run("error with missing token", func(t *testing.T) {
 		cfg := config.WeComAIBotConfig{
 			Enabled:        true,
-			EncodingAESKey: "testkey1234567890123456789012345678901234567",
+			EncodingAESKey: *config.NewSecureString("testkey1234567890123456789012345678901234567"),
 		}
 
 		messageBus := bus.NewMessageBus()
@@ -49,7 +49,7 @@ func TestNewWeComAIBotChannel(t *testing.T) {
 	t.Run("error with missing encoding key", func(t *testing.T) {
 		cfg := config.WeComAIBotConfig{
 			Enabled: true,
-			Token:   "test_token",
+			Token:   *config.NewSecureString("test_token"),
 		}
 
 		messageBus := bus.NewMessageBus()
@@ -64,8 +64,8 @@ func TestNewWeComAIBotChannel(t *testing.T) {
 func TestWeComAIBotChannelStartStop(t *testing.T) {
 	cfg := config.WeComAIBotConfig{
 		Enabled:        true,
-		Token:          "test_token",
-		EncodingAESKey: "testkey1234567890123456789012345678901234567",
+		Token:          *config.NewSecureString("test_token"),
+		EncodingAESKey: *config.NewSecureString("testkey1234567890123456789012345678901234567"),
 	}
 
 	messageBus := bus.NewMessageBus()
@@ -99,8 +99,8 @@ func TestWeComAIBotChannelWebhookPath(t *testing.T) {
 	t.Run("default path", func(t *testing.T) {
 		cfg := config.WeComAIBotConfig{
 			Enabled:        true,
-			Token:          "test_token",
-			EncodingAESKey: "testkey1234567890123456789012345678901234567",
+			Token:          *config.NewSecureString("test_token"),
+			EncodingAESKey: *config.NewSecureString("testkey1234567890123456789012345678901234567"),
 		}
 
 		messageBus := bus.NewMessageBus()
@@ -116,8 +116,8 @@ func TestWeComAIBotChannelWebhookPath(t *testing.T) {
 		customPath := "/custom/webhook"
 		cfg := config.WeComAIBotConfig{
 			Enabled:        true,
-			Token:          "test_token",
-			EncodingAESKey: "testkey1234567890123456789012345678901234567",
+			Token:          *config.NewSecureString("test_token"),
+			EncodingAESKey: *config.NewSecureString("testkey1234567890123456789012345678901234567"),
 			WebhookPath:    customPath,
 		}
 
@@ -133,8 +133,8 @@ func TestWeComAIBotChannelWebhookPath(t *testing.T) {
 func TestGenerateStreamID(t *testing.T) {
 	cfg := config.WeComAIBotConfig{
 		Enabled:        true,
-		Token:          "test_token",
-		EncodingAESKey: "testkey1234567890123456789012345678901234567",
+		Token:          *config.NewSecureString("test_token"),
+		EncodingAESKey: *config.NewSecureString("testkey1234567890123456789012345678901234567"),
 	}
 
 	messageBus := bus.NewMessageBus()
@@ -160,8 +160,8 @@ func TestEncryptDecrypt(t *testing.T) {
 	// Use a valid 43-character base64 key (企业微信标准格式)
 	cfg := config.WeComAIBotConfig{
 		Enabled:        true,
-		Token:          "test_token",
-		EncodingAESKey: "abcdefghijklmnopqrstuvwxyz0123456789ABCDEFG", // 43 characters
+		Token:          *config.NewSecureString("test_token"),
+		EncodingAESKey: *config.NewSecureString("abcdefghijklmnopqrstuvwxyz0123456789ABCDEFG"), // 43 characters
 	}
 
 	messageBus := bus.NewMessageBus()
@@ -181,7 +181,7 @@ func TestEncryptDecrypt(t *testing.T) {
 	}
 
 	// Decrypt
-	decrypted, err := decryptMessageWithVerify(encrypted, cfg.EncodingAESKey, receiveid)
+	decrypted, err := decryptMessageWithVerify(encrypted, cfg.EncodingAESKey.String(), receiveid)
 	if err != nil {
 		t.Fatalf("Failed to decrypt message: %v", err)
 	}

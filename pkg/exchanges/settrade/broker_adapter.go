@@ -27,9 +27,9 @@ func newBrokerAdapter(cfg config.SettradeExchangeAccount) (*SettradeFullAdapter,
 	if err != nil {
 		return nil, err
 	}
-	logger.RegisterSecret(cfg.APIKey)
-	logger.RegisterSecret(cfg.Secret)
-	logger.RegisterSecret(cfg.PIN)
+	logger.RegisterSecret(cfg.APIKey.String())
+	logger.RegisterSecret(cfg.Secret.String())
+	logger.RegisterSecret(cfg.PIN.String())
 	return &SettradeFullAdapter{client: client, cfg: cfg}, nil
 }
 

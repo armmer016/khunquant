@@ -50,7 +50,7 @@ func resolveExchangeAccount(cfg *config.Config, providerID, accountName string) 
 			APIKey:      acc.APIKey,
 			Secret:      acc.Secret,
 			Permissions: acc.Permissions,
-		}, acc.APIKey != ""
+		}, acc.APIKey.String() != ""
 	}
 	return config.ExchangeAccount{}, false
 }

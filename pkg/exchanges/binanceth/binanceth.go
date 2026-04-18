@@ -30,12 +30,12 @@ type BinanceTHExchange struct {
 
 // NewBinanceTHExchange creates a new BinanceTHExchange using resolved credentials.
 func NewBinanceTHExchange(creds config.ExchangeAccount) (*BinanceTHExchange, error) {
-	if creds.APIKey == "" || creds.Secret == "" {
+	if creds.APIKey.String() == "" || creds.Secret.String() == "" {
 		return nil, fmt.Errorf("binanceth: api_key and secret are required")
 	}
 	return &BinanceTHExchange{
-		apiKey:    creds.APIKey,
-		apiSecret: creds.Secret,
+		apiKey:    creds.APIKey.String(),
+		apiSecret: creds.Secret.String(),
 		client:    &http.Client{Timeout: 15 * time.Second},
 	}, nil
 }

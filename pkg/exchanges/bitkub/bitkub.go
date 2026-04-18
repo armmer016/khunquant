@@ -32,12 +32,12 @@ type BitkubExchange struct {
 
 // NewBitkubExchange creates a new BitkubExchange using resolved credentials.
 func NewBitkubExchange(creds config.ExchangeAccount) (*BitkubExchange, error) {
-	if creds.APIKey == "" || creds.Secret == "" {
+	if creds.APIKey.String() == "" || creds.Secret.String() == "" {
 		return nil, fmt.Errorf("bitkub: api_key and secret are required")
 	}
 	return &BitkubExchange{
-		apiKey:    creds.APIKey,
-		apiSecret: creds.Secret,
+		apiKey:    creds.APIKey.String(),
+		apiSecret: creds.Secret.String(),
 		client:    &http.Client{Timeout: 15 * time.Second},
 	}, nil
 }

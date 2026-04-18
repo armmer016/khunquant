@@ -22,14 +22,14 @@ type OKXExchange struct {
 
 // NewOKXExchange creates a new OKXExchange using resolved credentials.
 func NewOKXExchange(creds config.OKXExchangeAccount, testnet bool) (*OKXExchange, error) {
-	if creds.APIKey == "" || creds.Secret == "" || creds.Passphrase == "" {
+	if creds.APIKey.String() == "" || creds.Secret.String() == "" || creds.Passphrase.String() == "" {
 		return nil, fmt.Errorf("okx: api_key, secret, and passphrase are required")
 	}
 
 	ccxtCreds := map[string]interface{}{
-		"apiKey":   creds.APIKey,
-		"secret":   creds.Secret,
-		"password": creds.Passphrase,
+		"apiKey":   creds.APIKey.String(),
+		"secret":   creds.Secret.String(),
+		"password": creds.Passphrase.String(),
 	}
 
 	client := ccxt.NewOkx(ccxtCreds)

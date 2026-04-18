@@ -32,7 +32,7 @@ func setupPortfolios(cfg *config.Config) ([]string, error) {
 		fmt.Printf("  %d. %s\n", i+1, ex.label)
 	}
 	fmt.Println("")
-	fmt.Print("Select exchanges to enable (e.g. 1,3 or 'all', empty to skip): ")
+	fmt.Print("Select exchanges to enable (e.g. 1,2,4 or 'all', empty to skip and setup later): ")
 
 	var input string
 	fmt.Scanln(&input)

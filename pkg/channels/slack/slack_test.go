@@ -103,8 +103,7 @@ func TestNewSlackChannel(t *testing.T) {
 
 	t.Run("missing bot token", func(t *testing.T) {
 		cfg := config.SlackConfig{
-			BotToken: "",
-			AppToken: "xapp-test",
+			AppToken: *config.NewSecureString("xapp-test"),
 		}
 		_, err := NewSlackChannel(cfg, msgBus)
 		if err == nil {
@@ -114,8 +113,7 @@ func TestNewSlackChannel(t *testing.T) {
 
 	t.Run("missing app token", func(t *testing.T) {
 		cfg := config.SlackConfig{
-			BotToken: "xoxb-test",
-			AppToken: "",
+			BotToken: *config.NewSecureString("xoxb-test"),
 		}
 		_, err := NewSlackChannel(cfg, msgBus)
 		if err == nil {
@@ -125,8 +123,8 @@ func TestNewSlackChannel(t *testing.T) {
 
 	t.Run("valid config", func(t *testing.T) {
 		cfg := config.SlackConfig{
-			BotToken:  "xoxb-test",
-			AppToken:  "xapp-test",
+			BotToken:  *config.NewSecureString("xoxb-test"),
+			AppToken:  *config.NewSecureString("xapp-test"),
 			AllowFrom: []string{"U123"},
 		}
 		ch, err := NewSlackChannel(cfg, msgBus)
@@ -147,8 +145,8 @@ func TestSlackChannelIsAllowed(t *testing.T) {
 
 	t.Run("empty allowlist allows all", func(t *testing.T) {
 		cfg := config.SlackConfig{
-			BotToken:  "xoxb-test",
-			AppToken:  "xapp-test",
+			BotToken:  *config.NewSecureString("xoxb-test"),
+			AppToken:  *config.NewSecureString("xapp-test"),
 			AllowFrom: []string{},
 		}
 		ch, _ := NewSlackChannel(cfg, msgBus)
@@ -159,8 +157,8 @@ func TestSlackChannelIsAllowed(t *testing.T) {
 
 	t.Run("allowlist restricts users", func(t *testing.T) {
 		cfg := config.SlackConfig{
-			BotToken:  "xoxb-test",
-			AppToken:  "xapp-test",
+			BotToken:  *config.NewSecureString("xoxb-test"),
+			AppToken:  *config.NewSecureString("xapp-test"),
 			AllowFrom: []string{"U_ALLOWED"},
 		}
 		ch, _ := NewSlackChannel(cfg, msgBus)

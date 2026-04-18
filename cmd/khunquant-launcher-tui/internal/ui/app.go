@@ -127,6 +127,8 @@ func (s *appState) refreshMenu(name string, menu *Menu) {
 		refreshModelMenuFromState(menu, s)
 	case "channel":
 		refreshChannelMenuFromState(menu, s)
+	case "exchange":
+		refreshExchangeMenuFromState(menu, s)
 	}
 }
 
@@ -167,6 +169,8 @@ func refreshMainMenu(menu *Menu, s *appState) {
 	modelReady := selectedModel != ""
 	channelReady := s.hasEnabledChannel()
 	enabledCount, totalChannels := s.countChannels()
+	enabledExchanges, totalExchanges := s.countExchanges()
+	exchangeReady := s.hasEnabledExchange()
 	gatewayRunning := s.gatewayCmd != nil || s.isGatewayRunning()
 
 	gatewayLabel := "Start Gateway"
@@ -199,6 +203,20 @@ func refreshMainMenu(menu *Menu, s *appState) {
 			},
 			MainColor: func() *tcell.Color {
 				if channelReady {
+					return nil
+				}
+				color := tcell.ColorGray
+				return &color
+			}(),
+		},
+		{
+			Label:       rootExchangeLabel(enabledExchanges, totalExchanges),
+			Description: "Configure broker accounts",
+			Action: func() {
+				s.push("exchange", s.exchangeMenu())
+			},
+			MainColor: func() *tcell.Color {
+				if exchangeReady {
 					return nil
 				}
 				color := tcell.ColorGray

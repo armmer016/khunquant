@@ -20,7 +20,7 @@ func TestListConfiguredAccounts_DisabledExchanges(t *testing.T) {
 		Exchanges: config.ExchangesConfig{
 			Binance: config.BinanceExchangeConfig{
 				Enabled:  false,
-				Accounts: []config.ExchangeAccount{{Name: "main", APIKey: "k"}},
+				Accounts: []config.ExchangeAccount{{Name: "main", APIKey: *config.NewSecureString("k")}},
 			},
 		},
 	}
@@ -35,7 +35,7 @@ func TestListConfiguredAccounts_SingleBinanceAccount(t *testing.T) {
 		Exchanges: config.ExchangesConfig{
 			Binance: config.BinanceExchangeConfig{
 				Enabled:  true,
-				Accounts: []config.ExchangeAccount{{Name: "main", APIKey: "k"}},
+				Accounts: []config.ExchangeAccount{{Name: "main", APIKey: *config.NewSecureString("k")}},
 			},
 		},
 	}
@@ -57,7 +57,7 @@ func TestListConfiguredAccounts_DefaultAccountName(t *testing.T) {
 		Exchanges: config.ExchangesConfig{
 			Bitkub: config.BitkubExchangeConfig{
 				Enabled:  true,
-				Accounts: []config.ExchangeAccount{{APIKey: "k"}},
+				Accounts: []config.ExchangeAccount{{APIKey: *config.NewSecureString("k")}},
 			},
 		},
 	}

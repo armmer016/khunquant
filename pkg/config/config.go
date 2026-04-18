@@ -97,22 +97,21 @@ func (f *FlexibleStringSlice) UnmarshalText(text []byte) error {
 }
 
 type Config struct {
-	Agents      AgentsConfig      `json:"agents"`
-	Bindings    []AgentBinding    `json:"bindings,omitempty"`
-	Session     SessionConfig     `json:"session,omitempty"`
-	Channels    ChannelsConfig    `json:"channels"`
-	Providers   ProvidersConfig   `json:"providers,omitempty"`
-	ModelList   SecureModelList   `json:"model_list"` // New model-centric provider configuration
-	Gateway     GatewayConfig     `json:"gateway"`
-	Tools       ToolsConfig       `json:"tools"`
-	Exchanges   ExchangesConfig   `json:"exchanges"`
-	TradingRisk TradingRiskConfig `json:"trading_risk,omitempty"`
-	Heartbeat   HeartbeatConfig   `json:"heartbeat"`
-	Devices     DevicesConfig     `json:"devices"`
-	Voice       VoiceConfig       `json:"voice"`
-	// BuildInfo contains build-time version information
-	BuildInfo BuildInfo    `json:"build_info,omitempty"`
-	Update    UpdateConfig `json:"update,omitempty"`
+	Agents      AgentsConfig      `json:"agents"                yaml:"-"`
+	Bindings    []AgentBinding    `json:"bindings,omitempty"    yaml:"-"`
+	Session     SessionConfig     `json:"session,omitempty"     yaml:"-"`
+	Channels    ChannelsConfig    `json:"channels"              yaml:"channels,omitempty"`
+	Providers   ProvidersConfig   `json:"providers,omitempty"   yaml:"-"`
+	ModelList   SecureModelList   `json:"model_list"            yaml:"model_list"` // New model-centric provider configuration
+	Gateway     GatewayConfig     `json:"gateway"               yaml:"-"`
+	Tools       ToolsConfig       `json:"tools"                 yaml:"-"`
+	Exchanges   ExchangesConfig   `json:"exchanges"             yaml:"exchanges,omitempty"`
+	TradingRisk TradingRiskConfig `json:"trading_risk,omitempty" yaml:"-"`
+	Heartbeat   HeartbeatConfig   `json:"heartbeat"             yaml:"-"`
+	Devices     DevicesConfig     `json:"devices"               yaml:"-"`
+	Voice       VoiceConfig       `json:"voice"                 yaml:"-"`
+	BuildInfo   BuildInfo         `json:"build_info,omitempty"  yaml:"-"`
+	Update      UpdateConfig      `json:"update,omitempty"      yaml:"-"`
 
 	// sensitiveCache caches the strings.Replacer for filtering sensitive data from logs/LLM output.
 	sensitiveCache *SensitiveDataCache
@@ -138,10 +137,10 @@ const (
 
 // ExchangeAccount holds credentials for a single named exchange sub-account.
 type ExchangeAccount struct {
-	Name        string            `json:"name,omitempty"`
-	APIKey      string            `json:"api_key"`
-	Secret      string            `json:"secret"`
-	Permissions []PermissionScope `json:"permissions,omitempty"` // empty = all permissions
+	Name        string            `json:"name,omitempty"        yaml:"-"`
+	APIKey      SecureString      `json:"api_key,omitzero"      yaml:"api_key,omitempty"`
+	Secret      SecureString      `json:"secret,omitzero"       yaml:"secret,omitempty"`
+	Permissions []PermissionScope `json:"permissions,omitempty" yaml:"-"`
 }
 
 // HasPermission returns true if the account has the requested scope.
@@ -161,10 +160,11 @@ func (a ExchangeAccount) HasPermission(scope PermissionScope) bool {
 // RedactedAPIKey returns the API key with all but the last 4 characters masked,
 // safe for logging. Returns "***" for keys shorter than 4 characters.
 func (a ExchangeAccount) RedactedAPIKey() string {
-	if len(a.APIKey) <= 4 {
+	key := a.APIKey.String()
+	if len(key) <= 4 {
 		return "***"
 	}
-	return strings.Repeat("*", len(a.APIKey)-4) + a.APIKey[len(a.APIKey)-4:]
+	return strings.Repeat("*", len(key)-4) + key[len(key)-4:]
 }
 
 // TradingRiskConfig holds per-exchange risk controls for order execution.
@@ -192,17 +192,17 @@ type TradingRiskConfig struct {
 // OKXExchangeAccount extends ExchangeAccount with the OKX-specific passphrase.
 type OKXExchangeAccount struct {
 	ExchangeAccount
-	Passphrase string `json:"passphrase"`
+	Passphrase SecureString `json:"passphrase,omitzero" yaml:"passphrase,omitempty"`
 }
 
 // SettradeExchangeAccount extends ExchangeAccount with SETTRADE-specific fields.
 // APIKey = Settrade app login ID; Secret = base64-encoded PKCS#8 ECDSA P-256 private key.
 type SettradeExchangeAccount struct {
 	ExchangeAccount
-	BrokerID  string `json:"broker_id"`     // e.g. "FSSVP"
-	AppCode   string `json:"app_code"`      // e.g. "ALGO" — used in all OAM URL paths
-	AccountNo string `json:"account_no"`    // trading account number
-	PIN       string `json:"pin,omitempty"` // trading PIN; stored in config for auto-verify
+	BrokerID  string       `json:"broker_id"         yaml:"-"` // e.g. "FSSVP"
+	AppCode   string       `json:"app_code"          yaml:"-"` // e.g. "ALGO" — used in all OAM URL paths
+	AccountNo string       `json:"account_no"        yaml:"-"` // trading account number
+	PIN       SecureString `json:"pin,omitzero"      yaml:"pin,omitempty"` // trading PIN; stored in config for auto-verify
 }
 
 // SettradeExchangeConfig holds the SETTRADE exchange credentials and settings.
@@ -495,22 +495,22 @@ func (d *AgentDefaults) GetModelName() string {
 }
 
 type ChannelsConfig struct {
-	WhatsApp   WhatsAppConfig   `json:"whatsapp"`
-	Telegram   TelegramConfig   `json:"telegram"`
-	Feishu     FeishuConfig     `json:"feishu"`
-	Discord    DiscordConfig    `json:"discord"`
-	MaixCam    MaixCamConfig    `json:"maixcam"`
-	QQ         QQConfig         `json:"qq"`
-	DingTalk   DingTalkConfig   `json:"dingtalk"`
-	Slack      SlackConfig      `json:"slack"`
-	Matrix     MatrixConfig     `json:"matrix"`
-	LINE       LINEConfig       `json:"line"`
-	OneBot     OneBotConfig     `json:"onebot"`
-	WeCom      WeComConfig      `json:"wecom"`
-	WeComApp   WeComAppConfig   `json:"wecom_app"`
-	WeComAIBot WeComAIBotConfig `json:"wecom_aibot"`
-	Pico       PicoConfig       `json:"pico"`
-	IRC        IRCConfig        `json:"irc"`
+	WhatsApp   WhatsAppConfig   `json:"whatsapp"    yaml:"-"`
+	Telegram   TelegramConfig   `json:"telegram"    yaml:"telegram,omitempty"`
+	Feishu     FeishuConfig     `json:"feishu"      yaml:"feishu,omitempty"`
+	Discord    DiscordConfig    `json:"discord"     yaml:"discord,omitempty"`
+	MaixCam    MaixCamConfig    `json:"maixcam"     yaml:"-"`
+	QQ         QQConfig         `json:"qq"          yaml:"qq,omitempty"`
+	DingTalk   DingTalkConfig   `json:"dingtalk"    yaml:"dingtalk,omitempty"`
+	Slack      SlackConfig      `json:"slack"       yaml:"slack,omitempty"`
+	Matrix     MatrixConfig     `json:"matrix"      yaml:"matrix,omitempty"`
+	LINE       LINEConfig       `json:"line"        yaml:"line,omitempty"`
+	OneBot     OneBotConfig     `json:"onebot"      yaml:"onebot,omitempty"`
+	WeCom      WeComConfig      `json:"wecom"       yaml:"wecom,omitempty"`
+	WeComApp   WeComAppConfig   `json:"wecom_app"   yaml:"wecom_app,omitempty"`
+	WeComAIBot WeComAIBotConfig `json:"wecom_aibot" yaml:"wecom_aibot,omitempty"`
+	Pico       PicoConfig       `json:"pico"        yaml:"pico,omitempty"`
+	IRC        IRCConfig        `json:"irc"         yaml:"irc,omitempty"`
 }
 
 // GroupTriggerConfig controls when the bot responds in group chats.
@@ -531,204 +531,204 @@ type PlaceholderConfig struct {
 }
 
 type WhatsAppConfig struct {
-	Enabled            bool                `json:"enabled"              env:"KHUNQUANT_CHANNELS_WHATSAPP_ENABLED"`
-	BridgeURL          string              `json:"bridge_url"           env:"KHUNQUANT_CHANNELS_WHATSAPP_BRIDGE_URL"`
-	UseNative          bool                `json:"use_native"           env:"KHUNQUANT_CHANNELS_WHATSAPP_USE_NATIVE"`
-	SessionStorePath   string              `json:"session_store_path"   env:"KHUNQUANT_CHANNELS_WHATSAPP_SESSION_STORE_PATH"`
-	AllowFrom          FlexibleStringSlice `json:"allow_from"           env:"KHUNQUANT_CHANNELS_WHATSAPP_ALLOW_FROM"`
-	ReasoningChannelID string              `json:"reasoning_channel_id" env:"KHUNQUANT_CHANNELS_WHATSAPP_REASONING_CHANNEL_ID"`
+	Enabled            bool                `json:"enabled"              yaml:"-" env:"KHUNQUANT_CHANNELS_WHATSAPP_ENABLED"`
+	BridgeURL          string              `json:"bridge_url"           yaml:"-" env:"KHUNQUANT_CHANNELS_WHATSAPP_BRIDGE_URL"`
+	UseNative          bool                `json:"use_native"           yaml:"-" env:"KHUNQUANT_CHANNELS_WHATSAPP_USE_NATIVE"`
+	SessionStorePath   string              `json:"session_store_path"   yaml:"-" env:"KHUNQUANT_CHANNELS_WHATSAPP_SESSION_STORE_PATH"`
+	AllowFrom          FlexibleStringSlice `json:"allow_from"           yaml:"-" env:"KHUNQUANT_CHANNELS_WHATSAPP_ALLOW_FROM"`
+	ReasoningChannelID string              `json:"reasoning_channel_id" yaml:"-" env:"KHUNQUANT_CHANNELS_WHATSAPP_REASONING_CHANNEL_ID"`
 }
 
 type TelegramConfig struct {
-	Enabled            bool                `json:"enabled"                 env:"KHUNQUANT_CHANNELS_TELEGRAM_ENABLED"`
-	Token              string              `json:"token"                   env:"KHUNQUANT_CHANNELS_TELEGRAM_TOKEN"`
-	BaseURL            string              `json:"base_url"                env:"KHUNQUANT_CHANNELS_TELEGRAM_BASE_URL"`
-	Proxy              string              `json:"proxy"                   env:"KHUNQUANT_CHANNELS_TELEGRAM_PROXY"`
-	AllowFrom          FlexibleStringSlice `json:"allow_from"              env:"KHUNQUANT_CHANNELS_TELEGRAM_ALLOW_FROM"`
-	PairingEnabled     bool                `json:"pairing_enabled"         env:"KHUNQUANT_CHANNELS_TELEGRAM_PAIRING_ENABLED"`
-	GroupTrigger       GroupTriggerConfig  `json:"group_trigger,omitempty"`
-	Typing             TypingConfig        `json:"typing,omitempty"`
-	Placeholder        PlaceholderConfig   `json:"placeholder,omitempty"`
-	ReasoningChannelID string              `json:"reasoning_channel_id"    env:"KHUNQUANT_CHANNELS_TELEGRAM_REASONING_CHANNEL_ID"`
+	Enabled            bool                `json:"enabled"                 yaml:"-" env:"KHUNQUANT_CHANNELS_TELEGRAM_ENABLED"`
+	Token              SecureString        `json:"token,omitzero"          yaml:"token,omitempty" env:"KHUNQUANT_CHANNELS_TELEGRAM_TOKEN"`
+	BaseURL            string              `json:"base_url"                yaml:"-" env:"KHUNQUANT_CHANNELS_TELEGRAM_BASE_URL"`
+	Proxy              string              `json:"proxy"                   yaml:"-" env:"KHUNQUANT_CHANNELS_TELEGRAM_PROXY"`
+	AllowFrom          FlexibleStringSlice `json:"allow_from"              yaml:"-" env:"KHUNQUANT_CHANNELS_TELEGRAM_ALLOW_FROM"`
+	PairingEnabled     bool                `json:"pairing_enabled"         yaml:"-" env:"KHUNQUANT_CHANNELS_TELEGRAM_PAIRING_ENABLED"`
+	GroupTrigger       GroupTriggerConfig  `json:"group_trigger,omitempty" yaml:"-"`
+	Typing             TypingConfig        `json:"typing,omitempty"        yaml:"-"`
+	Placeholder        PlaceholderConfig   `json:"placeholder,omitempty"   yaml:"-"`
+	ReasoningChannelID string              `json:"reasoning_channel_id"    yaml:"-" env:"KHUNQUANT_CHANNELS_TELEGRAM_REASONING_CHANNEL_ID"`
 }
 
 type FeishuConfig struct {
-	Enabled             bool                `json:"enabled"                 env:"KHUNQUANT_CHANNELS_FEISHU_ENABLED"`
-	AppID               string              `json:"app_id"                  env:"KHUNQUANT_CHANNELS_FEISHU_APP_ID"`
-	AppSecret           string              `json:"app_secret"              env:"KHUNQUANT_CHANNELS_FEISHU_APP_SECRET"`
-	EncryptKey          string              `json:"encrypt_key"             env:"KHUNQUANT_CHANNELS_FEISHU_ENCRYPT_KEY"`
-	VerificationToken   string              `json:"verification_token"      env:"KHUNQUANT_CHANNELS_FEISHU_VERIFICATION_TOKEN"`
-	AllowFrom           FlexibleStringSlice `json:"allow_from"              env:"KHUNQUANT_CHANNELS_FEISHU_ALLOW_FROM"`
-	GroupTrigger        GroupTriggerConfig  `json:"group_trigger,omitempty"`
-	Placeholder         PlaceholderConfig   `json:"placeholder,omitempty"`
-	ReasoningChannelID  string              `json:"reasoning_channel_id"    env:"KHUNQUANT_CHANNELS_FEISHU_REASONING_CHANNEL_ID"`
-	RandomReactionEmoji FlexibleStringSlice `json:"random_reaction_emoji"   env:"KHUNQUANT_CHANNELS_FEISHU_RANDOM_REACTION_EMOJI"`
+	Enabled             bool                `json:"enabled"                 yaml:"-" env:"KHUNQUANT_CHANNELS_FEISHU_ENABLED"`
+	AppID               string              `json:"app_id"                  yaml:"-" env:"KHUNQUANT_CHANNELS_FEISHU_APP_ID"`
+	AppSecret           SecureString        `json:"app_secret,omitzero"     yaml:"app_secret,omitempty" env:"KHUNQUANT_CHANNELS_FEISHU_APP_SECRET"`
+	EncryptKey          SecureString        `json:"encrypt_key,omitzero"    yaml:"encrypt_key,omitempty" env:"KHUNQUANT_CHANNELS_FEISHU_ENCRYPT_KEY"`
+	VerificationToken   SecureString        `json:"verification_token,omitzero" yaml:"verification_token,omitempty" env:"KHUNQUANT_CHANNELS_FEISHU_VERIFICATION_TOKEN"`
+	AllowFrom           FlexibleStringSlice `json:"allow_from"              yaml:"-" env:"KHUNQUANT_CHANNELS_FEISHU_ALLOW_FROM"`
+	GroupTrigger        GroupTriggerConfig  `json:"group_trigger,omitempty" yaml:"-"`
+	Placeholder         PlaceholderConfig   `json:"placeholder,omitempty"   yaml:"-"`
+	ReasoningChannelID  string              `json:"reasoning_channel_id"    yaml:"-" env:"KHUNQUANT_CHANNELS_FEISHU_REASONING_CHANNEL_ID"`
+	RandomReactionEmoji FlexibleStringSlice `json:"random_reaction_emoji"   yaml:"-" env:"KHUNQUANT_CHANNELS_FEISHU_RANDOM_REACTION_EMOJI"`
 }
 
 type DiscordConfig struct {
-	Enabled            bool                `json:"enabled"                 env:"KHUNQUANT_CHANNELS_DISCORD_ENABLED"`
-	Token              string              `json:"token"                   env:"KHUNQUANT_CHANNELS_DISCORD_TOKEN"`
-	Proxy              string              `json:"proxy"                   env:"KHUNQUANT_CHANNELS_DISCORD_PROXY"`
-	AllowFrom          FlexibleStringSlice `json:"allow_from"              env:"KHUNQUANT_CHANNELS_DISCORD_ALLOW_FROM"`
-	MentionOnly        bool                `json:"mention_only"            env:"KHUNQUANT_CHANNELS_DISCORD_MENTION_ONLY"`
-	GroupTrigger       GroupTriggerConfig  `json:"group_trigger,omitempty"`
-	Typing             TypingConfig        `json:"typing,omitempty"`
-	Placeholder        PlaceholderConfig   `json:"placeholder,omitempty"`
-	ReasoningChannelID string              `json:"reasoning_channel_id"    env:"KHUNQUANT_CHANNELS_DISCORD_REASONING_CHANNEL_ID"`
+	Enabled            bool                `json:"enabled"                 yaml:"-" env:"KHUNQUANT_CHANNELS_DISCORD_ENABLED"`
+	Token              SecureString        `json:"token,omitzero"          yaml:"token,omitempty" env:"KHUNQUANT_CHANNELS_DISCORD_TOKEN"`
+	Proxy              string              `json:"proxy"                   yaml:"-" env:"KHUNQUANT_CHANNELS_DISCORD_PROXY"`
+	AllowFrom          FlexibleStringSlice `json:"allow_from"              yaml:"-" env:"KHUNQUANT_CHANNELS_DISCORD_ALLOW_FROM"`
+	MentionOnly        bool                `json:"mention_only"            yaml:"-" env:"KHUNQUANT_CHANNELS_DISCORD_MENTION_ONLY"`
+	GroupTrigger       GroupTriggerConfig  `json:"group_trigger,omitempty" yaml:"-"`
+	Typing             TypingConfig        `json:"typing,omitempty"        yaml:"-"`
+	Placeholder        PlaceholderConfig   `json:"placeholder,omitempty"   yaml:"-"`
+	ReasoningChannelID string              `json:"reasoning_channel_id"    yaml:"-" env:"KHUNQUANT_CHANNELS_DISCORD_REASONING_CHANNEL_ID"`
 }
 
 type MaixCamConfig struct {
-	Enabled            bool                `json:"enabled"              env:"KHUNQUANT_CHANNELS_MAIXCAM_ENABLED"`
-	Host               string              `json:"host"                 env:"KHUNQUANT_CHANNELS_MAIXCAM_HOST"`
-	Port               int                 `json:"port"                 env:"KHUNQUANT_CHANNELS_MAIXCAM_PORT"`
-	AllowFrom          FlexibleStringSlice `json:"allow_from"           env:"KHUNQUANT_CHANNELS_MAIXCAM_ALLOW_FROM"`
-	ReasoningChannelID string              `json:"reasoning_channel_id" env:"KHUNQUANT_CHANNELS_MAIXCAM_REASONING_CHANNEL_ID"`
+	Enabled            bool                `json:"enabled"              yaml:"-" env:"KHUNQUANT_CHANNELS_MAIXCAM_ENABLED"`
+	Host               string              `json:"host"                 yaml:"-" env:"KHUNQUANT_CHANNELS_MAIXCAM_HOST"`
+	Port               int                 `json:"port"                 yaml:"-" env:"KHUNQUANT_CHANNELS_MAIXCAM_PORT"`
+	AllowFrom          FlexibleStringSlice `json:"allow_from"           yaml:"-" env:"KHUNQUANT_CHANNELS_MAIXCAM_ALLOW_FROM"`
+	ReasoningChannelID string              `json:"reasoning_channel_id" yaml:"-" env:"KHUNQUANT_CHANNELS_MAIXCAM_REASONING_CHANNEL_ID"`
 }
 
 type QQConfig struct {
-	Enabled            bool                `json:"enabled"                 env:"KHUNQUANT_CHANNELS_QQ_ENABLED"`
-	AppID              string              `json:"app_id"                  env:"KHUNQUANT_CHANNELS_QQ_APP_ID"`
-	AppSecret          string              `json:"app_secret"              env:"KHUNQUANT_CHANNELS_QQ_APP_SECRET"`
-	AllowFrom          FlexibleStringSlice `json:"allow_from"              env:"KHUNQUANT_CHANNELS_QQ_ALLOW_FROM"`
-	GroupTrigger       GroupTriggerConfig  `json:"group_trigger,omitempty"`
-	MaxMessageLength   int                 `json:"max_message_length"      env:"KHUNQUANT_CHANNELS_QQ_MAX_MESSAGE_LENGTH"`
-	SendMarkdown       bool                `json:"send_markdown"           env:"KHUNQUANT_CHANNELS_QQ_SEND_MARKDOWN"`
-	ReasoningChannelID string              `json:"reasoning_channel_id"    env:"KHUNQUANT_CHANNELS_QQ_REASONING_CHANNEL_ID"`
+	Enabled            bool                `json:"enabled"                 yaml:"-" env:"KHUNQUANT_CHANNELS_QQ_ENABLED"`
+	AppID              string              `json:"app_id"                  yaml:"-" env:"KHUNQUANT_CHANNELS_QQ_APP_ID"`
+	AppSecret          SecureString        `json:"app_secret,omitzero"     yaml:"app_secret,omitempty" env:"KHUNQUANT_CHANNELS_QQ_APP_SECRET"`
+	AllowFrom          FlexibleStringSlice `json:"allow_from"              yaml:"-" env:"KHUNQUANT_CHANNELS_QQ_ALLOW_FROM"`
+	GroupTrigger       GroupTriggerConfig  `json:"group_trigger,omitempty" yaml:"-"`
+	MaxMessageLength   int                 `json:"max_message_length"      yaml:"-" env:"KHUNQUANT_CHANNELS_QQ_MAX_MESSAGE_LENGTH"`
+	SendMarkdown       bool                `json:"send_markdown"           yaml:"-" env:"KHUNQUANT_CHANNELS_QQ_SEND_MARKDOWN"`
+	ReasoningChannelID string              `json:"reasoning_channel_id"    yaml:"-" env:"KHUNQUANT_CHANNELS_QQ_REASONING_CHANNEL_ID"`
 }
 
 type DingTalkConfig struct {
-	Enabled            bool                `json:"enabled"                 env:"KHUNQUANT_CHANNELS_DINGTALK_ENABLED"`
-	ClientID           string              `json:"client_id"               env:"KHUNQUANT_CHANNELS_DINGTALK_CLIENT_ID"`
-	ClientSecret       string              `json:"client_secret"           env:"KHUNQUANT_CHANNELS_DINGTALK_CLIENT_SECRET"`
-	AllowFrom          FlexibleStringSlice `json:"allow_from"              env:"KHUNQUANT_CHANNELS_DINGTALK_ALLOW_FROM"`
-	GroupTrigger       GroupTriggerConfig  `json:"group_trigger,omitempty"`
-	ReasoningChannelID string              `json:"reasoning_channel_id"    env:"KHUNQUANT_CHANNELS_DINGTALK_REASONING_CHANNEL_ID"`
+	Enabled            bool                `json:"enabled"                 yaml:"-" env:"KHUNQUANT_CHANNELS_DINGTALK_ENABLED"`
+	ClientID           string              `json:"client_id"               yaml:"-" env:"KHUNQUANT_CHANNELS_DINGTALK_CLIENT_ID"`
+	ClientSecret       SecureString        `json:"client_secret,omitzero"  yaml:"client_secret,omitempty" env:"KHUNQUANT_CHANNELS_DINGTALK_CLIENT_SECRET"`
+	AllowFrom          FlexibleStringSlice `json:"allow_from"              yaml:"-" env:"KHUNQUANT_CHANNELS_DINGTALK_ALLOW_FROM"`
+	GroupTrigger       GroupTriggerConfig  `json:"group_trigger,omitempty" yaml:"-"`
+	ReasoningChannelID string              `json:"reasoning_channel_id"    yaml:"-" env:"KHUNQUANT_CHANNELS_DINGTALK_REASONING_CHANNEL_ID"`
 }
 
 type SlackConfig struct {
-	Enabled            bool                `json:"enabled"                 env:"KHUNQUANT_CHANNELS_SLACK_ENABLED"`
-	BotToken           string              `json:"bot_token"               env:"KHUNQUANT_CHANNELS_SLACK_BOT_TOKEN"`
-	AppToken           string              `json:"app_token"               env:"KHUNQUANT_CHANNELS_SLACK_APP_TOKEN"`
-	AllowFrom          FlexibleStringSlice `json:"allow_from"              env:"KHUNQUANT_CHANNELS_SLACK_ALLOW_FROM"`
-	GroupTrigger       GroupTriggerConfig  `json:"group_trigger,omitempty"`
-	Typing             TypingConfig        `json:"typing,omitempty"`
-	Placeholder        PlaceholderConfig   `json:"placeholder,omitempty"`
-	ReasoningChannelID string              `json:"reasoning_channel_id"    env:"KHUNQUANT_CHANNELS_SLACK_REASONING_CHANNEL_ID"`
+	Enabled            bool                `json:"enabled"                 yaml:"-" env:"KHUNQUANT_CHANNELS_SLACK_ENABLED"`
+	BotToken           SecureString        `json:"bot_token,omitzero"      yaml:"bot_token,omitempty" env:"KHUNQUANT_CHANNELS_SLACK_BOT_TOKEN"`
+	AppToken           SecureString        `json:"app_token,omitzero"      yaml:"app_token,omitempty" env:"KHUNQUANT_CHANNELS_SLACK_APP_TOKEN"`
+	AllowFrom          FlexibleStringSlice `json:"allow_from"              yaml:"-" env:"KHUNQUANT_CHANNELS_SLACK_ALLOW_FROM"`
+	GroupTrigger       GroupTriggerConfig  `json:"group_trigger,omitempty" yaml:"-"`
+	Typing             TypingConfig        `json:"typing,omitempty"        yaml:"-"`
+	Placeholder        PlaceholderConfig   `json:"placeholder,omitempty"   yaml:"-"`
+	ReasoningChannelID string              `json:"reasoning_channel_id"    yaml:"-" env:"KHUNQUANT_CHANNELS_SLACK_REASONING_CHANNEL_ID"`
 }
 
 type MatrixConfig struct {
-	Enabled            bool                `json:"enabled"                  env:"KHUNQUANT_CHANNELS_MATRIX_ENABLED"`
-	Homeserver         string              `json:"homeserver"               env:"KHUNQUANT_CHANNELS_MATRIX_HOMESERVER"`
-	UserID             string              `json:"user_id"                  env:"KHUNQUANT_CHANNELS_MATRIX_USER_ID"`
-	AccessToken        string              `json:"access_token"             env:"KHUNQUANT_CHANNELS_MATRIX_ACCESS_TOKEN"`
-	DeviceID           string              `json:"device_id,omitempty"      env:"KHUNQUANT_CHANNELS_MATRIX_DEVICE_ID"`
-	JoinOnInvite       bool                `json:"join_on_invite"           env:"KHUNQUANT_CHANNELS_MATRIX_JOIN_ON_INVITE"`
-	MessageFormat      string              `json:"message_format,omitempty" env:"KHUNQUANT_CHANNELS_MATRIX_MESSAGE_FORMAT"`
-	AllowFrom          FlexibleStringSlice `json:"allow_from"               env:"KHUNQUANT_CHANNELS_MATRIX_ALLOW_FROM"`
-	GroupTrigger       GroupTriggerConfig  `json:"group_trigger,omitempty"`
-	Placeholder        PlaceholderConfig   `json:"placeholder,omitempty"`
-	ReasoningChannelID string              `json:"reasoning_channel_id"     env:"KHUNQUANT_CHANNELS_MATRIX_REASONING_CHANNEL_ID"`
+	Enabled            bool                `json:"enabled"                  yaml:"-" env:"KHUNQUANT_CHANNELS_MATRIX_ENABLED"`
+	Homeserver         string              `json:"homeserver"               yaml:"-" env:"KHUNQUANT_CHANNELS_MATRIX_HOMESERVER"`
+	UserID             string              `json:"user_id"                  yaml:"-" env:"KHUNQUANT_CHANNELS_MATRIX_USER_ID"`
+	AccessToken        SecureString        `json:"access_token,omitzero"    yaml:"access_token,omitempty" env:"KHUNQUANT_CHANNELS_MATRIX_ACCESS_TOKEN"`
+	DeviceID           string              `json:"device_id,omitempty"      yaml:"-" env:"KHUNQUANT_CHANNELS_MATRIX_DEVICE_ID"`
+	JoinOnInvite       bool                `json:"join_on_invite"           yaml:"-" env:"KHUNQUANT_CHANNELS_MATRIX_JOIN_ON_INVITE"`
+	MessageFormat      string              `json:"message_format,omitempty" yaml:"-" env:"KHUNQUANT_CHANNELS_MATRIX_MESSAGE_FORMAT"`
+	AllowFrom          FlexibleStringSlice `json:"allow_from"               yaml:"-" env:"KHUNQUANT_CHANNELS_MATRIX_ALLOW_FROM"`
+	GroupTrigger       GroupTriggerConfig  `json:"group_trigger,omitempty"  yaml:"-"`
+	Placeholder        PlaceholderConfig   `json:"placeholder,omitempty"    yaml:"-"`
+	ReasoningChannelID string              `json:"reasoning_channel_id"     yaml:"-" env:"KHUNQUANT_CHANNELS_MATRIX_REASONING_CHANNEL_ID"`
 }
 
 type LINEConfig struct {
-	Enabled            bool                `json:"enabled"                 env:"KHUNQUANT_CHANNELS_LINE_ENABLED"`
-	ChannelSecret      string              `json:"channel_secret"          env:"KHUNQUANT_CHANNELS_LINE_CHANNEL_SECRET"`
-	ChannelAccessToken string              `json:"channel_access_token"    env:"KHUNQUANT_CHANNELS_LINE_CHANNEL_ACCESS_TOKEN"`
-	WebhookHost        string              `json:"webhook_host"            env:"KHUNQUANT_CHANNELS_LINE_WEBHOOK_HOST"`
-	WebhookPort        int                 `json:"webhook_port"            env:"KHUNQUANT_CHANNELS_LINE_WEBHOOK_PORT"`
-	WebhookPath        string              `json:"webhook_path"            env:"KHUNQUANT_CHANNELS_LINE_WEBHOOK_PATH"`
-	AllowFrom          FlexibleStringSlice `json:"allow_from"              env:"KHUNQUANT_CHANNELS_LINE_ALLOW_FROM"`
-	GroupTrigger       GroupTriggerConfig  `json:"group_trigger,omitempty"`
-	Typing             TypingConfig        `json:"typing,omitempty"`
-	Placeholder        PlaceholderConfig   `json:"placeholder,omitempty"`
-	ReasoningChannelID string              `json:"reasoning_channel_id"    env:"KHUNQUANT_CHANNELS_LINE_REASONING_CHANNEL_ID"`
+	Enabled            bool                `json:"enabled"                        yaml:"-" env:"KHUNQUANT_CHANNELS_LINE_ENABLED"`
+	ChannelSecret      SecureString        `json:"channel_secret,omitzero"        yaml:"channel_secret,omitempty" env:"KHUNQUANT_CHANNELS_LINE_CHANNEL_SECRET"`
+	ChannelAccessToken SecureString        `json:"channel_access_token,omitzero"  yaml:"channel_access_token,omitempty" env:"KHUNQUANT_CHANNELS_LINE_CHANNEL_ACCESS_TOKEN"`
+	WebhookHost        string              `json:"webhook_host"                   yaml:"-" env:"KHUNQUANT_CHANNELS_LINE_WEBHOOK_HOST"`
+	WebhookPort        int                 `json:"webhook_port"                   yaml:"-" env:"KHUNQUANT_CHANNELS_LINE_WEBHOOK_PORT"`
+	WebhookPath        string              `json:"webhook_path"                   yaml:"-" env:"KHUNQUANT_CHANNELS_LINE_WEBHOOK_PATH"`
+	AllowFrom          FlexibleStringSlice `json:"allow_from"                     yaml:"-" env:"KHUNQUANT_CHANNELS_LINE_ALLOW_FROM"`
+	GroupTrigger       GroupTriggerConfig  `json:"group_trigger,omitempty"        yaml:"-"`
+	Typing             TypingConfig        `json:"typing,omitempty"               yaml:"-"`
+	Placeholder        PlaceholderConfig   `json:"placeholder,omitempty"          yaml:"-"`
+	ReasoningChannelID string              `json:"reasoning_channel_id"           yaml:"-" env:"KHUNQUANT_CHANNELS_LINE_REASONING_CHANNEL_ID"`
 }
 
 type OneBotConfig struct {
-	Enabled            bool                `json:"enabled"                 env:"KHUNQUANT_CHANNELS_ONEBOT_ENABLED"`
-	WSUrl              string              `json:"ws_url"                  env:"KHUNQUANT_CHANNELS_ONEBOT_WS_URL"`
-	AccessToken        string              `json:"access_token"            env:"KHUNQUANT_CHANNELS_ONEBOT_ACCESS_TOKEN"`
-	ReconnectInterval  int                 `json:"reconnect_interval"      env:"KHUNQUANT_CHANNELS_ONEBOT_RECONNECT_INTERVAL"`
-	GroupTriggerPrefix []string            `json:"group_trigger_prefix"    env:"KHUNQUANT_CHANNELS_ONEBOT_GROUP_TRIGGER_PREFIX"`
-	AllowFrom          FlexibleStringSlice `json:"allow_from"              env:"KHUNQUANT_CHANNELS_ONEBOT_ALLOW_FROM"`
-	GroupTrigger       GroupTriggerConfig  `json:"group_trigger,omitempty"`
-	Typing             TypingConfig        `json:"typing,omitempty"`
-	Placeholder        PlaceholderConfig   `json:"placeholder,omitempty"`
-	ReasoningChannelID string              `json:"reasoning_channel_id"    env:"KHUNQUANT_CHANNELS_ONEBOT_REASONING_CHANNEL_ID"`
+	Enabled            bool                `json:"enabled"                 yaml:"-" env:"KHUNQUANT_CHANNELS_ONEBOT_ENABLED"`
+	WSUrl              string              `json:"ws_url"                  yaml:"-" env:"KHUNQUANT_CHANNELS_ONEBOT_WS_URL"`
+	AccessToken        SecureString        `json:"access_token,omitzero"   yaml:"access_token,omitempty" env:"KHUNQUANT_CHANNELS_ONEBOT_ACCESS_TOKEN"`
+	ReconnectInterval  int                 `json:"reconnect_interval"      yaml:"-" env:"KHUNQUANT_CHANNELS_ONEBOT_RECONNECT_INTERVAL"`
+	GroupTriggerPrefix []string            `json:"group_trigger_prefix"    yaml:"-" env:"KHUNQUANT_CHANNELS_ONEBOT_GROUP_TRIGGER_PREFIX"`
+	AllowFrom          FlexibleStringSlice `json:"allow_from"              yaml:"-" env:"KHUNQUANT_CHANNELS_ONEBOT_ALLOW_FROM"`
+	GroupTrigger       GroupTriggerConfig  `json:"group_trigger,omitempty" yaml:"-"`
+	Typing             TypingConfig        `json:"typing,omitempty"        yaml:"-"`
+	Placeholder        PlaceholderConfig   `json:"placeholder,omitempty"   yaml:"-"`
+	ReasoningChannelID string              `json:"reasoning_channel_id"    yaml:"-" env:"KHUNQUANT_CHANNELS_ONEBOT_REASONING_CHANNEL_ID"`
 }
 
 type WeComConfig struct {
-	Enabled            bool                `json:"enabled"                 env:"KHUNQUANT_CHANNELS_WECOM_ENABLED"`
-	Token              string              `json:"token"                   env:"KHUNQUANT_CHANNELS_WECOM_TOKEN"`
-	EncodingAESKey     string              `json:"encoding_aes_key"        env:"KHUNQUANT_CHANNELS_WECOM_ENCODING_AES_KEY"`
-	WebhookURL         string              `json:"webhook_url"             env:"KHUNQUANT_CHANNELS_WECOM_WEBHOOK_URL"`
-	WebhookHost        string              `json:"webhook_host"            env:"KHUNQUANT_CHANNELS_WECOM_WEBHOOK_HOST"`
-	WebhookPort        int                 `json:"webhook_port"            env:"KHUNQUANT_CHANNELS_WECOM_WEBHOOK_PORT"`
-	WebhookPath        string              `json:"webhook_path"            env:"KHUNQUANT_CHANNELS_WECOM_WEBHOOK_PATH"`
-	AllowFrom          FlexibleStringSlice `json:"allow_from"              env:"KHUNQUANT_CHANNELS_WECOM_ALLOW_FROM"`
-	ReplyTimeout       int                 `json:"reply_timeout"           env:"KHUNQUANT_CHANNELS_WECOM_REPLY_TIMEOUT"`
-	GroupTrigger       GroupTriggerConfig  `json:"group_trigger,omitempty"`
-	ReasoningChannelID string              `json:"reasoning_channel_id"    env:"KHUNQUANT_CHANNELS_WECOM_REASONING_CHANNEL_ID"`
+	Enabled            bool                `json:"enabled"                     yaml:"-" env:"KHUNQUANT_CHANNELS_WECOM_ENABLED"`
+	Token              SecureString        `json:"token,omitzero"              yaml:"token,omitempty" env:"KHUNQUANT_CHANNELS_WECOM_TOKEN"`
+	EncodingAESKey     SecureString        `json:"encoding_aes_key,omitzero"   yaml:"encoding_aes_key,omitempty" env:"KHUNQUANT_CHANNELS_WECOM_ENCODING_AES_KEY"`
+	WebhookURL         string              `json:"webhook_url"                 yaml:"-" env:"KHUNQUANT_CHANNELS_WECOM_WEBHOOK_URL"`
+	WebhookHost        string              `json:"webhook_host"                yaml:"-" env:"KHUNQUANT_CHANNELS_WECOM_WEBHOOK_HOST"`
+	WebhookPort        int                 `json:"webhook_port"                yaml:"-" env:"KHUNQUANT_CHANNELS_WECOM_WEBHOOK_PORT"`
+	WebhookPath        string              `json:"webhook_path"                yaml:"-" env:"KHUNQUANT_CHANNELS_WECOM_WEBHOOK_PATH"`
+	AllowFrom          FlexibleStringSlice `json:"allow_from"                  yaml:"-" env:"KHUNQUANT_CHANNELS_WECOM_ALLOW_FROM"`
+	ReplyTimeout       int                 `json:"reply_timeout"               yaml:"-" env:"KHUNQUANT_CHANNELS_WECOM_REPLY_TIMEOUT"`
+	GroupTrigger       GroupTriggerConfig  `json:"group_trigger,omitempty"     yaml:"-"`
+	ReasoningChannelID string              `json:"reasoning_channel_id"        yaml:"-" env:"KHUNQUANT_CHANNELS_WECOM_REASONING_CHANNEL_ID"`
 }
 
 type WeComAppConfig struct {
-	Enabled            bool                `json:"enabled"                 env:"KHUNQUANT_CHANNELS_WECOM_APP_ENABLED"`
-	CorpID             string              `json:"corp_id"                 env:"KHUNQUANT_CHANNELS_WECOM_APP_CORP_ID"`
-	CorpSecret         string              `json:"corp_secret"             env:"KHUNQUANT_CHANNELS_WECOM_APP_CORP_SECRET"`
-	AgentID            int64               `json:"agent_id"                env:"KHUNQUANT_CHANNELS_WECOM_APP_AGENT_ID"`
-	Token              string              `json:"token"                   env:"KHUNQUANT_CHANNELS_WECOM_APP_TOKEN"`
-	EncodingAESKey     string              `json:"encoding_aes_key"        env:"KHUNQUANT_CHANNELS_WECOM_APP_ENCODING_AES_KEY"`
-	WebhookHost        string              `json:"webhook_host"            env:"KHUNQUANT_CHANNELS_WECOM_APP_WEBHOOK_HOST"`
-	WebhookPort        int                 `json:"webhook_port"            env:"KHUNQUANT_CHANNELS_WECOM_APP_WEBHOOK_PORT"`
-	WebhookPath        string              `json:"webhook_path"            env:"KHUNQUANT_CHANNELS_WECOM_APP_WEBHOOK_PATH"`
-	AllowFrom          FlexibleStringSlice `json:"allow_from"              env:"KHUNQUANT_CHANNELS_WECOM_APP_ALLOW_FROM"`
-	ReplyTimeout       int                 `json:"reply_timeout"           env:"KHUNQUANT_CHANNELS_WECOM_APP_REPLY_TIMEOUT"`
-	GroupTrigger       GroupTriggerConfig  `json:"group_trigger,omitempty"`
-	ReasoningChannelID string              `json:"reasoning_channel_id"    env:"KHUNQUANT_CHANNELS_WECOM_APP_REASONING_CHANNEL_ID"`
+	Enabled            bool                `json:"enabled"                      yaml:"-" env:"KHUNQUANT_CHANNELS_WECOM_APP_ENABLED"`
+	CorpID             string              `json:"corp_id"                      yaml:"-" env:"KHUNQUANT_CHANNELS_WECOM_APP_CORP_ID"`
+	CorpSecret         SecureString        `json:"corp_secret,omitzero"         yaml:"corp_secret,omitempty" env:"KHUNQUANT_CHANNELS_WECOM_APP_CORP_SECRET"`
+	AgentID            int64               `json:"agent_id"                     yaml:"-" env:"KHUNQUANT_CHANNELS_WECOM_APP_AGENT_ID"`
+	Token              SecureString        `json:"token,omitzero"               yaml:"token,omitempty" env:"KHUNQUANT_CHANNELS_WECOM_APP_TOKEN"`
+	EncodingAESKey     SecureString        `json:"encoding_aes_key,omitzero"    yaml:"encoding_aes_key,omitempty" env:"KHUNQUANT_CHANNELS_WECOM_APP_ENCODING_AES_KEY"`
+	WebhookHost        string              `json:"webhook_host"                 yaml:"-" env:"KHUNQUANT_CHANNELS_WECOM_APP_WEBHOOK_HOST"`
+	WebhookPort        int                 `json:"webhook_port"                 yaml:"-" env:"KHUNQUANT_CHANNELS_WECOM_APP_WEBHOOK_PORT"`
+	WebhookPath        string              `json:"webhook_path"                 yaml:"-" env:"KHUNQUANT_CHANNELS_WECOM_APP_WEBHOOK_PATH"`
+	AllowFrom          FlexibleStringSlice `json:"allow_from"                   yaml:"-" env:"KHUNQUANT_CHANNELS_WECOM_APP_ALLOW_FROM"`
+	ReplyTimeout       int                 `json:"reply_timeout"                yaml:"-" env:"KHUNQUANT_CHANNELS_WECOM_APP_REPLY_TIMEOUT"`
+	GroupTrigger       GroupTriggerConfig  `json:"group_trigger,omitempty"      yaml:"-"`
+	ReasoningChannelID string              `json:"reasoning_channel_id"         yaml:"-" env:"KHUNQUANT_CHANNELS_WECOM_APP_REASONING_CHANNEL_ID"`
 }
 
 type WeComAIBotConfig struct {
-	Enabled            bool                `json:"enabled"              env:"KHUNQUANT_CHANNELS_WECOM_AIBOT_ENABLED"`
-	Token              string              `json:"token"                env:"KHUNQUANT_CHANNELS_WECOM_AIBOT_TOKEN"`
-	EncodingAESKey     string              `json:"encoding_aes_key"     env:"KHUNQUANT_CHANNELS_WECOM_AIBOT_ENCODING_AES_KEY"`
-	WebhookPath        string              `json:"webhook_path"         env:"KHUNQUANT_CHANNELS_WECOM_AIBOT_WEBHOOK_PATH"`
-	AllowFrom          FlexibleStringSlice `json:"allow_from"           env:"KHUNQUANT_CHANNELS_WECOM_AIBOT_ALLOW_FROM"`
-	ReplyTimeout       int                 `json:"reply_timeout"        env:"KHUNQUANT_CHANNELS_WECOM_AIBOT_REPLY_TIMEOUT"`
-	MaxSteps           int                 `json:"max_steps"            env:"KHUNQUANT_CHANNELS_WECOM_AIBOT_MAX_STEPS"`       // Maximum streaming steps
-	WelcomeMessage     string              `json:"welcome_message"      env:"KHUNQUANT_CHANNELS_WECOM_AIBOT_WELCOME_MESSAGE"` // Sent on enter_chat event; empty = no welcome
-	ReasoningChannelID string              `json:"reasoning_channel_id" env:"KHUNQUANT_CHANNELS_WECOM_AIBOT_REASONING_CHANNEL_ID"`
+	Enabled            bool                `json:"enabled"                   yaml:"-" env:"KHUNQUANT_CHANNELS_WECOM_AIBOT_ENABLED"`
+	Token              SecureString        `json:"token,omitzero"            yaml:"token,omitempty" env:"KHUNQUANT_CHANNELS_WECOM_AIBOT_TOKEN"`
+	EncodingAESKey     SecureString        `json:"encoding_aes_key,omitzero" yaml:"encoding_aes_key,omitempty" env:"KHUNQUANT_CHANNELS_WECOM_AIBOT_ENCODING_AES_KEY"`
+	WebhookPath        string              `json:"webhook_path"              yaml:"-" env:"KHUNQUANT_CHANNELS_WECOM_AIBOT_WEBHOOK_PATH"`
+	AllowFrom          FlexibleStringSlice `json:"allow_from"                yaml:"-" env:"KHUNQUANT_CHANNELS_WECOM_AIBOT_ALLOW_FROM"`
+	ReplyTimeout       int                 `json:"reply_timeout"             yaml:"-" env:"KHUNQUANT_CHANNELS_WECOM_AIBOT_REPLY_TIMEOUT"`
+	MaxSteps           int                 `json:"max_steps"                 yaml:"-" env:"KHUNQUANT_CHANNELS_WECOM_AIBOT_MAX_STEPS"`
+	WelcomeMessage     string              `json:"welcome_message"           yaml:"-" env:"KHUNQUANT_CHANNELS_WECOM_AIBOT_WELCOME_MESSAGE"`
+	ReasoningChannelID string              `json:"reasoning_channel_id"      yaml:"-" env:"KHUNQUANT_CHANNELS_WECOM_AIBOT_REASONING_CHANNEL_ID"`
 }
 
 type PicoConfig struct {
-	Enabled         bool                `json:"enabled"                     env:"KHUNQUANT_CHANNELS_PICO_ENABLED"`
-	Token           string              `json:"token"                       env:"KHUNQUANT_CHANNELS_PICO_TOKEN"`
-	AllowTokenQuery bool                `json:"allow_token_query,omitempty"`
-	AllowOrigins    []string            `json:"allow_origins,omitempty"`
-	PingInterval    int                 `json:"ping_interval,omitempty"`
-	ReadTimeout     int                 `json:"read_timeout,omitempty"`
-	WriteTimeout    int                 `json:"write_timeout,omitempty"`
-	MaxConnections  int                 `json:"max_connections,omitempty"`
-	AllowFrom       FlexibleStringSlice `json:"allow_from"                  env:"KHUNQUANT_CHANNELS_PICO_ALLOW_FROM"`
-	Placeholder     PlaceholderConfig   `json:"placeholder,omitempty"`
+	Enabled         bool                `json:"enabled"                     yaml:"-" env:"KHUNQUANT_CHANNELS_PICO_ENABLED"`
+	Token           SecureString        `json:"token,omitzero"              yaml:"token,omitempty" env:"KHUNQUANT_CHANNELS_PICO_TOKEN"`
+	AllowTokenQuery bool                `json:"allow_token_query,omitempty" yaml:"-"`
+	AllowOrigins    []string            `json:"allow_origins,omitempty"     yaml:"-"`
+	PingInterval    int                 `json:"ping_interval,omitempty"     yaml:"-"`
+	ReadTimeout     int                 `json:"read_timeout,omitempty"      yaml:"-"`
+	WriteTimeout    int                 `json:"write_timeout,omitempty"     yaml:"-"`
+	MaxConnections  int                 `json:"max_connections,omitempty"   yaml:"-"`
+	AllowFrom       FlexibleStringSlice `json:"allow_from"                  yaml:"-" env:"KHUNQUANT_CHANNELS_PICO_ALLOW_FROM"`
+	Placeholder     PlaceholderConfig   `json:"placeholder,omitempty"       yaml:"-"`
 }
 
 type IRCConfig struct {
-	Enabled            bool                `json:"enabled"                 env:"KHUNQUANT_CHANNELS_IRC_ENABLED"`
-	Server             string              `json:"server"                  env:"KHUNQUANT_CHANNELS_IRC_SERVER"`
-	TLS                bool                `json:"tls"                     env:"KHUNQUANT_CHANNELS_IRC_TLS"`
-	Nick               string              `json:"nick"                    env:"KHUNQUANT_CHANNELS_IRC_NICK"`
-	User               string              `json:"user,omitempty"          env:"KHUNQUANT_CHANNELS_IRC_USER"`
-	RealName           string              `json:"real_name,omitempty"     env:"KHUNQUANT_CHANNELS_IRC_REAL_NAME"`
-	Password           string              `json:"password"                env:"KHUNQUANT_CHANNELS_IRC_PASSWORD"`
-	NickServPassword   string              `json:"nickserv_password"       env:"KHUNQUANT_CHANNELS_IRC_NICKSERV_PASSWORD"`
-	SASLUser           string              `json:"sasl_user"               env:"KHUNQUANT_CHANNELS_IRC_SASL_USER"`
-	SASLPassword       string              `json:"sasl_password"           env:"KHUNQUANT_CHANNELS_IRC_SASL_PASSWORD"`
-	Channels           FlexibleStringSlice `json:"channels"                env:"KHUNQUANT_CHANNELS_IRC_CHANNELS"`
-	RequestCaps        FlexibleStringSlice `json:"request_caps,omitempty"  env:"KHUNQUANT_CHANNELS_IRC_REQUEST_CAPS"`
-	AllowFrom          FlexibleStringSlice `json:"allow_from"              env:"KHUNQUANT_CHANNELS_IRC_ALLOW_FROM"`
-	GroupTrigger       GroupTriggerConfig  `json:"group_trigger,omitempty"`
-	Typing             TypingConfig        `json:"typing,omitempty"`
-	ReasoningChannelID string              `json:"reasoning_channel_id"    env:"KHUNQUANT_CHANNELS_IRC_REASONING_CHANNEL_ID"`
+	Enabled            bool                `json:"enabled"                      yaml:"-" env:"KHUNQUANT_CHANNELS_IRC_ENABLED"`
+	Server             string              `json:"server"                       yaml:"-" env:"KHUNQUANT_CHANNELS_IRC_SERVER"`
+	TLS                bool                `json:"tls"                          yaml:"-" env:"KHUNQUANT_CHANNELS_IRC_TLS"`
+	Nick               string              `json:"nick"                         yaml:"-" env:"KHUNQUANT_CHANNELS_IRC_NICK"`
+	User               string              `json:"user,omitempty"               yaml:"-" env:"KHUNQUANT_CHANNELS_IRC_USER"`
+	RealName           string              `json:"real_name,omitempty"          yaml:"-" env:"KHUNQUANT_CHANNELS_IRC_REAL_NAME"`
+	Password           SecureString        `json:"password,omitzero"            yaml:"password,omitempty" env:"KHUNQUANT_CHANNELS_IRC_PASSWORD"`
+	NickServPassword   SecureString        `json:"nickserv_password,omitzero"   yaml:"nickserv_password,omitempty" env:"KHUNQUANT_CHANNELS_IRC_NICKSERV_PASSWORD"`
+	SASLUser           string              `json:"sasl_user"                    yaml:"-" env:"KHUNQUANT_CHANNELS_IRC_SASL_USER"`
+	SASLPassword       SecureString        `json:"sasl_password,omitzero"       yaml:"sasl_password,omitempty" env:"KHUNQUANT_CHANNELS_IRC_SASL_PASSWORD"`
+	Channels           FlexibleStringSlice `json:"channels"                     yaml:"-" env:"KHUNQUANT_CHANNELS_IRC_CHANNELS"`
+	RequestCaps        FlexibleStringSlice `json:"request_caps,omitempty"       yaml:"-" env:"KHUNQUANT_CHANNELS_IRC_REQUEST_CAPS"`
+	AllowFrom          FlexibleStringSlice `json:"allow_from"                   yaml:"-" env:"KHUNQUANT_CHANNELS_IRC_ALLOW_FROM"`
+	GroupTrigger       GroupTriggerConfig  `json:"group_trigger,omitempty"      yaml:"-"`
+	Typing             TypingConfig        `json:"typing,omitempty"             yaml:"-"`
+	ReasoningChannelID string              `json:"reasoning_channel_id"         yaml:"-" env:"KHUNQUANT_CHANNELS_IRC_REASONING_CHANNEL_ID"`
 }
 
 type HeartbeatConfig struct {

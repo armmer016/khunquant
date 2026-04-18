@@ -249,7 +249,7 @@ func (m *Manager) initChannel(name, displayName string) {
 func (m *Manager) initChannels() error {
 	logger.InfoC("channels", "Initializing channel manager")
 
-	if m.config.Channels.Telegram.Enabled && m.config.Channels.Telegram.Token != "" {
+	if m.config.Channels.Telegram.Enabled && m.config.Channels.Telegram.Token.String() != "" {
 		m.initChannel("telegram", "Telegram")
 	}
 
@@ -266,7 +266,7 @@ func (m *Manager) initChannels() error {
 		m.initChannel("feishu", "Feishu")
 	}
 
-	if m.config.Channels.Discord.Enabled && m.config.Channels.Discord.Token != "" {
+	if m.config.Channels.Discord.Enabled && m.config.Channels.Discord.Token.String() != "" {
 		m.initChannel("discord", "Discord")
 	}
 
@@ -282,18 +282,18 @@ func (m *Manager) initChannels() error {
 		m.initChannel("dingtalk", "DingTalk")
 	}
 
-	if m.config.Channels.Slack.Enabled && m.config.Channels.Slack.BotToken != "" {
+	if m.config.Channels.Slack.Enabled && m.config.Channels.Slack.BotToken.String() != "" {
 		m.initChannel("slack", "Slack")
 	}
 
 	if m.config.Channels.Matrix.Enabled &&
 		m.config.Channels.Matrix.Homeserver != "" &&
 		m.config.Channels.Matrix.UserID != "" &&
-		m.config.Channels.Matrix.AccessToken != "" {
+		m.config.Channels.Matrix.AccessToken.String() != "" {
 		m.initChannel("matrix", "Matrix")
 	}
 
-	if m.config.Channels.LINE.Enabled && m.config.Channels.LINE.ChannelAccessToken != "" {
+	if m.config.Channels.LINE.Enabled && m.config.Channels.LINE.ChannelAccessToken.String() != "" {
 		m.initChannel("line", "LINE")
 	}
 
@@ -301,11 +301,11 @@ func (m *Manager) initChannels() error {
 		m.initChannel("onebot", "OneBot")
 	}
 
-	if m.config.Channels.WeCom.Enabled && m.config.Channels.WeCom.Token != "" {
+	if m.config.Channels.WeCom.Enabled && m.config.Channels.WeCom.Token.String() != "" {
 		m.initChannel("wecom", "WeCom")
 	}
 
-	if m.config.Channels.WeComAIBot.Enabled && m.config.Channels.WeComAIBot.Token != "" {
+	if m.config.Channels.WeComAIBot.Enabled && m.config.Channels.WeComAIBot.Token.String() != "" {
 		m.initChannel("wecom_aibot", "WeCom AI Bot")
 	}
 
@@ -313,7 +313,7 @@ func (m *Manager) initChannels() error {
 		m.initChannel("wecom_app", "WeCom App")
 	}
 
-	if m.config.Channels.Pico.Enabled && m.config.Channels.Pico.Token != "" {
+	if m.config.Channels.Pico.Enabled && m.config.Channels.Pico.Token.String() != "" {
 		m.initChannel("pico", "Pico")
 	}
 

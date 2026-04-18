@@ -100,7 +100,7 @@ func TestCheckPermission_AccountWithFullPermissions(t *testing.T) {
 		Exchanges: config.ExchangesConfig{
 			Binance: config.BinanceExchangeConfig{
 				Accounts: []config.ExchangeAccount{
-					{Name: "main", APIKey: "k", Permissions: nil},
+					{Name: "main", APIKey: *config.NewSecureString("k"), Permissions: nil},
 				},
 			},
 		},
@@ -116,7 +116,7 @@ func TestCheckPermission_AccountWithRestrictedScope(t *testing.T) {
 		Exchanges: config.ExchangesConfig{
 			Binance: config.BinanceExchangeConfig{
 				Accounts: []config.ExchangeAccount{
-					{Name: "readonly", APIKey: "k", Permissions: []config.PermissionScope{config.ScopeMarketData}},
+					{Name: "readonly", APIKey: *config.NewSecureString("k"), Permissions: []config.PermissionScope{config.ScopeMarketData}},
 				},
 			},
 		},
@@ -133,7 +133,7 @@ func TestCheckPermission_AccountWithExplicitScope(t *testing.T) {
 		Exchanges: config.ExchangesConfig{
 			Binance: config.BinanceExchangeConfig{
 				Accounts: []config.ExchangeAccount{
-					{Name: "trader", APIKey: "k", Permissions: []config.PermissionScope{config.ScopeTrade}},
+					{Name: "trader", APIKey: *config.NewSecureString("k"), Permissions: []config.PermissionScope{config.ScopeTrade}},
 				},
 			},
 		},

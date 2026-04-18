@@ -33,8 +33,8 @@ func newBrokerAdapter(creds config.ExchangeAccount) (*BinanceTHBrokerAdapter, er
 	if err != nil {
 		return nil, err
 	}
-	logger.RegisterSecret(creds.APIKey)
-	logger.RegisterSecret(creds.Secret)
+	logger.RegisterSecret(creds.APIKey.String())
+	logger.RegisterSecret(creds.Secret.String())
 	return &BinanceTHBrokerAdapter{BinanceTHExchange: ex}, nil
 }
 

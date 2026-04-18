@@ -283,3 +283,184 @@ func (v SecureModelList) MarshalYAML() (any, error) {
 	}
 	return mm, nil
 }
+
+// --- Exchange config YAML serialization (credentials only) ---
+
+type exchangeSecEntry struct {
+	APIKey SecureString `yaml:"api_key,omitempty"`
+	Secret SecureString `yaml:"secret,omitempty"`
+}
+
+type okxSecEntry struct {
+	APIKey     SecureString `yaml:"api_key,omitempty"`
+	Secret     SecureString `yaml:"secret,omitempty"`
+	Passphrase SecureString `yaml:"passphrase,omitempty"`
+}
+
+type settradeSecEntry struct {
+	APIKey SecureString `yaml:"api_key,omitempty"`
+	Secret SecureString `yaml:"secret,omitempty"`
+	PIN    SecureString `yaml:"pin,omitempty"`
+}
+
+func accountKey(name string, i int) string {
+	if name != "" {
+		return name
+	}
+	return fmt.Sprintf("%d", i+1)
+}
+
+func (c BinanceExchangeConfig) MarshalYAML() (any, error) {
+	mm := make(map[string]exchangeSecEntry, len(c.Accounts))
+	for i, acc := range c.Accounts {
+		mm[accountKey(acc.Name, i)] = exchangeSecEntry{APIKey: acc.APIKey, Secret: acc.Secret}
+	}
+	return mm, nil
+}
+
+func (c *BinanceExchangeConfig) UnmarshalYAML(value *yaml.Node) error {
+	mm := make(map[string]*exchangeSecEntry)
+	if err := value.Decode(&mm); err != nil {
+		return nil // old-format .security.yml — skip gracefully
+	}
+	for i := range c.Accounts {
+		key := accountKey(c.Accounts[i].Name, i)
+		if e := mm[key]; e != nil {
+			c.Accounts[i].APIKey = e.APIKey
+			c.Accounts[i].Secret = e.Secret
+		}
+	}
+	return nil
+}
+
+func (c BinanceTHExchangeConfig) MarshalYAML() (any, error) {
+	mm := make(map[string]exchangeSecEntry, len(c.Accounts))
+	for i, acc := range c.Accounts {
+		mm[accountKey(acc.Name, i)] = exchangeSecEntry{APIKey: acc.APIKey, Secret: acc.Secret}
+	}
+	return mm, nil
+}
+
+func (c *BinanceTHExchangeConfig) UnmarshalYAML(value *yaml.Node) error {
+	mm := make(map[string]*exchangeSecEntry)
+	if err := value.Decode(&mm); err != nil {
+		return nil
+	}
+	for i := range c.Accounts {
+		key := accountKey(c.Accounts[i].Name, i)
+		if e := mm[key]; e != nil {
+			c.Accounts[i].APIKey = e.APIKey
+			c.Accounts[i].Secret = e.Secret
+		}
+	}
+	return nil
+}
+
+func (c BitkubExchangeConfig) MarshalYAML() (any, error) {
+	mm := make(map[string]exchangeSecEntry, len(c.Accounts))
+	for i, acc := range c.Accounts {
+		mm[accountKey(acc.Name, i)] = exchangeSecEntry{APIKey: acc.APIKey, Secret: acc.Secret}
+	}
+	return mm, nil
+}
+
+func (c *BitkubExchangeConfig) UnmarshalYAML(value *yaml.Node) error {
+	mm := make(map[string]*exchangeSecEntry)
+	if err := value.Decode(&mm); err != nil {
+		return nil
+	}
+	for i := range c.Accounts {
+		key := accountKey(c.Accounts[i].Name, i)
+		if e := mm[key]; e != nil {
+			c.Accounts[i].APIKey = e.APIKey
+			c.Accounts[i].Secret = e.Secret
+		}
+	}
+	return nil
+}
+
+func (c OKXExchangeConfig) MarshalYAML() (any, error) {
+	mm := make(map[string]okxSecEntry, len(c.Accounts))
+	for i, acc := range c.Accounts {
+		mm[accountKey(acc.Name, i)] = okxSecEntry{APIKey: acc.APIKey, Secret: acc.Secret, Passphrase: acc.Passphrase}
+	}
+	return mm, nil
+}
+
+func (c *OKXExchangeConfig) UnmarshalYAML(value *yaml.Node) error {
+	mm := make(map[string]*okxSecEntry)
+	if err := value.Decode(&mm); err != nil {
+		return nil
+	}
+	for i := range c.Accounts {
+		key := accountKey(c.Accounts[i].Name, i)
+		if e := mm[key]; e != nil {
+			c.Accounts[i].APIKey = e.APIKey
+			c.Accounts[i].Secret = e.Secret
+			c.Accounts[i].Passphrase = e.Passphrase
+		}
+	}
+	return nil
+}
+
+// --- Channel config IsZero helpers (used by yaml.v3 omitempty) ---
+
+func (c TelegramConfig) IsZero() bool    { return c.Token.String() == "" }
+func (c DiscordConfig) IsZero() bool     { return c.Token.String() == "" }
+func (c PicoConfig) IsZero() bool        { return c.Token.String() == "" }
+func (c QQConfig) IsZero() bool          { return c.AppSecret.String() == "" }
+func (c DingTalkConfig) IsZero() bool    { return c.ClientSecret.String() == "" }
+func (c MatrixConfig) IsZero() bool      { return c.AccessToken.String() == "" }
+func (c OneBotConfig) IsZero() bool      { return c.AccessToken.String() == "" }
+
+func (c FeishuConfig) IsZero() bool {
+	return c.AppSecret.String() == "" && c.EncryptKey.String() == "" && c.VerificationToken.String() == ""
+}
+
+func (c SlackConfig) IsZero() bool {
+	return c.BotToken.String() == "" && c.AppToken.String() == ""
+}
+
+func (c LINEConfig) IsZero() bool {
+	return c.ChannelSecret.String() == "" && c.ChannelAccessToken.String() == ""
+}
+
+func (c WeComConfig) IsZero() bool {
+	return c.Token.String() == "" && c.EncodingAESKey.String() == ""
+}
+
+func (c WeComAppConfig) IsZero() bool {
+	return c.CorpSecret.String() == "" && c.Token.String() == "" && c.EncodingAESKey.String() == ""
+}
+
+func (c WeComAIBotConfig) IsZero() bool {
+	return c.Token.String() == "" && c.EncodingAESKey.String() == ""
+}
+
+func (c IRCConfig) IsZero() bool {
+	return c.Password.String() == "" && c.NickServPassword.String() == "" && c.SASLPassword.String() == ""
+}
+
+func (c SettradeExchangeConfig) MarshalYAML() (any, error) {
+	mm := make(map[string]settradeSecEntry, len(c.Accounts))
+	for i, acc := range c.Accounts {
+		mm[accountKey(acc.Name, i)] = settradeSecEntry{APIKey: acc.APIKey, Secret: acc.Secret, PIN: acc.PIN}
+	}
+	return mm, nil
+}
+
+func (c *SettradeExchangeConfig) UnmarshalYAML(value *yaml.Node) error {
+	mm := make(map[string]*settradeSecEntry)
+	if err := value.Decode(&mm); err != nil {
+		return nil
+	}
+	for i := range c.Accounts {
+		key := accountKey(c.Accounts[i].Name, i)
+		if e := mm[key]; e != nil {
+			c.Accounts[i].APIKey = e.APIKey
+			c.Accounts[i].Secret = e.Secret
+			c.Accounts[i].PIN = e.PIN
+		}
+	}
+	return nil
+}

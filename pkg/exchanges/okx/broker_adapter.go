@@ -25,9 +25,9 @@ func newBrokerAdapter(creds config.OKXExchangeAccount, testnet bool) (*OKXBroker
 	if err != nil {
 		return nil, err
 	}
-	logger.RegisterSecret(creds.APIKey)
-	logger.RegisterSecret(creds.Secret)
-	logger.RegisterSecret(creds.Passphrase)
+	logger.RegisterSecret(creds.APIKey.String())
+	logger.RegisterSecret(creds.Secret.String())
+	logger.RegisterSecret(creds.Passphrase.String())
 	return &OKXBrokerAdapter{OKXExchange: ex}, nil
 }
 

@@ -55,10 +55,10 @@ type SettradeClient struct {
 
 // NewSettradeClient creates a new client and decodes the ECDSA private key.
 func NewSettradeClient(cfg config.SettradeExchangeAccount) (*SettradeClient, error) {
-	if cfg.APIKey == "" {
+	if cfg.APIKey.String() == "" {
 		return nil, fmt.Errorf("settrade: api_key (App ID) is required")
 	}
-	if cfg.Secret == "" {
+	if cfg.Secret.String() == "" {
 		return nil, fmt.Errorf("settrade: secret (App Secret) is required")
 	}
 	if cfg.BrokerID == "" {
@@ -71,7 +71,7 @@ func NewSettradeClient(cfg config.SettradeExchangeAccount) (*SettradeClient, err
 		return nil, fmt.Errorf("settrade: account_no is required")
 	}
 
-	key, err := loadPrivateKey(cfg.Secret)
+	key, err := loadPrivateKey(cfg.Secret.String())
 	if err != nil {
 		return nil, err
 	}
@@ -87,13 +87,13 @@ func NewSettradeClient(cfg config.SettradeExchangeAccount) (*SettradeClient, err
 
 func (c *SettradeClient) login(ctx context.Context) error {
 	const params = ""
-	sigHex, tsMs, err := sign(c.privateKey, c.cfg.APIKey, params)
+	sigHex, tsMs, err := sign(c.privateKey, c.cfg.APIKey.String(), params)
 	if err != nil {
 		return err
 	}
 
 	reqBody := loginRequest{
-		APIKey:    c.cfg.APIKey,
+		APIKey:    c.cfg.APIKey.String(),
 		Params:    params,
 		Signature: sigHex,
 		Timestamp: fmt.Sprintf("%d", tsMs),
@@ -114,7 +114,7 @@ func (c *SettradeClient) login(ctx context.Context) error {
 
 func (c *SettradeClient) refreshTokens(ctx context.Context) error {
 	path := fmt.Sprintf("/api/oam/v1/%s/broker-apps/%s/refresh-token", c.cfg.BrokerID, c.cfg.AppCode)
-	body := refreshRequest{RefreshToken: c.refreshToken, APIKey: c.cfg.APIKey}
+	body := refreshRequest{RefreshToken: c.refreshToken, APIKey: c.cfg.APIKey.String()}
 
 	var tok tokenResponse
 	if err := c.doRequest(ctx, http.MethodPost, baseURL, path, nil, body, &tok, false); err != nil {
@@ -298,7 +298,7 @@ func (c *SettradeClient) FetchQuote(ctx context.Context, symbol string) (quoteRe
 
 // CreateEQOrder places an equity order. PIN is sent inline (SDK v2).
 func (c *SettradeClient) CreateEQOrder(ctx context.Context, symbol, side, priceType string, volume int, price float64) (settradeOrder, error) {
-	if c.cfg.PIN == "" {
+	if c.cfg.PIN.String() == "" {
 		return settradeOrder{}, fmt.Errorf("settrade: pin is required for order placement")
 	}
 	if priceType == "Limit" {
@@ -306,7 +306,7 @@ func (c *SettradeClient) CreateEQOrder(ctx context.Context, symbol, side, priceT
 	}
 
 	req := createOrderRequest{
-		PIN:           c.cfg.PIN,
+		PIN:           c.cfg.PIN.String(),
 		Side:          side,
 		Symbol:        symbol,
 		TrusteeIDType: "Local",
@@ -325,11 +325,11 @@ func (c *SettradeClient) CreateEQOrder(ctx context.Context, symbol, side, priceT
 
 // CancelEQOrder cancels an order by order number (PATCH + pin).
 func (c *SettradeClient) CancelEQOrder(ctx context.Context, orderNo string) (settradeOrder, error) {
-	if c.cfg.PIN == "" {
+	if c.cfg.PIN.String() == "" {
 		return settradeOrder{}, fmt.Errorf("settrade: pin is required to cancel orders")
 	}
 	path := fmt.Sprintf(endpointEQOrderCancel, c.cfg.BrokerID, c.cfg.AccountNo, orderNo)
-	body := cancelOrderRequest{PIN: c.cfg.PIN}
+	body := cancelOrderRequest{PIN: c.cfg.PIN.String()}
 	var resp orderResponse
 	return resp.Data, c.patch(ctx, path, body, &resp)
 }
@@ -369,10 +369,10 @@ func (c *SettradeClient) FetchClosedEQOrders(ctx context.Context, symbol string,
 // ChangeEQOrder modifies price or volume of a pending order.
 // newVolume is the new volume to set; pass 0 to leave unchanged.
 func (c *SettradeClient) ChangeEQOrder(ctx context.Context, orderNo string, newPrice float64, newVolume int) (settradeOrder, error) {
-	if c.cfg.PIN == "" {
+	if c.cfg.PIN.String() == "" {
 		return settradeOrder{}, fmt.Errorf("settrade: pin is required to change orders")
 	}
-	req := changeOrderRequest{PIN: c.cfg.PIN}
+	req := changeOrderRequest{PIN: c.cfg.PIN.String()}
 	if newPrice > 0 {
 		p := roundToTickSize(newPrice)
 		req.NewPrice = &p
@@ -387,11 +387,11 @@ func (c *SettradeClient) ChangeEQOrder(ctx context.Context, orderNo string, newP
 
 // CancelAllEQOrders cancels multiple orders by order number in one request.
 func (c *SettradeClient) CancelAllEQOrders(ctx context.Context, orderNos []string) error {
-	if c.cfg.PIN == "" {
+	if c.cfg.PIN.String() == "" {
 		return fmt.Errorf("settrade: pin is required to cancel orders")
 	}
 	path := fmt.Sprintf(endpointEQCancelOrders, c.cfg.BrokerID, c.cfg.AccountNo)
-	body := cancelOrdersRequest{PIN: c.cfg.PIN, Orders: orderNos}
+	body := cancelOrdersRequest{PIN: c.cfg.PIN.String(), Orders: orderNos}
 	return c.patch(ctx, path, body, nil)
 }
 

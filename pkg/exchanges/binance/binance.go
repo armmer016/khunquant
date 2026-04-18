@@ -25,13 +25,13 @@ type BinanceExchange struct {
 
 // NewBinanceExchange creates a new BinanceExchange using resolved credentials.
 func NewBinanceExchange(creds config.ExchangeAccount, testnet bool) (*BinanceExchange, error) {
-	if creds.APIKey == "" || creds.Secret == "" {
+	if creds.APIKey.String() == "" || creds.Secret.String() == "" {
 		return nil, fmt.Errorf("binance: api_key and secret are required")
 	}
 
 	ccxtCreds := map[string]interface{}{
-		"apiKey": creds.APIKey,
-		"secret": creds.Secret,
+		"apiKey": creds.APIKey.String(),
+		"secret": creds.Secret.String(),
 	}
 
 	spot := ccxt.NewBinance(ccxtCreds)

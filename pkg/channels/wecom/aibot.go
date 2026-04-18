@@ -139,7 +139,7 @@ func NewWeComAIBotChannel(
 	cfg config.WeComAIBotConfig,
 	messageBus *bus.MessageBus,
 ) (*WeComAIBotChannel, error) {
-	if cfg.Token == "" || cfg.EncodingAESKey == "" {
+	if cfg.Token.String() == "" || cfg.EncodingAESKey.String() == "" {
 		return nil, fmt.Errorf("token and encoding_aes_key are required for WeCom AI Bot")
 	}
 
@@ -331,7 +331,7 @@ func (c *WeComAIBotChannel) handleVerification(
 	})
 
 	// Verify signature
-	if !verifySignature(c.config.Token, msgSignature, timestamp, nonce, echostr) {
+	if !verifySignature(c.config.Token.String(), msgSignature, timestamp, nonce, echostr) {
 		logger.ErrorC("wecom_aibot", "Signature verification failed")
 		http.Error(w, "Signature verification failed", http.StatusUnauthorized)
 		return
@@ -339,7 +339,7 @@ func (c *WeComAIBotChannel) handleVerification(
 
 	// Decrypt echostr
 	// For WeCom AI Bot (智能机器人), receiveid should be empty string
-	decrypted, err := decryptMessageWithVerify(echostr, c.config.EncodingAESKey, "")
+	decrypted, err := decryptMessageWithVerify(echostr, c.config.EncodingAESKey.String(), "")
 	if err != nil {
 		logger.ErrorCF("wecom_aibot", "Failed to decrypt echostr", map[string]any{
 			"error": err,
@@ -398,7 +398,7 @@ func (c *WeComAIBotChannel) handleMessageCallback(
 	}
 
 	// Verify signature
-	if !verifySignature(c.config.Token, msgSignature, timestamp, nonce, encryptedMsg.Encrypt) {
+	if !verifySignature(c.config.Token.String(), msgSignature, timestamp, nonce, encryptedMsg.Encrypt) {
 		logger.ErrorC("wecom_aibot", "Signature verification failed")
 		http.Error(w, "Signature verification failed", http.StatusUnauthorized)
 		return
@@ -406,7 +406,7 @@ func (c *WeComAIBotChannel) handleMessageCallback(
 
 	// Decrypt message
 	// For WeCom AI Bot (智能机器人), receiveid is empty string
-	decrypted, err := decryptMessageWithVerify(encryptedMsg.Encrypt, c.config.EncodingAESKey, "")
+	decrypted, err := decryptMessageWithVerify(encryptedMsg.Encrypt, c.config.EncodingAESKey.String(), "")
 	if err != nil {
 		logger.ErrorCF("wecom_aibot", "Failed to decrypt message", map[string]any{
 			"error": err,
@@ -840,7 +840,7 @@ func (c *WeComAIBotChannel) encryptResponse(
 	}
 
 	// Generate signature
-	signature := computeSignature(c.config.Token, timestamp, nonce, encrypted)
+	signature := computeSignature(c.config.Token.String(), timestamp, nonce, encrypted)
 
 	// Build encrypted response
 	encryptedResp := WeComAIBotEncryptedResponse{
@@ -875,7 +875,7 @@ func (c *WeComAIBotChannel) encryptEmptyResponse(timestamp, nonce string) string
 
 // encryptMessage encrypts a plain text message for WeCom AI Bot
 func (c *WeComAIBotChannel) encryptMessage(plaintext, receiveid string) (string, error) {
-	aesKey, err := decodeWeComAESKey(c.config.EncodingAESKey)
+	aesKey, err := decodeWeComAESKey(c.config.EncodingAESKey.String())
 	if err != nil {
 		return "", err
 	}

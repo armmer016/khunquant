@@ -112,8 +112,8 @@ func refreshChannelMenuFromState(menu *Menu, s *appState) {
 func (s *appState) telegramForm() tview.Primitive {
 	cfg := &s.config.Channels.Telegram
 	form := baseChannelForm("Telegram", cfg.Enabled, s.makeChannelOnEnabled(&cfg.Enabled))
-	form.AddInputField("Token", cfg.Token, 128, nil, func(text string) {
-		cfg.Token = strings.TrimSpace(text)
+	form.AddInputField("Token", cfg.Token.String(), 128, nil, func(text string) {
+		cfg.Token.Set(strings.TrimSpace(text))
 	})
 	form.AddInputField("Proxy", cfg.Proxy, 128, nil, func(text string) {
 		cfg.Proxy = strings.TrimSpace(text)
@@ -125,8 +125,8 @@ func (s *appState) telegramForm() tview.Primitive {
 func (s *appState) discordForm() tview.Primitive {
 	cfg := &s.config.Channels.Discord
 	form := baseChannelForm("Discord", cfg.Enabled, s.makeChannelOnEnabled(&cfg.Enabled))
-	form.AddInputField("Token", cfg.Token, 128, nil, func(text string) {
-		cfg.Token = strings.TrimSpace(text)
+	form.AddInputField("Token", cfg.Token.String(), 128, nil, func(text string) {
+		cfg.Token.Set(strings.TrimSpace(text))
 	})
 	form.AddCheckbox("Mention Only", cfg.MentionOnly, func(checked bool) {
 		cfg.MentionOnly = checked
@@ -141,8 +141,8 @@ func (s *appState) qqForm() tview.Primitive {
 	form.AddInputField("App ID", cfg.AppID, 64, nil, func(text string) {
 		cfg.AppID = strings.TrimSpace(text)
 	})
-	form.AddInputField("App Secret", cfg.AppSecret, 128, nil, func(text string) {
-		cfg.AppSecret = strings.TrimSpace(text)
+	form.AddInputField("App Secret", cfg.AppSecret.String(), 128, nil, func(text string) {
+		cfg.AppSecret.Set(strings.TrimSpace(text))
 	})
 	addAllowFromField(form, &cfg.AllowFrom)
 	return wrapWithBack(form, s)
@@ -175,14 +175,14 @@ func (s *appState) feishuForm() tview.Primitive {
 	form.AddInputField("App ID", cfg.AppID, 64, nil, func(text string) {
 		cfg.AppID = strings.TrimSpace(text)
 	})
-	form.AddInputField("App Secret", cfg.AppSecret, 128, nil, func(text string) {
-		cfg.AppSecret = strings.TrimSpace(text)
+	form.AddInputField("App Secret", cfg.AppSecret.String(), 128, nil, func(text string) {
+		cfg.AppSecret.Set(strings.TrimSpace(text))
 	})
-	form.AddInputField("Encrypt Key", cfg.EncryptKey, 128, nil, func(text string) {
-		cfg.EncryptKey = strings.TrimSpace(text)
+	form.AddInputField("Encrypt Key", cfg.EncryptKey.String(), 128, nil, func(text string) {
+		cfg.EncryptKey.Set(strings.TrimSpace(text))
 	})
-	form.AddInputField("Verification Token", cfg.VerificationToken, 128, nil, func(text string) {
-		cfg.VerificationToken = strings.TrimSpace(text)
+	form.AddInputField("Verification Token", cfg.VerificationToken.String(), 128, nil, func(text string) {
+		cfg.VerificationToken.Set(strings.TrimSpace(text))
 	})
 	addAllowFromField(form, &cfg.AllowFrom)
 	return wrapWithBack(form, s)
@@ -194,8 +194,8 @@ func (s *appState) dingtalkForm() tview.Primitive {
 	form.AddInputField("Client ID", cfg.ClientID, 64, nil, func(text string) {
 		cfg.ClientID = strings.TrimSpace(text)
 	})
-	form.AddInputField("Client Secret", cfg.ClientSecret, 128, nil, func(text string) {
-		cfg.ClientSecret = strings.TrimSpace(text)
+	form.AddInputField("Client Secret", cfg.ClientSecret.String(), 128, nil, func(text string) {
+		cfg.ClientSecret.Set(strings.TrimSpace(text))
 	})
 	addAllowFromField(form, &cfg.AllowFrom)
 	return wrapWithBack(form, s)
@@ -204,11 +204,11 @@ func (s *appState) dingtalkForm() tview.Primitive {
 func (s *appState) slackForm() tview.Primitive {
 	cfg := &s.config.Channels.Slack
 	form := baseChannelForm("Slack", cfg.Enabled, s.makeChannelOnEnabled(&cfg.Enabled))
-	form.AddInputField("Bot Token", cfg.BotToken, 128, nil, func(text string) {
-		cfg.BotToken = strings.TrimSpace(text)
+	form.AddInputField("Bot Token", cfg.BotToken.String(), 128, nil, func(text string) {
+		cfg.BotToken.Set(strings.TrimSpace(text))
 	})
-	form.AddInputField("App Token", cfg.AppToken, 128, nil, func(text string) {
-		cfg.AppToken = strings.TrimSpace(text)
+	form.AddInputField("App Token", cfg.AppToken.String(), 128, nil, func(text string) {
+		cfg.AppToken.Set(strings.TrimSpace(text))
 	})
 	addAllowFromField(form, &cfg.AllowFrom)
 	return wrapWithBack(form, s)
@@ -217,11 +217,11 @@ func (s *appState) slackForm() tview.Primitive {
 func (s *appState) lineForm() tview.Primitive {
 	cfg := &s.config.Channels.LINE
 	form := baseChannelForm("LINE", cfg.Enabled, s.makeChannelOnEnabled(&cfg.Enabled))
-	form.AddInputField("Channel Secret", cfg.ChannelSecret, 128, nil, func(text string) {
-		cfg.ChannelSecret = strings.TrimSpace(text)
+	form.AddInputField("Channel Secret", cfg.ChannelSecret.String(), 128, nil, func(text string) {
+		cfg.ChannelSecret.Set(strings.TrimSpace(text))
 	})
-	form.AddInputField("Channel Access Token", cfg.ChannelAccessToken, 128, nil, func(text string) {
-		cfg.ChannelAccessToken = strings.TrimSpace(text)
+	form.AddInputField("Channel Access Token", cfg.ChannelAccessToken.String(), 128, nil, func(text string) {
+		cfg.ChannelAccessToken.Set(strings.TrimSpace(text))
 	})
 	form.AddInputField("Webhook Host", cfg.WebhookHost, 64, nil, func(text string) {
 		cfg.WebhookHost = strings.TrimSpace(text)
@@ -243,8 +243,8 @@ func (s *appState) matrixForm() tview.Primitive {
 	form.AddInputField("User ID", cfg.UserID, 128, nil, func(text string) {
 		cfg.UserID = strings.TrimSpace(text)
 	})
-	form.AddInputField("Access Token", cfg.AccessToken, 128, nil, func(text string) {
-		cfg.AccessToken = strings.TrimSpace(text)
+	form.AddInputField("Access Token", cfg.AccessToken.String(), 128, nil, func(text string) {
+		cfg.AccessToken.Set(strings.TrimSpace(text))
 	})
 	form.AddInputField("Device ID", cfg.DeviceID, 128, nil, func(text string) {
 		cfg.DeviceID = strings.TrimSpace(text)
@@ -262,8 +262,8 @@ func (s *appState) onebotForm() tview.Primitive {
 	form.AddInputField("WS URL", cfg.WSUrl, 128, nil, func(text string) {
 		cfg.WSUrl = strings.TrimSpace(text)
 	})
-	form.AddInputField("Access Token", cfg.AccessToken, 128, nil, func(text string) {
-		cfg.AccessToken = strings.TrimSpace(text)
+	form.AddInputField("Access Token", cfg.AccessToken.String(), 128, nil, func(text string) {
+		cfg.AccessToken.Set(strings.TrimSpace(text))
 	})
 	addIntField(
 		form,
@@ -287,11 +287,11 @@ func (s *appState) onebotForm() tview.Primitive {
 func (s *appState) wecomForm() tview.Primitive {
 	cfg := &s.config.Channels.WeCom
 	form := baseChannelForm("WeCom", cfg.Enabled, s.makeChannelOnEnabled(&cfg.Enabled))
-	form.AddInputField("Token", cfg.Token, 128, nil, func(text string) {
-		cfg.Token = strings.TrimSpace(text)
+	form.AddInputField("Token", cfg.Token.String(), 128, nil, func(text string) {
+		cfg.Token.Set(strings.TrimSpace(text))
 	})
-	form.AddInputField("Encoding AES Key", cfg.EncodingAESKey, 128, nil, func(text string) {
-		cfg.EncodingAESKey = strings.TrimSpace(text)
+	form.AddInputField("Encoding AES Key", cfg.EncodingAESKey.String(), 128, nil, func(text string) {
+		cfg.EncodingAESKey.Set(strings.TrimSpace(text))
 	})
 	form.AddInputField("Webhook URL", cfg.WebhookURL, 128, nil, func(text string) {
 		cfg.WebhookURL = strings.TrimSpace(text)
@@ -319,15 +319,15 @@ func (s *appState) wecomAppForm() tview.Primitive {
 	form.AddInputField("Corp ID", cfg.CorpID, 64, nil, func(text string) {
 		cfg.CorpID = strings.TrimSpace(text)
 	})
-	form.AddInputField("Corp Secret", cfg.CorpSecret, 128, nil, func(text string) {
-		cfg.CorpSecret = strings.TrimSpace(text)
+	form.AddInputField("Corp Secret", cfg.CorpSecret.String(), 128, nil, func(text string) {
+		cfg.CorpSecret.Set(strings.TrimSpace(text))
 	})
 	addInt64Field(form, "Agent ID", cfg.AgentID, func(value int64) { cfg.AgentID = value })
-	form.AddInputField("Token", cfg.Token, 128, nil, func(text string) {
-		cfg.Token = strings.TrimSpace(text)
+	form.AddInputField("Token", cfg.Token.String(), 128, nil, func(text string) {
+		cfg.Token.Set(strings.TrimSpace(text))
 	})
-	form.AddInputField("Encoding AES Key", cfg.EncodingAESKey, 128, nil, func(text string) {
-		cfg.EncodingAESKey = strings.TrimSpace(text)
+	form.AddInputField("Encoding AES Key", cfg.EncodingAESKey.String(), 128, nil, func(text string) {
+		cfg.EncodingAESKey.Set(strings.TrimSpace(text))
 	})
 	form.AddInputField("Webhook Host", cfg.WebhookHost, 64, nil, func(text string) {
 		cfg.WebhookHost = strings.TrimSpace(text)

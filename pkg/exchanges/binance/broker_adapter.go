@@ -26,8 +26,8 @@ func newBrokerAdapter(creds config.ExchangeAccount, testnet bool) (*BinanceBroke
 	if err != nil {
 		return nil, err
 	}
-	logger.RegisterSecret(creds.APIKey)
-	logger.RegisterSecret(creds.Secret)
+	logger.RegisterSecret(creds.APIKey.String())
+	logger.RegisterSecret(creds.Secret.String())
 	return &BinanceBrokerAdapter{BinanceExchange: ex}, nil
 }
 
