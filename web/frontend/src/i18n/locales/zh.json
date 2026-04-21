@@ -25,8 +25,20 @@
   },
   "chat": {
     "welcome": "今天我能为您做些什么？",
-    "welcomeDesc": "询问我关于您的投资组合、市场、财务或任何其他任务，我随时为您效劳。",
-    "placeholder": "输入新消息...",
+    “welcomeDesc”: “询问我关于您的投资组合、市场、财务或任何其他任务，我随时为您效劳。”,
+    “placeholder”: “输入新消息...”,
+    “disabledPlaceholder”: {
+      “gatewayUnknown”: “无法对话：网关状态仍在检测中。请稍候重试，如仍无效请刷新页面或重启 Launcher。”,
+      “gatewayStarting”: “无法对话：网关正在启动。请等待启动完成后重试。”,
+      “gatewayRestarting”: “无法对话：网关正在重启。请等待重启完成。”,
+      “gatewayStopping”: “无法对话：网关正在停止。请等待停止完成后重新启动服务。”,
+      “gatewayStopped”: “无法对话：网关服务未启动。请点击顶部栏的”启动服务”后重试。”,
+      “gatewayError”: “无法对话：网关处于错误状态。请检查日志后重启网关或 Launcher。”,
+      “websocketConnecting”: “正在连接聊天服务，请稍候。”,
+      “websocketDisconnected”: “无法对话：WebSocket 连接已断开。请检查网络与服务状态，然后刷新页面或重启 Launcher。”,
+      “websocketError”: “无法对话：WebSocket 连接失败。请检查网络与服务状态后重试。”,
+      “noDefaultModel”: “无法对话：尚未设置默认模型。请前往模型页面设置默认模型。”
+    },
     "newChat": "新建对话",
     "notConnected": "服务未运行，请先启动以进行对话。",
     "thinking": {
@@ -35,6 +47,8 @@
       "step3": "准备回复...",
       "step4": "马上就好..."
     },
+    "reasoningLabel": "思考",
+    "toolLabel": "工具",
     "history": "历史记录",
     "noHistory": "暂无对话历史",
     "historyLoadFailed": "加载历史记录失败",
@@ -43,6 +57,18 @@
     "deleteSession": "删除会话",
     "messagesCount": "{{count}} 条消息",
     "noModel": "选择模型",
+    “inputDisabled”: {
+      “notConnected”: “服务未运行，请先启动以进行对话。”,
+      “noModel”: “未设置默认模型，请前往模型页面进行配置。”
+    },
+    “sendMessage”: “发送消息”,
+    “sendHint”: “按 Enter 发送\nShift + Enter 换行”,
+    “attachImage”: “添加图片”,
+    “removeImage”: “移除图片”,
+    “uploadedImage”: “已上传图片”,
+    “invalidImage”: “”{{name}}”不是支持的图片文件。”,
+    “imageTooLarge”: “”{{name}}”超过了 {{size}} 限制。”,
+    “imageReadFailed”: “读取”{{name}}”失败。”,
     "empty": {
       "noConfiguredModel": "尚未配置模型",
       "noConfiguredModelDescription": "请先配置至少一个带有 API Key 的 AI 模型，才能开始对话。",

@@ -217,7 +217,61 @@ func TestHandleGetSession_JSONLStorage(t *testing.T) {
 	}
 }
 
-func TestHandleGetSession_ReconstructsVisibleMessageToolOutput(t *testing.T) {
+
+func TestHandleGetSession_OmitsTransientThoughtMessages(t *testing.T) {
+	configPath, cleanup := setupOAuthTestEnv(t)
+	defer cleanup()
+
+	dir := sessionsTestDir(t, configPath)
+	store, err := memory.NewJSONLStore(dir)
+	if err != nil {
+		t.Fatalf("NewJSONLStore() error = %v", err)
+	}
+
+	sessionKey := picoSessionPrefix + "detail-transient-thought"
+	for _, msg := range []providers.Message{
+		{Role: "user", Content: "hello"},
+		{Role: "assistant", ReasoningContent: "internal chain of thought"},
+		{Role: "assistant", Content: "final visible answer"},
+	} {
+		if err := store.AddFullMessage(nil, sessionKey, msg); err != nil {
+			t.Fatalf("AddFullMessage() error = %v", err)
+		}
+	}
+
+	h := NewHandler(configPath)
+	mux := http.NewServeMux()
+	h.RegisterRoutes(mux)
+
+	rec := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "/api/sessions/detail-transient-thought", nil)
+	mux.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want %d, body=%s", rec.Code, http.StatusOK, rec.Body.String())
+	}
+
+	var resp struct {
+		Messages []struct {
+			Role    string `json:"role"`
+			Content string `json:"content"`
+		} `json:"messages"`
+	}
+	if err := json.Unmarshal(rec.Body.Bytes(), &resp); err != nil {
+		t.Fatalf("Unmarshal() error = %v", err)
+	}
+	if len(resp.Messages) != 2 {
+		t.Fatalf("len(resp.Messages) = %d, want 2", len(resp.Messages))
+	}
+	if resp.Messages[0].Role != "user" || resp.Messages[0].Content != "hello" {
+		t.Fatalf("first message = %#v, want user/hello", resp.Messages[0])
+	}
+	if resp.Messages[1].Role != "assistant" || resp.Messages[1].Content != "final visible answer" {
+		t.Fatalf("second message = %#v, want assistant/final visible answer", resp.Messages[1])
+	}
+}
+
+func TestHandleGetSession_ReconstructsVisibleMessageToolOutputWithoutDuplicateSummary(t *testing.T) {
 	configPath, cleanup := setupOAuthTestEnv(t)
 	defer cleanup()
 
@@ -273,14 +327,19 @@ func TestHandleGetSession_ReconstructsVisibleMessageToolOutput(t *testing.T) {
 	if err := json.Unmarshal(rec.Body.Bytes(), &resp); err != nil {
 		t.Fatalf("Unmarshal() error = %v", err)
 	}
-	if len(resp.Messages) != 3 {
-		t.Fatalf("len(resp.Messages) = %d, want 3", len(resp.Messages))
+	if len(resp.Messages) != 2 {
+		t.Fatalf("len(resp.Messages) = %d, want 2", len(resp.Messages))
 	}
-	if !strings.Contains(resp.Messages[1].Content, "`message`") {
-		t.Fatalf("tool summary message = %#v, want message tool summary", resp.Messages[1])
+	if resp.Messages[0].Role != "user" || resp.Messages[0].Content != "test" {
+		t.Fatalf("first message = %#v, want user/test", resp.Messages[0])
 	}
-	if resp.Messages[2].Role != "assistant" || resp.Messages[2].Content != "visible tool output" {
-		t.Fatalf("assistant message = %#v, want visible tool output", resp.Messages[2])
+	if resp.Messages[1].Role != "assistant" || resp.Messages[1].Content != "visible tool output" {
+		t.Fatalf("assistant message = %#v, want visible tool output", resp.Messages[1])
+	}
+	for _, msg := range resp.Messages {
+		if msg.Role == "tool" || strings.Contains(msg.Content, "`message`") {
+			t.Fatalf("unexpected raw tool or duplicate message-tool summary: %#v", msg)
+		}
 	}
 }
 
@@ -339,17 +398,17 @@ func TestHandleGetSession_PreservesFinalAssistantReplyAfterMessageToolOutput(t *
 	if err := json.Unmarshal(rec.Body.Bytes(), &resp); err != nil {
 		t.Fatalf("Unmarshal() error = %v", err)
 	}
-	if len(resp.Messages) != 4 {
-		t.Fatalf("len(resp.Messages) = %d, want 4", len(resp.Messages))
+	if len(resp.Messages) != 3 {
+		t.Fatalf("len(resp.Messages) = %d, want 3", len(resp.Messages))
 	}
-	if !strings.Contains(resp.Messages[1].Content, "`message`") {
-		t.Fatalf("tool summary message = %#v, want message tool summary", resp.Messages[1])
+	if resp.Messages[0].Role != "user" || resp.Messages[0].Content != "test" {
+		t.Fatalf("first message = %#v, want user/test", resp.Messages[0])
 	}
-	if resp.Messages[2].Role != "assistant" || resp.Messages[2].Content != "visible tool output" {
-		t.Fatalf("interim assistant message = %#v, want visible tool output", resp.Messages[2])
+	if resp.Messages[1].Role != "assistant" || resp.Messages[1].Content != "visible tool output" {
+		t.Fatalf("interim assistant message = %#v, want visible tool output", resp.Messages[1])
 	}
-	if resp.Messages[3].Role != "assistant" || resp.Messages[3].Content != "final assistant reply" {
-		t.Fatalf("final assistant message = %#v, want final assistant reply", resp.Messages[3])
+	if resp.Messages[2].Role != "assistant" || resp.Messages[2].Content != "final assistant reply" {
+		t.Fatalf("final assistant message = %#v, want final assistant reply", resp.Messages[2])
 	}
 }
 
@@ -406,8 +465,8 @@ func TestHandleListSessions_MessageCountUsesVisibleTranscript(t *testing.T) {
 	if len(items) != 1 {
 		t.Fatalf("len(items) = %d, want 1", len(items))
 	}
-	if items[0].MessageCount != 3 {
-		t.Fatalf("items[0].MessageCount = %d, want 3", items[0].MessageCount)
+	if items[0].MessageCount != 2 {
+		t.Fatalf("items[0].MessageCount = %d, want 2", items[0].MessageCount)
 	}
 }
 
@@ -438,6 +497,7 @@ func TestHandleGetSession_PreservesToolSummaryAndAssistantContent(t *testing.T) 
 				},
 			},
 		},
+		{Role: "tool", Content: "raw read_file result", ToolCallID: "call_1"},
 	} {
 		if err := store.AddFullMessage(nil, sessionKey, msg); err != nil {
 			t.Fatalf("AddFullMessage() error = %v", err)
@@ -476,6 +536,11 @@ func TestHandleGetSession_PreservesToolSummaryAndAssistantContent(t *testing.T) 
 	}
 	if resp.Messages[2].Role != "assistant" || resp.Messages[2].Content != "model final reply" {
 		t.Fatalf("assistant message = %#v, want model final reply", resp.Messages[2])
+	}
+	for _, msg := range resp.Messages {
+		if msg.Role == "tool" || strings.Contains(msg.Content, "raw read_file result") {
+			t.Fatalf("unexpected raw tool result in history: %#v", msg)
+		}
 	}
 }
 
