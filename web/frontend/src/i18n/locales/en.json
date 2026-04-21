@@ -419,7 +419,13 @@
         "field_message_static": "Reminder text",
         "field_message_static_hint": "This text is sent directly to you when the job fires.",
         "field_message_dynamic": "Agent instruction",
-        "field_message_dynamic_hint": "This instruction is given to the agent on each trigger — write it so it fetches fresh data every time."
+        "field_message_dynamic_hint": "This instruction is given to the agent on each trigger — write it so it fetches fresh data every time.",
+        "field_channel": "Channel",
+        "channel_auto": "Auto (from message)",
+        "channel_hint": "Override the destination channel. Leave empty to use the channel from the message.",
+        "field_to": "To (Recipient)",
+        "to_placeholder": "e.g. user ID or recipient identifier",
+        "to_hint": "Optional. Specific recipient user ID or identifier for the message."
       },
       "pairing": {
         "section_title": "Pending Access Requests",

@@ -15,6 +15,8 @@ type cronUpdateRequest struct {
 	Enabled  *bool              `json:"enabled,omitempty"`
 	Deliver  *bool              `json:"deliver,omitempty"`
 	Schedule *cron.CronSchedule `json:"schedule,omitempty"`
+	Channel  *string            `json:"channel,omitempty"`
+	To       *string            `json:"to,omitempty"`
 }
 
 // registerCronAPI registers live cron management routes on the gateway HTTP mux.
@@ -65,6 +67,12 @@ func registerCronAPI(mux interface {
 		}
 		if req.Deliver != nil {
 			target.Payload.Deliver = *req.Deliver
+		}
+		if req.Channel != nil {
+			target.Payload.Channel = *req.Channel
+		}
+		if req.To != nil {
+			target.Payload.To = *req.To
 		}
 		if req.Schedule != nil {
 			target.Schedule = *req.Schedule

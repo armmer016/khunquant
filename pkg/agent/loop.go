@@ -1627,6 +1627,19 @@ func (al *AgentLoop) runLLMIteration(
 			if finalContent == "" && response.ReasoningContent != "" {
 				finalContent = response.ReasoningContent
 			}
+			if finalContent == "" {
+				usageInfo := ""
+				if response.Usage != nil {
+					usageInfo = fmt.Sprintf("prompt_tokens=%d completion_tokens=%d", response.Usage.PromptTokens, response.Usage.CompletionTokens)
+				}
+				logger.ErrorCF("agent", "LLM returned empty content (no text, no reasoning, no tool calls)",
+					map[string]any{
+						"agent_id":      agent.ID,
+						"iteration":     iteration,
+						"finish_reason": response.FinishReason,
+						"usage":         usageInfo,
+					})
+			}
 			// Follow-up nudge: on the first iteration only, inject a steering message
 			// so the LLM gets one more chance to call a tool it said it would call.
 			// On iteration 2+ this is skipped and we break normally.

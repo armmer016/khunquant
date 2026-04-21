@@ -3,6 +3,8 @@ package api
 import (
 	"encoding/json"
 	"net/http"
+
+	"github.com/cryptoquantumwave/khunquant/pkg/config"
 )
 
 type channelCatalogItem struct {
@@ -36,12 +38,47 @@ func (h *Handler) registerChannelRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/channels/catalog", h.handleListChannelCatalog)
 }
 
-// handleListChannelCatalog returns the channels supported by backend.
+// handleListChannelCatalog returns only the channels the user has enabled.
 //
 //	GET /api/channels/catalog
 func (h *Handler) handleListChannelCatalog(w http.ResponseWriter, r *http.Request) {
+	cfg, err := config.LoadConfig(h.configPath)
+	if err != nil {
+		http.Error(w, "failed to load config", http.StatusInternalServerError)
+		return
+	}
+
+	enabledKeys := map[string]bool{
+		"telegram":    cfg.Channels.Telegram.Enabled,
+		"discord":     cfg.Channels.Discord.Enabled,
+		"slack":       cfg.Channels.Slack.Enabled,
+		"feishu":      cfg.Channels.Feishu.Enabled,
+		"dingtalk":    cfg.Channels.DingTalk.Enabled,
+		"line":        cfg.Channels.LINE.Enabled,
+		"qq":          cfg.Channels.QQ.Enabled,
+		"onebot":      cfg.Channels.OneBot.Enabled,
+		"wecom":       cfg.Channels.WeCom.Enabled,
+		"wecom_app":   cfg.Channels.WeComApp.Enabled,
+		"wecom_aibot": cfg.Channels.WeComAIBot.Enabled,
+		"whatsapp":    cfg.Channels.WhatsApp.Enabled,
+		"pico":        cfg.Channels.Pico.Enabled,
+		"maixcam":     cfg.Channels.MaixCam.Enabled,
+		"matrix":      cfg.Channels.Matrix.Enabled,
+		"irc":         cfg.Channels.IRC.Enabled,
+	}
+
+	var result []channelCatalogItem
+	for _, ch := range channelCatalog {
+		if enabledKeys[ch.Name] || enabledKeys[ch.ConfigKey] {
+			result = append(result, ch)
+		}
+	}
+	if result == nil {
+		result = []channelCatalogItem{}
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]any{
-		"channels": channelCatalog,
+		"channels": result,
 	})
 }

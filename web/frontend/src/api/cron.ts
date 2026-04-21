@@ -48,6 +48,8 @@ export interface CronUpdateRequest {
   enabled?: boolean
   deliver?: boolean
   schedule?: CronSchedule
+  channel?: string
+  to?: string
 }
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {

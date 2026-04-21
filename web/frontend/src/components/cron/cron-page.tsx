@@ -20,6 +20,7 @@ import {
   runCronJobNow,
   updateCronJob,
 } from "@/api/cron"
+import { getChannelsCatalog } from "@/api/channels"
 import { PageHeader } from "@/components/page-header"
 import { updateGatewayStore } from "@/store"
 import {
@@ -125,12 +126,21 @@ function EditSheet({ job, onClose, onSave, saving }: EditSheetProps) {
   const [everyValue, setEveryValue] = React.useState(10)
   const [everyUnit, setEveryUnit] = React.useState<"s" | "m" | "h">("m")
   const [cronExpr, setCronExpr] = React.useState("")
+  const [selectedChannel, setSelectedChannel] = React.useState("")
+  const [selectedTo, setSelectedTo] = React.useState("")
+
+  const { data: channelsData } = useQuery({
+    queryKey: ["channels-catalog"],
+    queryFn: getChannelsCatalog,
+  })
 
   React.useEffect(() => {
     if (job) {
       setName(job.name)
       setMessage(job.payload.message)
       setDeliver(job.payload.deliver)
+      setSelectedChannel(job.payload.channel ?? "")
+      setSelectedTo(job.payload.to ?? "")
       const kind = job.schedule.kind === "cron" ? "cron" : "every"
       setSchedKind(kind)
       if (kind === "every" && job.schedule.everyMs) {
@@ -160,6 +170,8 @@ function EditSheet({ job, onClose, onSave, saving }: EditSheetProps) {
       name: name.trim() || job.name,
       message,
       deliver,
+      channel: selectedChannel,
+      to: selectedTo,
       ...(schedChanged ? { schedule: newSched } : {}),
     })
   }
@@ -239,6 +251,45 @@ function EditSheet({ job, onClose, onSave, saving }: EditSheetProps) {
               {deliver
                 ? t("pages.agent.cron.field_message_static_hint")
                 : t("pages.agent.cron.field_message_dynamic_hint")}
+            </p>
+          </div>
+
+          {/* Channel */}
+          <div className="space-y-1.5">
+            <Label htmlFor="cron-edit-channel">
+              {t("pages.agent.cron.field_channel")}
+            </Label>
+            <select
+              id="cron-edit-channel"
+              value={selectedChannel}
+              onChange={(e) => setSelectedChannel(e.target.value)}
+              className="border-input bg-background h-9 w-full rounded-md border px-3 py-2 text-sm"
+            >
+              <option value="">{t("pages.agent.cron.channel_auto")}</option>
+              {channelsData?.channels.map((ch) => (
+                <option key={ch.name} value={ch.name}>
+                  {ch.display_name || ch.name}
+                </option>
+              ))}
+            </select>
+            <p className="text-muted-foreground text-xs">
+              {t("pages.agent.cron.channel_hint")}
+            </p>
+          </div>
+
+          {/* To (recipient user ID) */}
+          <div className="space-y-1.5">
+            <Label htmlFor="cron-edit-to">
+              {t("pages.agent.cron.field_to")}
+            </Label>
+            <Input
+              id="cron-edit-to"
+              value={selectedTo}
+              onChange={(e) => setSelectedTo(e.target.value)}
+              placeholder={t("pages.agent.cron.to_placeholder")}
+            />
+            <p className="text-muted-foreground text-xs">
+              {t("pages.agent.cron.to_hint")}
             </p>
           </div>
 
