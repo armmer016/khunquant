@@ -127,11 +127,17 @@ func (t *SetPriceAlertTool) createAlert(ctx context.Context, args map[string]any
 	// Allow args to override the context channel/chatID for cross-channel alert delivery.
 	channel, _ := args["channel"].(string)
 	chatID, _ := args["chat_id"].(string)
+	ctxChannel := ToolChannel(ctx)
 	if channel == "" {
-		channel = ToolChannel(ctx)
+		channel = ctxChannel
+	}
+	// Only inherit context chatID when the channel matches — a pico/web session ID is
+	// meaningless if the LLM requested delivery to a different channel (e.g. line).
+	if chatID == "" && channel == ctxChannel {
+		chatID = ToolChatID(ctx)
 	}
 	if chatID == "" {
-		chatID = ToolChatID(ctx)
+		return ErrorResult("chat_id is required when targeting a channel other than the current session")
 	}
 
 	job, err := t.cronService.AddJob(name, schedule, string(payloadJSON), false, channel, chatID)
