@@ -102,6 +102,21 @@ export function AgentDefaultsSection({
         onCheckedChange={(checked) => onFieldChange("allowRemote", checked)}
       />
 
+      <Field
+        label={t("pages.config.temperature")}
+        hint={t("pages.config.temperature_hint")}
+        layout="setting-row"
+      >
+        <Input
+          type="number"
+          min={0}
+          max={2}
+          step={0.01}
+          value={form.temperature}
+          onChange={(e) => onFieldChange("temperature", e.target.value)}
+        />
+      </Field>
+
       <SwitchCardField
         label={t("pages.config.follow_up_nudge")}
         hint={t("pages.config.follow_up_nudge_hint")}

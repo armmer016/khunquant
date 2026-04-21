@@ -553,6 +553,8 @@
       "restrict_workspace_hint": "Only allow file operations inside workspace.",
       "allow_remote": "Allow Remote Shell Execution",
       "allow_remote_hint": "When enabled, shell commands can also run for remote sessions or non-local contexts. When disabled, shell execution stays limited to local safe contexts.",
+      "temperature": "Temperature",
+      "temperature_hint": "Controls randomness in model responses. Range: 0 to 2. Recommended: 0.7.",
       "follow_up_nudge": "Follow-Up Nudge",
       "follow_up_nudge_hint": "When enabled, if the agent describes an action without calling a tool on the first response, it will be nudged once to actually call the tool.",
       "max_tokens": "Max Tokens",

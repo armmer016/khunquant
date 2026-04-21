@@ -533,6 +533,8 @@
       "restrict_workspace_hint": "仅允许在工作目录内执行文件操作。",
       "allow_remote": "允许远程执行 Shell 命令",
       "allow_remote_hint": "开启后，来自远程会话或非本地上下文的请求也可以执行 shell 命令；关闭后，仅允许本地安全上下文执行。",
+      "temperature": "温度 (Temperature)",
+      "temperature_hint": "控制模型响应的随机性。范围：0 到 2。推荐值：0.7。",
       "follow_up_nudge": "后续提示",
       "follow_up_nudge_hint": "启用后，如果助手在第一次响应中描述了要执行的操作但未调用任何工具，系统将自动提示其实际调用工具。",
       "max_tokens": "最大 Token 数",

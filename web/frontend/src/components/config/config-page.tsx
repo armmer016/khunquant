@@ -165,12 +165,19 @@ export function ConfigPage() {
           { min: 1 },
         )
 
+        // Validate temperature as a float between 0 and 2
+        const temperatureValue = Number(form.temperature)
+        if (!Number.isFinite(temperatureValue) || temperatureValue < 0 || temperatureValue > 2) {
+          throw new Error("Temperature must be a number between 0 and 2.")
+        }
+
         await patchAppConfig({
           agents: {
             defaults: {
               workspace,
               restrict_to_workspace: form.restrictToWorkspace,
               follow_up_nudge: form.followUpNudge,
+              temperature: temperatureValue,
               max_tokens: maxTokens,
               max_tool_iterations: maxToolIterations,
               summarize_message_threshold: summarizeMessageThreshold,
