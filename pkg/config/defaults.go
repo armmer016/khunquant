@@ -32,10 +32,11 @@ func DefaultConfig() *Config {
 				Model:                     "",
 				MaxTokens:                 32768,
 				Temperature:               nil, // nil means use provider default
-				MaxToolIterations:         50,
+				MaxToolIterations:         30,
 				SummarizeMessageThreshold: 20,
 				SummarizeTokenPercent:     75,
 				ContextManager:            "seahorse",
+				FollowUpNudge:             true,
 			},
 		},
 		Bindings: []AgentBinding{},
@@ -61,8 +62,8 @@ func DefaultConfig() *Config {
 				},
 			},
 			Feishu: FeishuConfig{
-				Enabled:  false,
-				AppID:    "",
+				Enabled:   false,
+				AppID:     "",
 				AllowFrom: FlexibleStringSlice{},
 			},
 			Discord: DiscordConfig{
@@ -83,12 +84,12 @@ func DefaultConfig() *Config {
 				MaxMessageLength: 2000,
 			},
 			DingTalk: DingTalkConfig{
-				Enabled:  false,
-				ClientID: "",
+				Enabled:   false,
+				ClientID:  "",
 				AllowFrom: FlexibleStringSlice{},
 			},
 			Slack: SlackConfig{
-				Enabled:  false,
+				Enabled:   false,
 				AllowFrom: FlexibleStringSlice{},
 			},
 			Matrix: MatrixConfig{
@@ -107,11 +108,11 @@ func DefaultConfig() *Config {
 				},
 			},
 			LINE: LINEConfig{
-				Enabled:     false,
-				WebhookHost: "0.0.0.0",
-				WebhookPort: 18791,
-				WebhookPath: "/webhook/line",
-				AllowFrom:   FlexibleStringSlice{},
+				Enabled:      false,
+				WebhookHost:  "0.0.0.0",
+				WebhookPort:  18791,
+				WebhookPath:  "/webhook/line",
+				AllowFrom:    FlexibleStringSlice{},
 				GroupTrigger: GroupTriggerConfig{MentionOnly: true},
 			},
 			OneBot: OneBotConfig{

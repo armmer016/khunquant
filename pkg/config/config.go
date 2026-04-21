@@ -466,6 +466,7 @@ type AgentDefaults struct {
 	ToolFeedback              ToolFeedbackConfig `json:"tool_feedback,omitempty"`
 	ContextManager            string             `json:"context_manager,omitempty"       env:"KHUNQUANT_AGENTS_DEFAULTS_CONTEXT_MANAGER"`
 	ContextManagerConfig      json.RawMessage    `json:"context_manager_config,omitempty"`
+	FollowUpNudge             bool               `json:"follow_up_nudge"                 env:"KHUNQUANT_AGENTS_DEFAULTS_FOLLOW_UP_NUDGE"`
 }
 
 const DefaultMaxMediaSize = 20 * 1024 * 1024 // 20 MB

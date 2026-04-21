@@ -102,6 +102,14 @@ export function AgentDefaultsSection({
         onCheckedChange={(checked) => onFieldChange("allowRemote", checked)}
       />
 
+      <SwitchCardField
+        label={t("pages.config.follow_up_nudge")}
+        hint={t("pages.config.follow_up_nudge_hint")}
+        layout="setting-row"
+        checked={form.followUpNudge}
+        onCheckedChange={(checked) => onFieldChange("followUpNudge", checked)}
+      />
+
       <Field
         label={t("pages.config.max_tokens")}
         hint={t("pages.config.max_tokens_hint")}

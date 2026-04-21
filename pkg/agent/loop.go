@@ -1618,6 +1618,18 @@ func (al *AgentLoop) runLLMIteration(
 			if finalContent == "" && response.ReasoningContent != "" {
 				finalContent = response.ReasoningContent
 			}
+			// Follow-up nudge: on the first iteration only, inject a steering message
+			// so the LLM gets one more chance to call a tool it said it would call.
+			// On iteration 2+ this is skipped and we break normally.
+			if agent.FollowUpNudge && iteration == 1 {
+				logger.InfoCF("agent", "Follow-up nudge: text-only response on iteration 1, injecting steering message",
+					map[string]any{"agent_id": agent.ID})
+				pendingMessages = append(pendingMessages, providers.Message{
+					Role:    "user",
+					Content: "You mentioned you would take action. Please proceed by calling the appropriate tool now. If no tool action is needed and this was a purely conversational reply, just respond naturally.",
+				})
+				continue
+			}
 			logger.InfoCF("agent", "LLM response without tool calls (direct answer)",
 				map[string]any{
 					"agent_id":      agent.ID,

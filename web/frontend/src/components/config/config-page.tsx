@@ -170,6 +170,7 @@ export function ConfigPage() {
             defaults: {
               workspace,
               restrict_to_workspace: form.restrictToWorkspace,
+              follow_up_nudge: form.followUpNudge,
               max_tokens: maxTokens,
               max_tool_iterations: maxToolIterations,
               summarize_message_threshold: summarizeMessageThreshold,

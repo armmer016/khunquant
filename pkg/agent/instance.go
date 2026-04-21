@@ -66,6 +66,10 @@ type AgentInstance struct {
 	// instances. This allows each fallback model to use its own api_base and api_key
 	// from model_list, instead of inheriting the primary model's provider config.
 	CandidateProviders map[string]providers.LLMProvider
+
+	// FollowUpNudge injects a steering message when the LLM returns a text-only
+	// response on the first iteration, giving it one more chance to call a tool.
+	FollowUpNudge bool
 }
 
 // NewAgentInstance creates an agent instance from config.
@@ -341,6 +345,7 @@ func NewAgentInstance(
 		LightCandidates:           lightCandidates,
 		LightProvider:             lightProvider,
 		CandidateProviders:        candidateProviders,
+		FollowUpNudge:             defaults.FollowUpNudge,
 	}
 }
 

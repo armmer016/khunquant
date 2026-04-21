@@ -14,6 +14,7 @@ export interface CoreConfigForm {
   heartbeatInterval: string
   devicesEnabled: boolean
   monitorUSB: boolean
+  followUpNudge: boolean
 }
 
 export const CONTEXT_MANAGER_OPTIONS = [
@@ -84,6 +85,7 @@ export const EMPTY_FORM: CoreConfigForm = {
   heartbeatInterval: "30",
   devicesEnabled: false,
   monitorUSB: true,
+  followUpNudge: false,
 }
 
 export const EMPTY_LAUNCHER_FORM: LauncherForm = {
@@ -168,6 +170,10 @@ export function buildFormFromConfig(config: unknown): CoreConfigForm {
       devices.monitor_usb === undefined
         ? EMPTY_FORM.monitorUSB
         : asBool(devices.monitor_usb),
+    followUpNudge:
+      defaults.follow_up_nudge === undefined
+        ? EMPTY_FORM.followUpNudge
+        : asBool(defaults.follow_up_nudge),
   }
 }
 
