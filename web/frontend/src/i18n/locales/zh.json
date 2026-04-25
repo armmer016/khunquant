@@ -229,7 +229,7 @@
       "modelNameHint": "用于在对话中识别此模型的简短名称。",
       "modelId": "模型标识符",
       "modelIdPlaceholder": "例如 openai/gpt-4o",
-      "modelIdHint": "格式：协议/模型ID。支持：openai、anthropic、gemini、groq、mlx_lm、 ollama、 等。",
+      "modelIdHint": "格式：协议/模型ID。支持：openai、anthropic、gemini、groq、mlx_lm、 ollama、 等\n if local llm, protocal/{your}/{model}/{path} eg. 'mlx_lm/~/.my_model/gemma4/gemma-4-E4B-it-MLX'",
       "errorRequired": "此字段为必填项。",
       "errorDuplicateModelName": "模型别名已存在，请使用其他名称。",
       "saveError": "添加模型失败",

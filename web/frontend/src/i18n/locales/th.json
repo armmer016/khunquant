@@ -183,7 +183,7 @@
       "modelNameHint": "ชื่อสั้น ๆ ที่ใช้ระบุโมเดลนี้ในการสนทนา",
       "modelId": "ตัวระบุโมเดล",
       "modelIdPlaceholder": "เช่น openai/gpt-4o",
-      "modelIdHint": "รูปแบบ: protocol/model-id รองรับ: openai, anthropic, gemini, groq, mlx_lm, ollama, …",
+      "modelIdHint": "รูปแบบ: protocol/model-id รองรับ: openai, anthropic, gemini, groq, mlx_lm, ollama, …\n ถ้าเป็นโมเดล local ให้ใช้ protocal/{your}/{model}/{path} เช่น 'mlx_lm/~/.my_model/gemma4/gemma-4-E4B-it-MLX'",
       "errorRequired": "ฟิลด์นี้จำเป็นต้องกรอก",
       "errorDuplicateModelName": "ชื่อแทนโมเดลนี้มีอยู่แล้ว กรุณาใช้ชื่ออื่น",
       "saveError": "เพิ่มโมเดลล้มเหลว",

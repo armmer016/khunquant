@@ -211,7 +211,7 @@
       "modelNameHint": "A short name used to identify this model in conversations.",
       "modelId": "Model Identifier",
       "modelIdPlaceholder": "e.g. openai/gpt-4o",
-      "modelIdHint": "Format: protocol/model-id. Supported: openai, anthropic, gemini, groq, mlx_lm, ollama, …",
+      "modelIdHint": "Format: protocol/model-id. Supported: openai, anthropic, gemini, groq, mlx_lm, ollama, …\n if local llm, protocal/{your}/{model}/{path} eg. 'mlx_lm/~/.my_model/gemma4/gemma-4-E4B-it-MLX'",
       "errorRequired": "This field is required.",
       "errorDuplicateModelName": "Model alias already exists. Please use a different name.",
       "saveError": "Failed to add model",

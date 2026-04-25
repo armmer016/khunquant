@@ -11,6 +11,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 	"time"
@@ -22,16 +24,23 @@ import (
 // Because mlx_lm loads exactly one model at startup and uses the model field
 // to decide whether to download a new model, we auto-discover the loaded model
 // ID via GET /v1/models and use that in every chat request.
+//
+// If configuredModel is non-empty, it is used as-is (no auto-discovery). This
+// is needed when the server is loaded from a local directory path: newer
+// mlx_lm versions return the HuggingFace repo ID from GET /v1/models rather
+// than the local path, causing a mismatch that triggers a download. Set
+// configuredModel to match the --model argument passed to the mlx_lm server.
 type MLXLMProvider struct {
-	delegate *openai_compat.Provider
-	apiBase  string
-	proxy    string
+	delegate        *openai_compat.Provider
+	apiBase         string
+	proxy           string
+	configuredModel string // if set, skip auto-discovery
 
 	mu              sync.Mutex
 	discoveredModel string
 }
 
-func NewMLXLMProvider(apiKey, apiBase, proxy string, requestTimeoutSeconds int) *MLXLMProvider {
+func NewMLXLMProvider(apiKey, apiBase, proxy string, requestTimeoutSeconds int, configuredModel string) *MLXLMProvider {
 	return &MLXLMProvider{
 		delegate: openai_compat.NewProvider(
 			apiKey,
@@ -39,15 +48,34 @@ func NewMLXLMProvider(apiKey, apiBase, proxy string, requestTimeoutSeconds int) 
 			proxy,
 			openai_compat.WithRequestTimeout(time.Duration(requestTimeoutSeconds)*time.Second),
 		),
-		apiBase: apiBase,
-		proxy:   proxy,
+		apiBase:         apiBase,
+		proxy:           proxy,
+		configuredModel: configuredModel,
 	}
 }
 
-// resolveModel always queries the server for the loaded model ID and caches it.
-// mlx_lm serves exactly one model at startup; the configured model name is only
-// a local alias and must not be sent to the server verbatim.
+// expandTilde expands a leading ~ to the user's home directory.
+func expandTilde(path string) string {
+	if !strings.HasPrefix(path, "~") {
+		return path
+	}
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return path
+	}
+	return filepath.Join(home, strings.TrimPrefix(path, "~"))
+}
+
+// resolveModel returns the model string to use in chat requests.
+// If configuredModel is set, it is returned immediately (no auto-discovery).
+// Leading ~ is expanded so the path matches what the mlx_lm server received
+// after shell expansion of its --model argument.
+// Otherwise, GET /v1/models is queried once and the result is cached.
 func (p *MLXLMProvider) resolveModel(ctx context.Context) string {
+	if p.configuredModel != "" {
+		return expandTilde(p.configuredModel)
+	}
+
 	p.mu.Lock()
 	defer p.mu.Unlock()
 

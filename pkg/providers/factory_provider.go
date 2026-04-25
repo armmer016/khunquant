@@ -114,12 +114,16 @@ func CreateProviderFromConfig(cfg *config.ModelConfig) (LLMProvider, string, err
 		), modelID, nil
 
 	case "mlx_lm":
-		// mlx_lm loads one model at startup; auto-discover the loaded model ID.
+		// mlx_lm loads one model at startup. If modelID is set in the config
+		// (e.g. "mlx_lm/~/.local_llm_models/gemma/my-model"), it is sent
+		// verbatim in chat requests so the server recognises the loaded model
+		// without trying to download it. If empty, the model ID is discovered
+		// automatically via GET /v1/models.
 		apiBase := cfg.APIBase
 		if apiBase == "" {
 			apiBase = getDefaultAPIBase(protocol)
 		}
-		return NewMLXLMProvider(cfg.APIKey.String(), apiBase, cfg.Proxy, cfg.RequestTimeout), modelID, nil
+		return NewMLXLMProvider(cfg.APIKey.String(), apiBase, cfg.Proxy, cfg.RequestTimeout, modelID), modelID, nil
 
 	case "litellm", "openrouter", "groq", "zhipu", "gemini", "nvidia",
 		"ollama", "moonshot", "shengsuanyun", "deepseek", "cerebras",
