@@ -448,9 +448,12 @@ export function ChannelConfigPage({ channelName }: ChannelConfigPageProps) {
       setEditConfig(preparedEditConfig)
     }
 
-    const missingRequiredFields = requiredKeys.filter((key) =>
-      isMissingRequiredValue(preparedEditConfig[key]),
-    )
+    const missingRequiredFields = requiredKeys.filter((key) => {
+      if (!isMissingRequiredValue(preparedEditConfig[key])) return false
+      const editKey = SECRET_FIELD_MAP[key]
+      if (editKey && !isMissingRequiredValue(preparedEditConfig[editKey])) return false
+      return true
+    })
     if (missingRequiredFields.length > 0) {
       const requiredFieldError = t("channels.validation.requiredField")
       const nextFieldErrors: Record<string, string> = {}
