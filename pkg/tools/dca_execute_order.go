@@ -10,9 +10,10 @@ import (
 	"github.com/cryptoquantumwave/khunquant/pkg/providers/broker"
 )
 
-// ExecuteDCAOrderTool executes one DCA purchase for a plan.
+// ExecuteDCAOrderTool executes one DCA order (buy or sell) for a plan.
 // Unlike create_order, this tool is purpose-built for autonomous DCA execution:
-// it bypasses the user-confirm gate and atomically records the trade in the DCA store.
+// it bypasses the user-confirm gate, checks indicator conditions and guardrails,
+// and atomically records the trade in the DCA store.
 type ExecuteDCAOrderTool struct {
 	cfg   *config.Config
 	store *dca.Store
@@ -25,7 +26,10 @@ func NewExecuteDCAOrderTool(cfg *config.Config, store *dca.Store) *ExecuteDCAOrd
 func (t *ExecuteDCAOrderTool) Name() string { return NameExecuteDCAOrder }
 
 func (t *ExecuteDCAOrderTool) Description() string {
-	return "Execute one DCA (Dollar Cost Averaging) purchase for a plan. Fetches the current market price, places a market buy order for the plan's configured quote amount, and records the execution. This tool is pre-authorized for DCA automation — no additional confirmation is needed when called from a scheduled DCA task."
+	return "Execute one DCA order for a plan. Supports both buy (DCA-in) and sell (DCA-out). " +
+		"For indicator-triggered plans, evaluates the TA condition before placing the order and silently skips if the condition is not met. " +
+		"Enforces guardrail limits (max executions per hour/day/week) when configured. " +
+		"Pre-authorized for DCA automation — no additional confirmation is needed."
 }
 
 func (t *ExecuteDCAOrderTool) Parameters() map[string]any {
@@ -66,12 +70,40 @@ func (t *ExecuteDCAOrderTool) Execute(ctx context.Context, args map[string]any) 
 		return ErrorResult(fmt.Sprintf("rate limit exceeded for provider %q — try again in a minute", plan.Provider))
 	}
 
+	// Guardrail: enforce max executions per period.
+	if plan.ExecPeriod != "" && plan.MaxExecPerPeriod > 0 {
+		count, err := t.store.CountExecutionsInPeriod(ctx, planID, plan.ExecPeriod)
+		if err != nil {
+			return ErrorResult(fmt.Sprintf("guardrail check failed: %v", err))
+		}
+		if count >= plan.MaxExecPerPeriod {
+			return SilentResult(fmt.Sprintf(
+				"guardrail: plan %d (%s) already executed %d/%d times this %s — skipping",
+				planID, plan.Name, count, plan.MaxExecPerPeriod, plan.ExecPeriod,
+			))
+		}
+	}
+
+	// Indicator condition check — only for indicator-triggered plans.
+	if plan.TriggerConfig != nil {
+		met, reason, err := checkDCACondition(ctx, plan, t.cfg)
+		if err != nil {
+			return t.recordFailure(ctx, plan, 0, fmt.Sprintf("condition check failed: %v", err))
+		}
+		if !met {
+			return SilentResult(fmt.Sprintf(
+				"condition not met for plan %d (%s): %s — skipping",
+				planID, plan.Name, reason,
+			))
+		}
+	}
+
 	p, err := broker.CreateProviderForAccount(plan.Provider, plan.Account, t.cfg)
 	if err != nil {
 		return t.recordFailure(ctx, plan, 0, fmt.Sprintf("failed to create provider: %v", err))
 	}
 
-	// Fetch current price to compute base amount.
+	// Fetch current price to compute order quantity.
 	md, ok := p.(broker.MarketDataProvider)
 	if !ok {
 		return t.recordFailure(ctx, plan, 0, fmt.Sprintf("provider %q does not support market data", plan.Provider))
@@ -88,7 +120,7 @@ func (t *ExecuteDCAOrderTool) Execute(ctx context.Context, args map[string]any) 
 		return t.recordFailure(ctx, plan, 0, fmt.Sprintf("invalid price %.8g for %s", currentPrice, plan.Symbol))
 	}
 
-	// Convert quote amount to base amount for market buy.
+	// For both buy and sell, base amount = quote amount / price.
 	baseAmount := plan.AmountPerOrder / currentPrice
 
 	tp, ok := p.(broker.TradingProvider)
@@ -96,7 +128,11 @@ func (t *ExecuteDCAOrderTool) Execute(ctx context.Context, args map[string]any) 
 		return t.recordFailure(ctx, plan, currentPrice, fmt.Sprintf("provider %q does not support order execution", plan.Provider))
 	}
 
-	order, err := tp.CreateOrder(ctx, plan.Symbol, "market", "buy", baseAmount, nil, nil)
+	side := plan.Side
+	if side == "" {
+		side = "buy"
+	}
+	order, err := tp.CreateOrder(ctx, plan.Symbol, "market", side, baseAmount, nil, nil)
 	if err != nil {
 		return t.recordFailure(ctx, plan, currentPrice, fmt.Sprintf("order placement failed: %v", err))
 	}
@@ -140,12 +176,13 @@ func (t *ExecuteDCAOrderTool) Execute(ctx context.Context, args map[string]any) 
 	_, _ = t.store.SaveExecution(ctx, exec)
 	_ = t.store.UpdatePlanStats(ctx, planID, actualQuote, filledQty)
 
-	out := fmt.Sprintf("DCA order executed for plan %d (%s):\n", planID, plan.Name)
+	baseAsset := split(plan.Symbol)
+	out := fmt.Sprintf("DCA %s order executed for plan %d (%s):\n", side, planID, plan.Name)
 	out += fmt.Sprintf("  Symbol:    %s\n", plan.Symbol)
 	out += fmt.Sprintf("  Order ID:  %s\n", orderID)
 	out += fmt.Sprintf("  Price:     %.8g\n", filledPrice)
-	out += fmt.Sprintf("  Qty:       %.8g %s\n", filledQty, plan.Symbol[:len(plan.Symbol)-len("/"+split(plan.Symbol))])
-	out += fmt.Sprintf("  Spent:     %.4f\n", actualQuote)
+	out += fmt.Sprintf("  Qty:       %.8g %s\n", filledQty, baseAsset)
+	out += fmt.Sprintf("  Amount:    %.4f\n", actualQuote)
 	if feeQuote > 0 {
 		out += fmt.Sprintf("  Fee:       %.6f\n", feeQuote)
 	}
@@ -156,26 +193,26 @@ func (t *ExecuteDCAOrderTool) Execute(ctx context.Context, args map[string]any) 
 func (t *ExecuteDCAOrderTool) recordFailure(ctx context.Context, plan *dca.Plan, price float64, msg string) *ToolResult {
 	now := time.Now().UTC()
 	exec := &dca.Execution{
-		PlanID:     plan.ID,
-		ExecutedAt: now,
-		Symbol:     plan.Symbol,
-		Provider:   plan.Provider,
-		Account:    plan.Account,
-		AmountQuote: plan.AmountPerOrder,
-		FilledPrice: price,
-		Status:     "failed",
-		ErrorMsg:   msg,
-		CreatedAt:  now,
+		PlanID:         plan.ID,
+		ExecutedAt:     now,
+		Symbol:         plan.Symbol,
+		Provider:       plan.Provider,
+		Account:        plan.Account,
+		AmountQuote:    plan.AmountPerOrder,
+		FilledPrice:    price,
+		Status:         "failed",
+		ErrorMsg:       msg,
+		CreatedAt:      now,
 	}
 	_, _ = t.store.SaveExecution(ctx, exec)
 	return ErrorResult(fmt.Sprintf("DCA execution failed for plan %d (%s): %s", plan.ID, plan.Name, msg))
 }
 
-// split returns the quote currency part of a symbol like "BTC/USDT" → "USDT".
+// split returns the base asset part of a symbol like "BTC/USDT" → "BTC".
 func split(symbol string) string {
-	for i := len(symbol) - 1; i >= 0; i-- {
-		if symbol[i] == '/' {
-			return symbol[i+1:]
+	for i, ch := range symbol {
+		if ch == '/' {
+			return symbol[:i]
 		}
 	}
 	return symbol

@@ -3,9 +3,11 @@ package dca
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	_ "modernc.org/sqlite"
@@ -55,6 +57,16 @@ CREATE INDEX IF NOT EXISTS idx_dca_executions_plan ON dca_executions(plan_id);
 CREATE INDEX IF NOT EXISTS idx_dca_executions_executed_at ON dca_executions(executed_at);
 `
 
+// migrations adds new columns to existing databases (idempotent — duplicate column errors are ignored).
+var migrations = []string{
+	`ALTER TABLE dca_plans ADD COLUMN side TEXT NOT NULL DEFAULT 'buy'`,
+	`ALTER TABLE dca_plans ADD COLUMN trigger_config TEXT`,
+	`ALTER TABLE dca_plans ADD COLUMN max_exec_per_period INTEGER NOT NULL DEFAULT 0`,
+	`ALTER TABLE dca_plans ADD COLUMN exec_period TEXT NOT NULL DEFAULT ''`,
+	`ALTER TABLE dca_plans ADD COLUMN notify_channel TEXT NOT NULL DEFAULT ''`,
+	`ALTER TABLE dca_plans ADD COLUMN notify_chat_id TEXT NOT NULL DEFAULT ''`,
+}
+
 // Store persists DCA plans and executions in SQLite.
 type Store struct {
 	db *sql.DB
@@ -90,6 +102,13 @@ func NewStore(workspacePath string) (*Store, error) {
 		return nil, fmt.Errorf("dca: create schema: %w", err)
 	}
 
+	for _, m := range migrations {
+		if _, err := db.Exec(m); err != nil && !strings.Contains(err.Error(), "duplicate column") {
+			db.Close()
+			return nil, fmt.Errorf("dca: migration %q: %w", m, err)
+		}
+	}
+
 	return &Store{db: db}, nil
 }
 
@@ -105,17 +124,27 @@ func (s *Store) SavePlan(ctx context.Context, plan *Plan) (int64, error) {
 		v := plan.EndDate.Format(time.RFC3339)
 		endDate = &v
 	}
+	tcJSON, err := encodeTriggerConfig(plan.TriggerConfig)
+	if err != nil {
+		return 0, err
+	}
+	side := plan.Side
+	if side == "" {
+		side = "buy"
+	}
 	res, err := s.db.ExecContext(ctx,
 		`INSERT INTO dca_plans
 		 (name, provider, account, symbol, amount_per_order, frequency_expr, timezone,
 		  cron_job_id, start_date, end_date, enabled, total_invested, total_quantity,
-		  avg_cost, created_at, updated_at)
-		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		  avg_cost, created_at, updated_at,
+		  side, trigger_config, max_exec_per_period, exec_period, notify_channel, notify_chat_id)
+		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 		plan.Name, plan.Provider, plan.Account, plan.Symbol,
 		plan.AmountPerOrder, plan.FrequencyExpr, plan.Timezone,
 		plan.CronJobID, plan.StartDate.Format(time.RFC3339), endDate,
 		boolToInt(plan.Enabled), plan.TotalInvested, plan.TotalQuantity,
 		plan.AvgCost, plan.CreatedAt.Format(time.RFC3339), plan.UpdatedAt.Format(time.RFC3339),
+		side, tcJSON, plan.MaxExecPerPeriod, plan.ExecPeriod, plan.NotifyChannel, plan.NotifyChatID,
 	)
 	if err != nil {
 		return 0, fmt.Errorf("dca: insert plan: %w", err)
@@ -135,18 +164,31 @@ func (s *Store) UpdatePlan(ctx context.Context, plan *Plan) error {
 		v := plan.EndDate.Format(time.RFC3339)
 		endDate = &v
 	}
+	tcJSON, err := encodeTriggerConfig(plan.TriggerConfig)
+	if err != nil {
+		return err
+	}
+	side := plan.Side
+	if side == "" {
+		side = "buy"
+	}
 	plan.UpdatedAt = time.Now()
-	_, err := s.db.ExecContext(ctx,
+	_, err = s.db.ExecContext(ctx,
 		`UPDATE dca_plans
 		 SET name=?, provider=?, account=?, symbol=?, amount_per_order=?,
 		     frequency_expr=?, timezone=?, cron_job_id=?, start_date=?, end_date=?,
-		     enabled=?, total_invested=?, total_quantity=?, avg_cost=?, updated_at=?
+		     enabled=?, total_invested=?, total_quantity=?, avg_cost=?, updated_at=?,
+		     side=?, trigger_config=?, max_exec_per_period=?, exec_period=?,
+		     notify_channel=?, notify_chat_id=?
 		 WHERE id=?`,
 		plan.Name, plan.Provider, plan.Account, plan.Symbol,
 		plan.AmountPerOrder, plan.FrequencyExpr, plan.Timezone,
 		plan.CronJobID, plan.StartDate.Format(time.RFC3339), endDate,
 		boolToInt(plan.Enabled), plan.TotalInvested, plan.TotalQuantity,
-		plan.AvgCost, plan.UpdatedAt.Format(time.RFC3339), plan.ID,
+		plan.AvgCost, plan.UpdatedAt.Format(time.RFC3339),
+		side, tcJSON, plan.MaxExecPerPeriod, plan.ExecPeriod,
+		plan.NotifyChannel, plan.NotifyChatID,
+		plan.ID,
 	)
 	if err != nil {
 		return fmt.Errorf("dca: update plan %d: %w", plan.ID, err)
@@ -159,7 +201,8 @@ func (s *Store) GetPlan(ctx context.Context, id int64) (*Plan, error) {
 	row := s.db.QueryRowContext(ctx,
 		`SELECT id, name, provider, account, symbol, amount_per_order, frequency_expr,
 		        timezone, cron_job_id, start_date, end_date, enabled,
-		        total_invested, total_quantity, avg_cost, created_at, updated_at
+		        total_invested, total_quantity, avg_cost, created_at, updated_at,
+		        side, trigger_config, max_exec_per_period, exec_period, notify_channel, notify_chat_id
 		 FROM dca_plans WHERE id = ?`, id)
 	p, err := scanPlan(row.Scan)
 	if err == sql.ErrNoRows {
@@ -177,7 +220,8 @@ func (s *Store) ListPlans(ctx context.Context, f QueryFilter) ([]Plan, error) {
 
 	query := `SELECT id, name, provider, account, symbol, amount_per_order, frequency_expr,
 	                  timezone, cron_job_id, start_date, end_date, enabled,
-	                  total_invested, total_quantity, avg_cost, created_at, updated_at
+	                  total_invested, total_quantity, avg_cost, created_at, updated_at,
+	                  side, trigger_config, max_exec_per_period, exec_period, notify_channel, notify_chat_id
 	          FROM dca_plans`
 	var args []any
 	if f.Enabled != nil {
@@ -315,10 +359,45 @@ func (s *Store) DeletePlan(ctx context.Context, id int64) error {
 	return nil
 }
 
-// CountExecutions returns the number of executions for a plan.
+// CountExecutions returns the total number of executions for a plan.
 func (s *Store) CountExecutions(ctx context.Context, planID int64) (int, error) {
 	var count int
 	err := s.db.QueryRowContext(ctx, `SELECT COUNT(*) FROM dca_executions WHERE plan_id = ?`, planID).Scan(&count)
+	return count, err
+}
+
+// CountExecutionsInPeriod returns the number of completed executions for a plan
+// within the current calendar period ("hour", "day", "week").
+// Returns 0 with no error when period is empty (no guardrail).
+func (s *Store) CountExecutionsInPeriod(ctx context.Context, planID int64, period string) (int, error) {
+	if period == "" {
+		return 0, nil
+	}
+	now := time.Now()
+	var since time.Time
+	switch period {
+	case "hour":
+		since = now.Truncate(time.Hour)
+	case "day":
+		y, m, d := now.Date()
+		since = time.Date(y, m, d, 0, 0, 0, 0, now.Location())
+	case "week":
+		weekday := int(now.Weekday())
+		if weekday == 0 {
+			weekday = 7
+		}
+		monday := now.AddDate(0, 0, -(weekday - 1))
+		y, m, d := monday.Date()
+		since = time.Date(y, m, d, 0, 0, 0, 0, now.Location())
+	default:
+		return 0, fmt.Errorf("dca: unknown period %q (use hour/day/week)", period)
+	}
+	var count int
+	err := s.db.QueryRowContext(ctx,
+		`SELECT COUNT(*) FROM dca_executions
+		 WHERE plan_id = ? AND status = 'completed' AND executed_at >= ?`,
+		planID, since.Format(time.RFC3339),
+	).Scan(&count)
 	return count, err
 }
 
@@ -352,12 +431,15 @@ func scanPlan(scan func(dest ...any) error) (*Plan, error) {
 	var startDate, createdAt, updatedAt string
 	var endDate *string
 	var enabledInt int
+	var tcJSON *string
 	err := scan(
 		&p.ID, &p.Name, &p.Provider, &p.Account, &p.Symbol,
 		&p.AmountPerOrder, &p.FrequencyExpr, &p.Timezone, &p.CronJobID,
 		&startDate, &endDate, &enabledInt,
 		&p.TotalInvested, &p.TotalQuantity, &p.AvgCost,
 		&createdAt, &updatedAt,
+		&p.Side, &tcJSON, &p.MaxExecPerPeriod, &p.ExecPeriod,
+		&p.NotifyChannel, &p.NotifyChatID,
 	)
 	if err != nil {
 		return nil, err
@@ -370,7 +452,28 @@ func scanPlan(scan func(dest ...any) error) (*Plan, error) {
 		t, _ := time.Parse(time.RFC3339, *endDate)
 		p.EndDate = &t
 	}
+	if tcJSON != nil && *tcJSON != "" {
+		var tc TriggerConfig
+		if err := json.Unmarshal([]byte(*tcJSON), &tc); err == nil {
+			p.TriggerConfig = &tc
+		}
+	}
+	if p.Side == "" {
+		p.Side = "buy"
+	}
 	return &p, nil
+}
+
+func encodeTriggerConfig(tc *TriggerConfig) (*string, error) {
+	if tc == nil {
+		return nil, nil
+	}
+	b, err := json.Marshal(tc)
+	if err != nil {
+		return nil, fmt.Errorf("dca: marshal trigger_config: %w", err)
+	}
+	s := string(b)
+	return &s, nil
 }
 
 func boolToInt(b bool) int {
