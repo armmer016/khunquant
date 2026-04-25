@@ -31,6 +31,7 @@ import (
 	_ "github.com/cryptoquantumwave/khunquant/pkg/channels/whatsapp_native"
 	"github.com/cryptoquantumwave/khunquant/pkg/config"
 	"github.com/cryptoquantumwave/khunquant/pkg/cron"
+	"github.com/cryptoquantumwave/khunquant/pkg/dca"
 	"github.com/cryptoquantumwave/khunquant/pkg/devices"
 	_ "github.com/cryptoquantumwave/khunquant/pkg/exchanges/binance"
 	_ "github.com/cryptoquantumwave/khunquant/pkg/exchanges/binanceth"
@@ -665,6 +666,44 @@ func setupCronTool(
 	}
 	if cfg.Tools.IsToolEnabled("set_indicator_alert") {
 		agentLoop.RegisterTool(tools.NewSetIndicatorAlertTool(cfg, cronService))
+	}
+
+	// DCA tools (Track E) — require cron service + dedicated SQLite store.
+	dcaEnabled := cfg.Tools.IsToolEnabled("create_dca_plan") ||
+		cfg.Tools.IsToolEnabled("list_dca_plans") ||
+		cfg.Tools.IsToolEnabled("update_dca_plan") ||
+		cfg.Tools.IsToolEnabled("delete_dca_plan") ||
+		cfg.Tools.IsToolEnabled("execute_dca_order") ||
+		cfg.Tools.IsToolEnabled("get_dca_history") ||
+		cfg.Tools.IsToolEnabled("get_dca_summary")
+	if dcaEnabled {
+		dcaStore, dcaErr := dca.NewStore(workspace)
+		if dcaErr != nil {
+			logger.ErrorCF("gateway", "Failed to open DCA store; DCA tools disabled",
+				map[string]any{"error": dcaErr.Error()})
+		} else {
+			if cfg.Tools.IsToolEnabled("create_dca_plan") {
+				agentLoop.RegisterTool(tools.NewCreateDCAPlanTool(cfg, dcaStore, cronService))
+			}
+			if cfg.Tools.IsToolEnabled("list_dca_plans") {
+				agentLoop.RegisterTool(tools.NewListDCAPlansTool(dcaStore))
+			}
+			if cfg.Tools.IsToolEnabled("update_dca_plan") {
+				agentLoop.RegisterTool(tools.NewUpdateDCAPlanTool(dcaStore, cronService))
+			}
+			if cfg.Tools.IsToolEnabled("delete_dca_plan") {
+				agentLoop.RegisterTool(tools.NewDeleteDCAPlanTool(dcaStore, cronService))
+			}
+			if cfg.Tools.IsToolEnabled("execute_dca_order") {
+				agentLoop.RegisterTool(tools.NewExecuteDCAOrderTool(cfg, dcaStore))
+			}
+			if cfg.Tools.IsToolEnabled("get_dca_history") {
+				agentLoop.RegisterTool(tools.NewGetDCAHistoryTool(dcaStore))
+			}
+			if cfg.Tools.IsToolEnabled("get_dca_summary") {
+				agentLoop.RegisterTool(tools.NewGetDCASummaryTool(cfg, dcaStore))
+			}
+		}
 	}
 
 	return cronService

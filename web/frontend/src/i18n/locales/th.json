@@ -466,7 +466,8 @@
         "placeholder": "กรอกเนื้อหา markdown...",
         "tabs": {
           "general": "ทั่วไป",
-          "snapshot": "Snapshot"
+          "snapshot": "Assets Snapshot",
+          "dca_snapshot": "DCA Snapshot"
         },
         "snapshot": {
           "empty": "ไม่พบ snapshot",

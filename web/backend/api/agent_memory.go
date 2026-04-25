@@ -240,6 +240,7 @@ func (h *Handler) handleCreateMemoryFile(w http.ResponseWriter, r *http.Request)
 type agentMemorySizeInfo struct {
 	GeneralBytes  int64 `json:"general_bytes"`
 	SnapshotBytes int64 `json:"snapshot_bytes"`
+	DCABytes      int64 `json:"dca_bytes"`
 	TotalBytes    int64 `json:"total_bytes"`
 }
 
@@ -251,14 +252,15 @@ func (h *Handler) handleMemorySize(w http.ResponseWriter, r *http.Request) {
 	}
 
 	snapshotsDir := filepath.Join(memDir, "snapshots")
+	dcaDir := filepath.Join(memDir, "dca")
 
 	var generalBytes int64
 	filepath.WalkDir(memDir, func(path string, d os.DirEntry, err error) error { //nolint:errcheck
 		if err != nil {
 			return nil
 		}
-		// Skip the snapshots subdirectory entirely
-		if d.IsDir() && path == snapshotsDir {
+		// Skip the snapshots and dca subdirectories entirely
+		if d.IsDir() && (path == snapshotsDir || path == dcaDir) {
 			return filepath.SkipDir
 		}
 		if !d.IsDir() {
@@ -282,11 +284,25 @@ func (h *Handler) handleMemorySize(w http.ResponseWriter, r *http.Request) {
 		return nil
 	})
 
+	var dcaBytes int64
+	filepath.WalkDir(dcaDir, func(path string, d os.DirEntry, err error) error { //nolint:errcheck
+		if err != nil {
+			return nil
+		}
+		if !d.IsDir() {
+			if info, err := d.Info(); err == nil {
+				dcaBytes += info.Size()
+			}
+		}
+		return nil
+	})
+
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(agentMemorySizeInfo{
 		GeneralBytes:  generalBytes,
 		SnapshotBytes: snapshotBytes,
-		TotalBytes:    generalBytes + snapshotBytes,
+		DCABytes:      dcaBytes,
+		TotalBytes:    generalBytes + snapshotBytes + dcaBytes,
 	})
 }
 

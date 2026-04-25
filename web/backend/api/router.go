@@ -74,6 +74,9 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 	// Agent snapshot store (workspace/memory/snapshots/snapshots.db)
 	h.registerAgentSnapshotRoutes(mux)
 
+	// Agent DCA plans (workspace/memory/dca/dca.db)
+	h.registerAgentDCARoutes(mux)
+
 	// Skills and tools support/actions
 	h.registerSkillRoutes(mux)
 	h.registerToolRoutes(mux)

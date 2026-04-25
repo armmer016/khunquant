@@ -58,6 +58,15 @@ const (
 
 	// Security
 	NameConfigEncryptKeys = "config_encrypt_keys"
+
+	// DCA — Dollar Cost Averaging (Track E)
+	NameCreateDCAPlan   = "create_dca_plan"
+	NameListDCAPlans    = "list_dca_plans"
+	NameUpdateDCAPlan   = "update_dca_plan"
+	NameDeleteDCAPlan   = "delete_dca_plan"
+	NameExecuteDCAOrder = "execute_dca_order"
+	NameGetDCAHistory   = "get_dca_history"
+	NameGetDCASummary   = "get_dca_summary"
 )
 
 // Category constants for the web UI tool catalog.

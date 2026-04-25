@@ -603,7 +603,8 @@
         "placeholder": "输入 Markdown 内容...",
         "tabs": {
           "general": "通用",
-          "snapshot": "快照"
+          "snapshot": "资产快照",
+          "dca_snapshot": "DCA 快照"
         },
         "snapshot": {
           "empty": "未找到快照。",

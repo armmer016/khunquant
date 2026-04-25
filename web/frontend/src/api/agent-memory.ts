@@ -76,6 +76,7 @@ export async function deleteMemoryFile(path: string): Promise<void> {
 export interface MemorySize {
   general_bytes: number
   snapshot_bytes: number
+  dca_bytes: number
   total_bytes: number
 }
 
