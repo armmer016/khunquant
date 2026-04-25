@@ -231,6 +231,16 @@ func (cb *ContextBuilder) EstimateSystemTokens(summary string, activeSkills []st
 	return totalChars * 2 / 5 // same heuristic as tokenizer.EstimateMessageTokens
 }
 
+// buildActiveSkillsContext returns the skills context text for a given set of
+// active skill names. When activeSkills is nil the full installed skills content
+// is returned (matches the common case in EstimateSystemTokens).
+func (cb *ContextBuilder) buildActiveSkillsContext(activeSkills []string) string {
+	if cb.skillsLoader == nil {
+		return ""
+	}
+	return cb.skillsLoader.BuildSkillsFullContent()
+}
+
 // InvalidateCache clears the cached system prompt.
 // Normally not needed because the cache auto-invalidates via mtime checks,
 // but this is useful for tests or explicit reload commands.

@@ -236,7 +236,7 @@ func TestToolResultContentForLLM_AppendsHandledDeliveryNote(t *testing.T) {
 	if !strings.Contains(content, "Screenshot attached.") {
 		t.Fatalf("expected original content in ContentForLLM, got %q", content)
 	}
-	if !strings.Contains(content, handledToolLLMNote) {
+	if !strings.Contains(content, HandledToolLLMNote) {
 		t.Fatalf("expected handled delivery note in ContentForLLM, got %q", content)
 	}
 }
@@ -244,8 +244,8 @@ func TestToolResultContentForLLM_AppendsHandledDeliveryNote(t *testing.T) {
 func TestToolResultContentForLLM_UsesHandledDeliveryNoteWhenEmpty(t *testing.T) {
 	result := (&ToolResult{}).WithResponseHandled()
 
-	if got := result.ContentForLLM(); got != handledToolLLMNote {
-		t.Fatalf("ContentForLLM() = %q, want %q", got, handledToolLLMNote)
+	if got := result.ContentForLLM(); got != HandledToolLLMNote {
+		t.Fatalf("ContentForLLM() = %q, want %q", got, HandledToolLLMNote)
 	}
 }
 
@@ -262,7 +262,7 @@ func TestToolResultContentForLLM_AppendsArtifactPaths(t *testing.T) {
 	if !strings.Contains(content, "Local artifact paths: [file:/tmp/example.png]") {
 		t.Fatalf("expected artifact path note in ContentForLLM, got %q", content)
 	}
-	if !strings.Contains(content, artifactPathsLLMNote) {
+	if !strings.Contains(content, ArtifactPathsLLMNote) {
 		t.Fatalf("expected artifact guidance note in ContentForLLM, got %q", content)
 	}
 }

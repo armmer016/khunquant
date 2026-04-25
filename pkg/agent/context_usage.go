@@ -1,7 +1,8 @@
 package agent
 
 import (
-	"github.com/sipeed/picoclaw/pkg/bus"
+	"github.com/cryptoquantumwave/khunquant/pkg/bus"
+	"github.com/cryptoquantumwave/khunquant/pkg/tokenizer"
 )
 
 // computeContextUsage estimates current context window consumption for the
@@ -27,7 +28,7 @@ func computeContextUsage(agent *AgentInstance, sessionKey string) *bus.ContextUs
 	history := agent.Sessions.GetHistory(sessionKey)
 	historyTokens := 0
 	for _, m := range history {
-		historyTokens += EstimateMessageTokens(m)
+		historyTokens += tokenizer.EstimateMessageTokens(m)
 	}
 
 	// System message tokens: uses EstimateSystemTokens which mirrors
@@ -45,7 +46,7 @@ func computeContextUsage(agent *AgentInstance, sessionKey string) *bus.ContextUs
 	// Tool definition tokens
 	toolTokens := 0
 	if agent.Tools != nil {
-		toolTokens = EstimateToolDefsTokens(agent.Tools.ToProviderDefs())
+		toolTokens = tokenizer.EstimateToolDefsTokens(agent.Tools.ToProviderDefs())
 	}
 
 	// Used = history + system (includes summary) + tools

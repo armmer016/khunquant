@@ -7,15 +7,13 @@ import (
 	"runtime"
 	"testing"
 	"time"
-
-	"github.com/sipeed/picoclaw/pkg/config"
 )
 
 func setTestAuthHome(t *testing.T) string {
 	t.Helper()
 
 	tmpDir := t.TempDir()
-	t.Setenv(config.EnvHome, filepath.Join(tmpDir, ".picoclaw"))
+	t.Setenv("KHUNQUANT_HOME", filepath.Join(tmpDir, ".khunquant"))
 	return tmpDir
 }
 
@@ -207,7 +205,7 @@ func TestGetCredentialCanonicalizesLegacyAntigravityProvider(t *testing.T) {
 	if err != nil {
 		t.Fatalf("json.Marshal() error: %v", err)
 	}
-	path := filepath.Join(tmpDir, ".picoclaw", "auth.json")
+	path := filepath.Join(tmpDir, ".khunquant", "auth.json")
 	err = os.MkdirAll(filepath.Dir(path), 0o755)
 	if err != nil {
 		t.Fatalf("MkdirAll() error: %v", err)
@@ -260,7 +258,7 @@ func TestLoadStoreMergesAntigravityAliasesPreferringNewerExpiry(t *testing.T) {
 	if err != nil {
 		t.Fatalf("json.Marshal() error: %v", err)
 	}
-	path := filepath.Join(tmpDir, ".picoclaw", "auth.json")
+	path := filepath.Join(tmpDir, ".khunquant", "auth.json")
 	err = os.MkdirAll(filepath.Dir(path), 0o755)
 	if err != nil {
 		t.Fatalf("MkdirAll() error: %v", err)
@@ -326,7 +324,7 @@ func TestLoadStorePrefersCanonicalKeyWhenExpiryMatchesAlias(t *testing.T) {
 	if err != nil {
 		t.Fatalf("json.Marshal() error: %v", err)
 	}
-	path := filepath.Join(tmpDir, ".picoclaw", "auth.json")
+	path := filepath.Join(tmpDir, ".khunquant", "auth.json")
 	err = os.MkdirAll(filepath.Dir(path), 0o755)
 	if err != nil {
 		t.Fatalf("MkdirAll() error: %v", err)
@@ -379,7 +377,7 @@ func TestSetCredentialReplacesLegacyAntigravityEntry(t *testing.T) {
 	if err != nil {
 		t.Fatalf("json.Marshal() error: %v", err)
 	}
-	path := filepath.Join(tmpDir, ".picoclaw", "auth.json")
+	path := filepath.Join(tmpDir, ".khunquant", "auth.json")
 	err = os.MkdirAll(filepath.Dir(path), 0o755)
 	if err != nil {
 		t.Fatalf("MkdirAll() error: %v", err)
@@ -436,7 +434,7 @@ func TestDeleteCredentialRemovesLegacyAntigravityAlias(t *testing.T) {
 	if err != nil {
 		t.Fatalf("json.Marshal() error: %v", err)
 	}
-	path := filepath.Join(tmpDir, ".picoclaw", "auth.json")
+	path := filepath.Join(tmpDir, ".khunquant", "auth.json")
 	err = os.MkdirAll(filepath.Dir(path), 0o755)
 	if err != nil {
 		t.Fatalf("MkdirAll() error: %v", err)

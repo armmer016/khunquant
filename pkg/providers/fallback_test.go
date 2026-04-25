@@ -279,7 +279,7 @@ func assertFallbackErrorFallsBack(
 	t.Helper()
 
 	ct := NewCooldownTracker()
-	fc := NewFallbackChain(ct, nil)
+	fc := NewFallbackChain(ct)
 
 	candidates := []FallbackCandidate{
 		makeCandidate(primaryProvider, primaryModel),

@@ -475,7 +475,7 @@ func TestWebTool_WebFetch_AllowsLoopbackProxy(t *testing.T) {
 	}))
 	defer proxy.Close()
 
-	tool, err := NewWebFetchToolWithProxy(50000, proxy.URL, format, testFetchLimit, nil)
+	tool, err := NewWebFetchToolWithProxy(50000, proxy.URL, testFetchLimit)
 	if err != nil {
 		t.Fatalf("Failed to create web fetch tool: %v", err)
 	}
