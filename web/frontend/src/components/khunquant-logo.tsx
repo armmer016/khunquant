@@ -9,16 +9,20 @@ const sizeMap = {
 
 interface KhunquantLogoProps {
   size?: keyof typeof sizeMap
+  theme?: 'light' | 'dark'
 }
 
-export function KhunquantLogo({ size = "md" }: KhunquantLogoProps) {
+export function KhunquantLogo({ size = "md", theme = "light" }: KhunquantLogoProps) {
   const { img, text } = sizeMap[size]
+  const logoSrc = theme === 'dark' ? "/khunquant_brand_white.svg" : "/khunquant_brand_dark.svg";
+   const textColor = theme === 'dark' ? "#ffffff" : "#000000";
+   const textColor2 = theme === 'dark' ? "#3762e1" : "#0c2d90";
   return (
-    <Link to="/" className="flex items-center gap-2">
-      <img className={img} src="/khunquant-logo.png" alt="Logo" />
+    <Link to="/" className="flex items-center ">
+      <img className={img} src={logoSrc} alt="Logo" />
       <span className={`${text} font-bold tracking-tight`}>
-        <span style={{ color: "#3e5db9" }}>Khun</span>
-        <span style={{ color: "#ffffff" }}>Quant</span>
+        <span style={{ color: textColor2 }}>Khun</span>
+        <span style={{ color: textColor }}>Quant</span>
       </span>
     </Link>
   )

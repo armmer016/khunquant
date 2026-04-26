@@ -38,6 +38,12 @@ i18n
     fallbackLng: "en",
     debug: false,
 
+    detection: {
+      order: ["cookie"],
+      caches: ["cookie"],
+      cookieMinutes: 525600, // 1 year
+    },
+
     interpolation: {
       escapeValue: false, // not needed for react as it escapes by default
     },

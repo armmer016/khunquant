@@ -88,7 +88,7 @@ export function AppHeader() {
           <IconMenu2 />
         </SidebarTrigger>
         <div className="hidden shrink-0 items-center gap-2 sm:flex">
-          <KhunquantLogo />
+          <KhunquantLogo size="lg" theme={theme} />
         </div>
       </div>
 
