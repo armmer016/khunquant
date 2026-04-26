@@ -7,6 +7,7 @@ import { getAppConfig, patchAppConfig } from "@/api/channels"
 import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { useAtomValue } from "jotai"
 import { gatewayAtom } from "@/store/gateway"
@@ -91,7 +92,7 @@ function emptySettradeAccount(): SettradeAccountDraft {
   return {
     ...emptyAccount(),
     brokerId: "",
-    appCode: "",
+    appCode: "ALGO_EQ",
     accountNo: "",
     pin: "",
     pinEdit: "",
@@ -191,6 +192,34 @@ function getExchangeDisplayName(name: string): string {
       return name.charAt(0).toUpperCase() + name.slice(1)
   }
 }
+
+// ── Settrade static data ───────────────────────────────────────────────────
+
+const SETTRADE_BROKERS = [
+  { id: "008", name: "ASP" },
+  { id: "038", name: "BYD" },
+  { id: "007", name: "CGSI" },
+  { id: "063", name: "Classic Ausiris" },
+  { id: "032", name: "DAOL SEC" },
+  { id: "025", name: "Globlex" },
+  { id: "023", name: "INVX" },
+  { id: "013", name: "KGI" },
+  { id: "015", name: "Kingsford" },
+  { id: "029", name: "Krungsri" },
+  { id: "018", name: "KTX" },
+  { id: "060", name: "MTSGF" },
+  { id: "003", name: "Pi" },
+  { id: "034", name: "PST" },
+  { id: "022", name: "Trinity" },
+  { id: "026", name: "UOB" },
+  { id: "062", name: "YLG" },
+  { id: "019", name: "Yuanta" },
+]
+
+const SETTRADE_APP_CODES = [
+  { value: "ALGO_EQ", label: "ALGO_EQ (Equity)" },
+  { value: "ALGO", label: "ALGO (Derivatives)" },
+]
 
 // ── Account card ───────────────────────────────────────────────────────────
 
@@ -295,21 +324,41 @@ function AccountCard({
             <div className="flex items-center justify-between px-4 py-3">
               <p className="text-sm">{t("portfolios.settrade.broker_id")}</p>
               <div className="w-64">
-                <Input
+                <Select
                   value={stAcc.brokerId ?? ""}
-                  placeholder={t("portfolios.settrade.broker_id_placeholder")}
-                  onChange={(e) => onChange({ brokerId: e.target.value })}
-                />
+                  onValueChange={(v) => onChange({ brokerId: v })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder={t("portfolios.settrade.broker_id_placeholder")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {SETTRADE_BROKERS.map((b) => (
+                      <SelectItem key={b.id} value={b.id}>
+                        {b.name} ({b.id})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
             <div className="flex items-center justify-between px-4 py-3">
               <p className="text-sm">{t("portfolios.settrade.app_code")}</p>
               <div className="w-64">
-                <Input
+                <Select
                   value={stAcc.appCode ?? ""}
-                  placeholder={t("portfolios.settrade.app_code_placeholder")}
-                  onChange={(e) => onChange({ appCode: e.target.value })}
-                />
+                  onValueChange={(v) => onChange({ appCode: v })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder={t("portfolios.settrade.app_code_placeholder")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {SETTRADE_APP_CODES.map((c) => (
+                      <SelectItem key={c.value} value={c.value}>
+                        {c.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
             <div className="flex items-center justify-between px-4 py-3">
