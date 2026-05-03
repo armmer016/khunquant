@@ -16,6 +16,7 @@ import (
 
 	"github.com/cryptoquantumwave/khunquant/pkg/config"
 	"github.com/cryptoquantumwave/khunquant/pkg/logger"
+	"github.com/cryptoquantumwave/khunquant/pkg/utils"
 )
 
 // Name is the canonical provider identifier used in config and tool calls.
@@ -76,9 +77,13 @@ func NewSettradeClient(cfg config.SettradeExchangeAccount) (*SettradeClient, err
 		return nil, err
 	}
 
+	httpClient, err := utils.CreateHTTPClient(cfg.Proxy, 30*time.Second)
+	if err != nil {
+		return nil, fmt.Errorf("settrade: %w", err)
+	}
 	return &SettradeClient{
 		cfg:        cfg,
-		httpClient: &http.Client{Timeout: 30 * time.Second},
+		httpClient: httpClient,
 		privateKey: key,
 	}, nil
 }

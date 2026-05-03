@@ -492,6 +492,19 @@ func (cs *CronService) RunJobNow(jobID string) bool {
 	return true
 }
 
+func (cs *CronService) GetJob(jobID string) *CronJob {
+	cs.mu.RLock()
+	defer cs.mu.RUnlock()
+
+	for i := range cs.store.Jobs {
+		if cs.store.Jobs[i].ID == jobID {
+			cp := cs.store.Jobs[i]
+			return &cp
+		}
+	}
+	return nil
+}
+
 func (cs *CronService) ListJobs(includeDisabled bool) []CronJob {
 	cs.mu.RLock()
 	defer cs.mu.RUnlock()

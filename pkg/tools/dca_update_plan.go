@@ -36,6 +36,7 @@ func (t *UpdateDCAPlanTool) Parameters() map[string]any {
 		"type": "object",
 		"properties": map[string]any{
 			"plan_id": map[string]any{"type": "integer", "description": "ID of the plan to update."},
+			"name":    map[string]any{"type": "string", "description": "Rename the plan. Also updates the cron job label."},
 			"enabled": map[string]any{"type": "boolean", "description": "Enable or disable the plan."},
 			"schedule": map[string]any{
 				"type":        "object",
@@ -125,6 +126,11 @@ func (t *UpdateDCAPlanTool) Execute(ctx context.Context, args map[string]any) *T
 	}
 
 	changed := false
+
+	if v, ok := args["name"].(string); ok && v != "" {
+		plan.Name = v
+		changed = true
+	}
 
 	if v, ok := args["enabled"].(bool); ok {
 		plan.Enabled = v
@@ -267,6 +273,13 @@ func (t *UpdateDCAPlanTool) Execute(ctx context.Context, args map[string]any) *T
 	plan.UpdatedAt = time.Now().UTC()
 	if err := t.store.UpdatePlan(ctx, plan); err != nil {
 		return ErrorResult(fmt.Sprintf("failed to update plan: %v", err))
+	}
+
+	// Sync cron job name and message to reflect any plan renames.
+	if job := t.cronService.GetJob(plan.CronJobID); job != nil {
+		job.Name = fmt.Sprintf("dca:%d:%s", plan.ID, plan.Name)
+		job.Payload.Message = fmt.Sprintf("[DCA-AUTO] Execute plan: %s plan_id=%d", plan.Name, plan.ID)
+		_ = t.cronService.UpdateJob(job)
 	}
 
 	status := "enabled"

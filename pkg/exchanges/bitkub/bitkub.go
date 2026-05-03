@@ -18,6 +18,7 @@ import (
 
 	"github.com/cryptoquantumwave/khunquant/pkg/config"
 	"github.com/cryptoquantumwave/khunquant/pkg/exchanges"
+	"github.com/cryptoquantumwave/khunquant/pkg/utils"
 )
 
 // Name is the canonical identifier for this exchange.
@@ -35,10 +36,14 @@ type BitkubExchange struct {
 // If credentials are empty, a public-only instance is created for market data endpoints.
 func NewBitkubExchange(creds config.ExchangeAccount) (*BitkubExchange, error) {
 	hasAuth := creds.APIKey.String() != "" && creds.Secret.String() != ""
+	client, err := utils.CreateHTTPClient(creds.Proxy, 15*time.Second)
+	if err != nil {
+		return nil, fmt.Errorf("bitkub: %w", err)
+	}
 	return &BitkubExchange{
 		apiKey:    creds.APIKey.String(),
 		apiSecret: creds.Secret.String(),
-		client:    &http.Client{Timeout: 15 * time.Second},
+		client:    client,
 		hasAuth:   hasAuth,
 	}, nil
 }

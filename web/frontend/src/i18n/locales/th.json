@@ -642,6 +642,10 @@
     "saveError": "บันทึกการตั้งค่าพอร์ตโฟลิโอล้มเหลว",
     "loadError": "โหลดการตั้งค่าพอร์ตโฟลิโอล้มเหลว",
     "notFound": "ไม่พบ Exchange \"{{name}}\"",
+    "proxy": "Proxy ขาออก (ไม่บังคับ)",
+    "proxy_description": "ส่ง request ไปยัง Exchange ผ่าน Proxy เพื่อ whitelist IP ตั้งค่า API Key ของ Exchange ให้อนุญาตเฉพาะ IP ของ Proxy Server เพื่อเพิ่มความปลอดภัย",
+    "proxy_hint": "URL ของ Proxy สำหรับส่ง request ไปยัง Exchange (ไม่บังคับ) ใช้สำหรับ whitelist IP ผ่าน VPS รองรับ: http://, https://, socks5://",
+    "proxy_placeholder": "http://vps-ip:3128",
     "status": {
       "enabled": "เปิดใช้งาน",
       "configured": "กำหนดค่าแล้ว"

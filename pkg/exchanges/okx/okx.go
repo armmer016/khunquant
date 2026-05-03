@@ -41,6 +41,18 @@ func NewOKXExchange(creds config.OKXExchangeAccount, testnet bool) (*OKXExchange
 	client := ccxt.NewOkx(ccxtCreds)
 	publicClient := ccxt.NewOkx(nil)
 
+	if creds.Proxy != "" {
+		isHTTPS := strings.HasPrefix(strings.ToLower(creds.Proxy), "https")
+		for _, ex := range []*ccxt.Okx{client, publicClient} {
+			if isHTTPS {
+				ex.HttpsProxy = creds.Proxy
+			} else {
+				ex.HttpProxy = creds.Proxy
+			}
+			ex.UpdateProxySettings()
+		}
+	}
+
 	if testnet {
 		client.SetSandboxMode(true)
 		publicClient.SetSandboxMode(true)

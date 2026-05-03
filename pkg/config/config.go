@@ -146,6 +146,7 @@ type ExchangeAccount struct {
 	APIKey      SecureString      `json:"api_key,omitzero"      yaml:"api_key,omitempty"`
 	Secret      SecureString      `json:"secret,omitzero"       yaml:"secret,omitempty"`
 	Permissions []PermissionScope `json:"permissions,omitempty" yaml:"-"`
+	Proxy       string            `json:"proxy,omitempty"       yaml:"-"` // e.g. "http://vps:3128" or "socks5://127.0.0.1:1080"
 }
 
 // HasPermission returns true if the account has the requested scope.

@@ -50,6 +50,27 @@ func NewBinanceExchange(creds config.ExchangeAccount, testnet bool) (*BinanceExc
 	usdm.ExtendExchangeOptions(noSymbolWarn)
 	coinm.ExtendExchangeOptions(noSymbolWarn)
 
+	if creds.Proxy != "" {
+		isHTTPS := strings.HasPrefix(strings.ToLower(creds.Proxy), "https")
+		for _, ex := range []*ccxt.Binance{spot, publicSpot} {
+			if isHTTPS {
+				ex.HttpsProxy = creds.Proxy
+			} else {
+				ex.HttpProxy = creds.Proxy
+			}
+			ex.UpdateProxySettings()
+		}
+		if isHTTPS {
+			usdm.HttpsProxy = creds.Proxy
+			coinm.HttpsProxy = creds.Proxy
+		} else {
+			usdm.HttpProxy = creds.Proxy
+			coinm.HttpProxy = creds.Proxy
+		}
+		usdm.UpdateProxySettings()
+		coinm.UpdateProxySettings()
+	}
+
 	if testnet {
 		spot.SetSandboxMode(true)
 		usdm.SetSandboxMode(true)

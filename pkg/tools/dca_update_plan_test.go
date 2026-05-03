@@ -355,3 +355,95 @@ func TestUpdateDCAPlan_InvalidCronExpr(t *testing.T) {
 	}
 }
 
+// TestUpdateDCAPlan_TriggerUpdate_SyncsCronJob verifies that updating only the
+// trigger (no schedule change) still syncs the cron job's Name and
+// Payload.Message so the web UI reflects the current plan state.
+func TestUpdateDCAPlan_TriggerUpdate_SyncsCronJob(t *testing.T) {
+	store := newTestDCAStore(t)
+	cronSvc := newTestCronService(t)
+	planID, jobID := seedPlanWithJob(t, store, cronSvc)
+	tool := newTestUpdatePlanTool(t, store, cronSvc)
+
+	result := tool.Execute(testCtx(), map[string]any{
+		"plan_id": float64(planID),
+		"trigger": map[string]any{
+			"timeframe":  "5m",
+			"expression": "rsi14 < 40",
+			"indicators": []any{
+				map[string]any{"alias": "rsi14", "kind": "rsi", "params": map[string]any{"period": float64(14)}},
+			},
+		},
+	})
+	if result.IsError {
+		t.Fatalf("unexpected error: %s", result.ForLLM)
+	}
+
+	// Trigger must be persisted.
+	got, _ := store.GetPlan(context.Background(), planID)
+	if got.Trigger == nil {
+		t.Fatal("expected Trigger to be set after update")
+	}
+	if got.Trigger.Expression != "rsi14 < 40" {
+		t.Errorf("Trigger.Expression = %q, want rsi14 < 40", got.Trigger.Expression)
+	}
+
+	// Cron job ID must NOT change (schedule didn't change).
+	if got.CronJobID != jobID {
+		t.Errorf("CronJobID changed unexpectedly: got %q want %q", got.CronJobID, jobID)
+	}
+
+	// Cron job metadata must be synced to the current plan name.
+	job := cronSvc.GetJob(jobID)
+	if job == nil {
+		t.Fatal("cron job not found after trigger update")
+	}
+	wantName := fmt.Sprintf("dca:%d:%s", planID, got.Name)
+	if job.Name != wantName {
+		t.Errorf("cron job Name = %q, want %q", job.Name, wantName)
+	}
+	wantMsg := fmt.Sprintf("[DCA-AUTO] Execute plan: %s plan_id=%d", got.Name, planID)
+	if job.Payload.Message != wantMsg {
+		t.Errorf("cron job Payload.Message = %q, want %q", job.Payload.Message, wantMsg)
+	}
+}
+
+// TestUpdateDCAPlan_Rename_SyncsCronJob verifies that renaming a plan also
+// updates the cron job Name and Payload.Message so the web UI shows the new name.
+func TestUpdateDCAPlan_Rename_SyncsCronJob(t *testing.T) {
+	store := newTestDCAStore(t)
+	cronSvc := newTestCronService(t)
+	planID, jobID := seedPlanWithJob(t, store, cronSvc)
+	tool := newTestUpdatePlanTool(t, store, cronSvc)
+
+	result := tool.Execute(testCtx(), map[string]any{
+		"plan_id": float64(planID),
+		"name":    "TON RSI 40 Buy Plan",
+	})
+	if result.IsError {
+		t.Fatalf("unexpected error: %s", result.ForLLM)
+	}
+
+	got, _ := store.GetPlan(context.Background(), planID)
+	if got.Name != "TON RSI 40 Buy Plan" {
+		t.Errorf("plan Name = %q, want TON RSI 40 Buy Plan", got.Name)
+	}
+
+	// Cron job ID must stay the same (only name changed).
+	if got.CronJobID != jobID {
+		t.Errorf("CronJobID changed unexpectedly after rename")
+	}
+
+	job := cronSvc.GetJob(jobID)
+	if job == nil {
+		t.Fatal("cron job not found after rename")
+	}
+	wantName := fmt.Sprintf("dca:%d:TON RSI 40 Buy Plan", planID)
+	if job.Name != wantName {
+		t.Errorf("cron job Name = %q, want %q", job.Name, wantName)
+	}
+	wantMsg := fmt.Sprintf("[DCA-AUTO] Execute plan: TON RSI 40 Buy Plan plan_id=%d", planID)
+	if job.Payload.Message != wantMsg {
+		t.Errorf("cron job Payload.Message = %q, want %q", job.Payload.Message, wantMsg)
+	}
+}
+

@@ -36,6 +36,7 @@ interface AccountDraft {
   apiKeyEdit: string
   secret: string
   secretEdit: string
+  proxy: string
 }
 
 interface OKXAccountDraft extends AccountDraft {
@@ -81,7 +82,7 @@ interface SettradeForm extends ExchangeForm {
 // ── Helpers ────────────────────────────────────────────────────────────────
 
 function emptyAccount(): AccountDraft {
-  return { name: "", apiKey: "", apiKeyEdit: "", secret: "", secretEdit: "" }
+  return { name: "", apiKey: "", apiKeyEdit: "", secret: "", secretEdit: "", proxy: "" }
 }
 
 function emptyOKXAccount(): OKXAccountDraft {
@@ -109,6 +110,7 @@ function parseAccounts(raw: unknown): AccountDraft[] {
       apiKeyEdit: "",
       secret: typeof r.secret === "string" ? r.secret : "",
       secretEdit: "",
+      proxy: typeof r.proxy === "string" ? r.proxy : "",
     }
   })
 }
@@ -125,6 +127,7 @@ function parseOKXAccounts(raw: unknown): OKXAccountDraft[] {
       secretEdit: "",
       passphrase: typeof r.passphrase === "string" ? r.passphrase : "",
       passphraseEdit: "",
+      proxy: typeof r.proxy === "string" ? r.proxy : "",
     }
   })
 }
@@ -137,6 +140,7 @@ function serializeAccount(acc: AccountDraft) {
     ...(acc.name.trim() !== "" ? { name: acc.name.trim() } : {}),
     api_key: apiKey,
     secret: secret,
+    proxy: acc.proxy.trim(),
   }
 }
 
@@ -172,6 +176,7 @@ function parseSettradeAccounts(raw: unknown): SettradeAccountDraft[] {
       accountNo: typeof r.account_no === "string" ? r.account_no : "",
       pin: typeof r.pin === "string" ? r.pin : "",
       pinEdit: "",
+      proxy: typeof r.proxy === "string" ? r.proxy : "",
     }
   })
 }
@@ -388,6 +393,20 @@ function AccountCard({
             </div>
           </>
         )}
+
+        <div className="flex items-center justify-between px-4 py-3">
+          <div>
+            <p className="text-sm">{t("portfolios.proxy")}</p>
+            <p className="text-muted-foreground mt-0.5 text-xs">{t("portfolios.proxy_description")}</p>
+          </div>
+          <div className="w-64">
+            <Input
+              value={account.proxy ?? ""}
+              placeholder={t("portfolios.proxy_placeholder")}
+              onChange={(e) => onChange({ proxy: e.target.value })}
+            />
+          </div>
+        </div>
       </div>
     </div>
   )

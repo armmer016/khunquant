@@ -673,6 +673,10 @@
     "saveError": "Failed to save portfolio settings.",
     "loadError": "Failed to load portfolio settings.",
     "notFound": "Exchange \"{{name}}\" not found.",
+    "proxy": "Outbound Proxy (Optional)",
+    "proxy_description": "Route exchange API traffic through a proxy for IP allowlisting. Configure your exchange API key to allow only the proxy server's IP for enhanced security.",
+    "proxy_hint": "Optional proxy URL for exchange API requests. Useful for IP whitelisting via a VPS. Supported: http://, https://, socks5://",
+    "proxy_placeholder": "http://vps-ip:3128",
     "status": {
       "enabled": "Enabled",
       "configured": "Configured"
