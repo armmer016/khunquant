@@ -251,11 +251,14 @@ See [Exchange API Credentials](https://khunquant.com/docs) for step-by-step setu
 
 ---
 
-## Chat Platforms
+## Chat Platforms Examples
 
-Connect KhunQuant to any of 16 supported platforms by adding the relevant section to `config.json`:
-
+Connect KhunQuant to any supported platforms 
 Telegram · LINE · Discord · Slack · WhatsApp 
+
+<div align="center">
+  <img src="assets/download-transparent-fast.gif" alt="KhunQuant bot chat example on mobile" width="360" />
+</div>
 
 ---
 
@@ -339,5 +342,4 @@ Copyright &copy; 2026 <strong>CryptoQuantumWave Team</strong>. Released under th
 </table>
 
 </div>
-
 
