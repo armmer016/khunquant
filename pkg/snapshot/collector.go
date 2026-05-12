@@ -55,10 +55,11 @@ func CollectFromExchanges(ctx context.Context, cfg *config.Config, opts CollectO
 	}
 
 	accounts := listExchangeAccounts(cfg)
-	if opts.Source != "" {
+	source := strings.TrimSpace(opts.Source)
+	if source != "" && !strings.EqualFold(source, "all") {
 		var filtered []exchangeAccount
 		for _, ea := range accounts {
-			if strings.EqualFold(ea.exchange, opts.Source) {
+			if strings.EqualFold(ea.exchange, source) {
 				if opts.Account == "" || strings.EqualFold(ea.account, opts.Account) {
 					filtered = append(filtered, ea)
 				}

@@ -222,6 +222,24 @@ func TestCollectFromExchanges_SourceFilterNoMatch(t *testing.T) {
 	}
 }
 
+func TestCollectFromExchanges_SourceAllMeansAllAccounts(t *testing.T) {
+	cfg := &config.Config{
+		Exchanges: config.ExchangesConfig{
+			Binance: config.BinanceExchangeConfig{
+				Enabled:  true,
+				Accounts: []config.ExchangeAccount{{Name: "main"}},
+			},
+		},
+	}
+	result, err := CollectFromExchanges(context.Background(), cfg, CollectOptions{Source: " all "})
+	if err != nil {
+		t.Fatalf("CollectFromExchanges source=all should not filter out accounts: %v", err)
+	}
+	if result == nil {
+		t.Fatal("CollectFromExchanges source=all returned nil result")
+	}
+}
+
 func TestCollectFromExchanges_SourceFilterAccountMismatch(t *testing.T) {
 	cfg := &config.Config{
 		Exchanges: config.ExchangesConfig{

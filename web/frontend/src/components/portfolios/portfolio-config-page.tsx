@@ -1,4 +1,9 @@
-import { IconLoader2, IconPlus, IconTrash } from "@tabler/icons-react"
+import {
+  IconInfoCircle,
+  IconLoader2,
+  IconPlus,
+  IconTrash,
+} from "@tabler/icons-react"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
@@ -198,6 +203,10 @@ function getExchangeDisplayName(name: string): string {
   }
 }
 
+function getExchangeDocsUrl(exchangeName: string): string {
+  return `https://khunquant.com/docs/exchanges/${exchangeName}`
+}
+
 // ── Settrade static data ───────────────────────────────────────────────────
 
 const SETTRADE_BROKERS = [
@@ -225,6 +234,11 @@ const SETTRADE_APP_CODES = [
   { value: "ALGO_EQ", label: "ALGO_EQ (Equity)" },
   { value: "ALGO", label: "ALGO (Derivatives)" },
 ]
+
+const SETTRADE_BROKER_LIST_URL =
+  "https://developer.settrade.com/open-api/document/broker-list"
+const SETTRADE_OPEN_API_DOC_URL =
+  "https://developer.settrade.com/open-api/document"
 
 // ── Account card ───────────────────────────────────────────────────────────
 
@@ -283,7 +297,20 @@ function AccountCard({
 
       <div className="divide-border/70 divide-y border-t">
         <div className="flex items-center justify-between px-4 py-3">
-          <p className="text-sm">{apiKeyLabel}</p>
+          <p className="flex items-center gap-1.5 text-sm">
+            {apiKeyLabel}
+            {isSettrade && (
+              <a
+                href={SETTRADE_OPEN_API_DOC_URL}
+                target="_blank"
+                rel="noreferrer"
+                className="text-muted-foreground hover:text-foreground"
+                title={t("portfolios.settrade.open_api_doc_link")}
+              >
+                <IconInfoCircle className="size-4" />
+              </a>
+            )}
+          </p>
           <div className="w-64">
             <Input
               type="password"
@@ -295,7 +322,20 @@ function AccountCard({
         </div>
 
         <div className="flex items-center justify-between px-4 py-3">
-          <p className="text-sm">{secretLabel}</p>
+          <p className="flex items-center gap-1.5 text-sm">
+            {secretLabel}
+            {isSettrade && (
+              <a
+                href={SETTRADE_OPEN_API_DOC_URL}
+                target="_blank"
+                rel="noreferrer"
+                className="text-muted-foreground hover:text-foreground"
+                title={t("portfolios.settrade.open_api_doc_link")}
+              >
+                <IconInfoCircle className="size-4" />
+              </a>
+            )}
+          </p>
           <div className="w-64">
             <Input
               type="password"
@@ -326,6 +366,22 @@ function AccountCard({
 
         {isSettrade && (
           <>
+            <div className="bg-muted/30 px-4 py-3">
+              <p className="text-sm font-medium">
+                {t("portfolios.settrade.broker_api_support_title")}
+              </p>
+              <p className="text-muted-foreground mt-1 text-xs">
+                {t("portfolios.settrade.broker_api_support_desc")}{" "}
+                <a
+                  href={SETTRADE_BROKER_LIST_URL}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-foreground underline underline-offset-2"
+                >
+                  {t("portfolios.settrade.broker_api_support_link")}
+                </a>
+              </p>
+            </div>
             <div className="flex items-center justify-between px-4 py-3">
               <p className="text-sm">{t("portfolios.settrade.broker_id")}</p>
               <div className="w-64">
@@ -614,6 +670,7 @@ export function PortfolioConfigPage({ exchangeName }: PortfolioConfigPageProps) 
   }
 
   const displayName = getExchangeDisplayName(exchangeName)
+  const docsUrl = getExchangeDocsUrl(exchangeName)
   const accounts = (form as BinanceForm).accounts
   const isConfigured = accounts.length > 0
 
@@ -647,9 +704,19 @@ export function PortfolioConfigPage({ exchangeName }: PortfolioConfigPageProps) 
           </div>
         ) : (
           <div className="w-full max-w-250 space-y-5 pt-2">
-            <p className="text-sm font-medium">
-              {t("portfolios.edit", { name: displayName })}
-            </p>
+            <div className="flex items-center gap-2 text-sm">
+              <p className="font-medium">
+                {t("portfolios.edit", { name: displayName })}
+              </p>
+              <a
+                href={docsUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="text-muted-foreground hover:text-foreground text-xs underline underline-offset-2"
+              >
+                {t("portfolios.docLink")}
+              </a>
+            </div>
 
             {/* Exchange-level settings */}
             <div className="border-border/60 bg-background rounded-lg border">

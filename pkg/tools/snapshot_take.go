@@ -31,7 +31,7 @@ func (t *TakeSnapshotTool) Parameters() map[string]any {
 		"properties": map[string]any{
 			"source": map[string]any{
 				"type":        "string",
-				"description": "Source to snapshot (e.g. \"binance\"). Omit for ALL configured sources.",
+				"description": "Source to snapshot (e.g. \"binance\"). Omit or use \"all\" for ALL configured sources.",
 			},
 			"account": map[string]any{
 				"type":        "string",
